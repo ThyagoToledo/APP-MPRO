@@ -141,6 +141,10 @@
     if (!email || !senha) { showToast('Informe e-mail e senha.'); return; }
     showToast('Entrando…');
     API.post('auth?action=login', { email: email, senha: senha }).then(function (user) {
+      try {
+        localStorage.setItem('mpro_session', JSON.stringify({ name: user.nome, email: user.email }));
+        if (readMode() !== 'clean') localStorage.setItem('mpro_mode', 'user');
+      } catch (e) {}
       showToast('Bem-vindo, ' + (user.nome || email) + '.');
       navigate('dashboard');
     }).catch(function (e) {
@@ -159,11 +163,13 @@
     };
     if (!payload.email || !payload.senha) { showToast('Preencha e-mail e senha.'); return; }
     showToast('Criando conta…');
+    function marcaLimpa() { try { localStorage.setItem('mpro_mode', 'clean'); localStorage.removeItem('mpro_session'); } catch (e) {} }
     API.post('auth?action=register', payload).then(function () {
+      marcaLimpa(); // conta nova → HUD limpo (sem dados de teste)
       showToast('Conta criada. Faça login para continuar.');
       navigate('login');
     }).catch(function (e) {
-      if (apiIndisponivel(e)) { showToast('Conta criada no protótipo. Faça login.'); navigate('login'); return; }
+      if (apiIndisponivel(e)) { marcaLimpa(); showToast('Conta criada. Faça login.'); navigate('login'); return; }
       showToast(e.status === 409 ? 'E-mail já cadastrado.' : (e.message || 'Falha ao criar conta.'));
     });
   }
@@ -247,25 +253,23 @@
     });
   }
 
+  function readMode() { try { return localStorage.getItem('mpro_mode') || ''; } catch (e) { return ''; } }
+  function readSession() { try { return JSON.parse(localStorage.getItem('mpro_session') || 'null'); } catch (e) { return null; } }
+
   function setupDrawer() {
-    var hamburger = document.getElementById('menu-btn') ||
-      Array.prototype.slice.call(document.querySelectorAll('button')).filter(function (b) {
-        var s = b.querySelector('.material-symbols-outlined');
-        return s && s.textContent.trim() === 'menu';
-      })[0];
-    if (!hamburger) return;
-    // Menu unificado em TODAS as telas: esconde qualquer drawer nativo (o dashboard
-    // refinado tinha o seu) e clona o botão para remover listeners inline nativos.
+    var folder = currentFolder();
+    if (folder === destinations.login || folder === destinations.register) return; // sem menu antes do login
+
+    // Esconde qualquer menu nativo (drawer do refinado, sidebars <aside> e hambúrgueres das telas)
+    // para que exista UM único menu, igual em mobile e desktop.
     ['navigation-drawer', 'drawer-overlay'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = 'none';
+      var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
-    if (hamburger.parentNode) {
-      var fresh = hamburger.cloneNode(true);
-      hamburger.parentNode.replaceChild(fresh, hamburger);
-      hamburger = fresh;
-    }
-    hamburger.id = 'menu-btn'; // o handler global de clique ignora esse id
+    Array.prototype.forEach.call(document.querySelectorAll('aside'), function (a) { a.style.display = 'none'; });
+    Array.prototype.forEach.call(document.querySelectorAll('button, a'), function (b) {
+      var s = b.querySelector && b.querySelector('.material-symbols-outlined');
+      if (s && s.textContent.trim() === 'menu') b.style.display = 'none';
+    });
 
     var items = [
       { icon: 'home', text: 'Início', screen: 'dashboard' },
@@ -279,17 +283,22 @@
       { icon: 'settings', text: 'Configurações', screen: 'settings' },
       { icon: 'logout', text: 'Sair', screen: 'login' }
     ];
-    var current = currentFolder();
+    var current = folder;
+    var mode = readMode(), sess = readSession();
+    var sub = mode === 'demo' ? 'Conta demonstração' : mode === 'clean' ? 'Conta nova' :
+      (sess && (sess.name || sess.email)) || 'Monitoramento agronômico';
 
     var overlay = document.createElement('div');
     overlay.id = 'mpro-drawer-overlay';
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s';
 
     var panel = document.createElement('nav');
-    panel.style.cssText = 'position:fixed;top:0;left:0;height:100%;width:80%;max-width:300px;background:#f7fbf7;z-index:61;transform:translateX(-105%);transition:transform .25s ease;box-shadow:2px 0 24px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow-y:auto';
-    var header = '<div style="padding:22px 20px;background:#0a3d2a;color:#fff">' +
-      '<div style="font:700 18px Inter,sans-serif">M-PRO</div>' +
-      '<div style="font:500 13px Inter,sans-serif;opacity:.85">Monitoramento agronômico</div></div>';
+    panel.style.cssText = 'position:fixed;top:0;left:0;height:100%;width:82%;max-width:300px;background:#f7fbf7;z-index:61;transform:translateX(-105%);transition:transform .25s ease;box-shadow:2px 0 24px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow-y:auto';
+    var header = '<div style="padding:20px;background:#0a3d2a;color:#fff;display:flex;align-items:flex-start;justify-content:space-between">' +
+      '<div><div style="font:700 18px Inter,sans-serif">M-PRO</div>' +
+      '<div style="font:500 13px Inter,sans-serif;opacity:.85">' + sub + '</div></div>' +
+      '<button data-close="1" aria-label="Fechar" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;line-height:1">' +
+      '<span class="material-symbols-outlined">close</span></button></div>';
     var links = items.map(function (it) {
       var active = destinations[it.screen] === current;
       return '<a href="#" data-screen="' + it.screen + '" style="' + (active ? 'background:#dbeede;' : '') +
@@ -299,19 +308,35 @@
     }).join('');
     panel.innerHTML = header + '<div style="padding:8px 0;flex:1">' + links + '</div>';
 
+    // Botão de menu flutuante — sempre visível (mobile e desktop).
+    // Se a tela tem um "voltar" no canto, desloca para não sobrepor.
+    var hasBack = Array.prototype.some.call(document.querySelectorAll('button, a'), function (b) {
+      var s = b.querySelector && b.querySelector('.material-symbols-outlined');
+      return s && /arrow_back/.test(s.textContent.trim());
+    });
+    var btn = document.createElement('button');
+    btn.id = 'mpro-menu-btn';
+    btn.setAttribute('aria-label', 'Abrir menu');
+    btn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+    btn.style.cssText = 'position:fixed;top:12px;left:' + (hasBack ? '60px' : '12px') +
+      ';z-index:59;width:44px;height:44px;border-radius:12px;border:none;background:#0a3d2a;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer';
+
     document.body.appendChild(overlay);
     document.body.appendChild(panel);
+    document.body.appendChild(btn);
 
     function toggle(open) {
       var willOpen = open === undefined ? panel.style.transform !== 'translateX(0px)' : open;
       panel.style.transform = willOpen ? 'translateX(0px)' : 'translateX(-105%)';
       overlay.style.opacity = willOpen ? '1' : '0';
       overlay.style.pointerEvents = willOpen ? 'auto' : 'none';
+      btn.style.opacity = willOpen ? '0' : '1';
       document.body.classList.toggle('overflow-hidden', willOpen);
     }
-    hamburger.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle(); });
+    btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle(true); });
     overlay.addEventListener('click', function () { toggle(false); });
     panel.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) { e.preventDefault(); e.stopPropagation(); return toggle(false); }
       var link = e.target.closest('a[data-screen]');
       if (!link) return;
       e.preventDefault();
@@ -322,14 +347,23 @@
   }
 
   document.addEventListener('click', function (event) {
-    var control = event.target.closest('a,button');
-    if (!control || control.id === 'menu-btn' || control.id === 'drawer-overlay') return;
-    // Botões de submit dentro de <form> são tratados pelo handler de submit (login/cadastro reais).
-    if (control.tagName === 'BUTTON' && control.form && (control.type === 'submit' || control.type === '')) return;
+    var control = event.target.closest('a,button,[role="button"],.cursor-pointer');
+    if (!control || control.id === 'menu-btn' || control.id === 'mpro-menu-btn' || control.id === 'drawer-overlay') return;
     var label = textOf(control);
     var folder = currentFolder();
+    // Login com Google → entra na conta de demonstração (dados de teste).
+    if (folder === destinations.login && /continuar com google/.test(label)) {
+      event.preventDefault();
+      try {
+        localStorage.setItem('mpro_mode', 'demo');
+        localStorage.setItem('mpro_session', JSON.stringify({ name: 'Conta demonstração', demo: true }));
+      } catch (e) {}
+      return navigate('dashboard');
+    }
+    // Botões de submit dentro de <form> são tratados pelo handler de submit (login/cadastro reais).
+    if (control.tagName === 'BUTTON' && control.form && (control.type === 'submit' || control.type === '')) return;
     var destination = destinationFor(label);
-    if (folder === destinations.login && /continuar com google/.test(label)) destination = 'dashboard';
+    var isCard = control.getAttribute('role') === 'button' || /(^|\s)cursor-pointer(\s|$)/.test(control.className || '');
     if (folder === destinations.transcription && /descartar/.test(label)) destination = 'evidence';
     if (folder === destinations.transcription && /confirmar|integrar/.test(label)) destination = 'review';
     if (folder === destinations.review) {
@@ -349,7 +383,7 @@
       if (window.history.length > 1) return window.history.back();
       return navigate(BACK_FALLBACK[folder] || 'dashboard');
     }
-    if (destination && (control.getAttribute('href') === '#' || control.tagName === 'BUTTON')) {
+    if (destination && (control.getAttribute('href') === '#' || control.tagName === 'BUTTON' || isCard)) {
       event.preventDefault();
       navigate(destination);
     } else if (control.getAttribute('href') === '#') {
@@ -358,9 +392,21 @@
     }
   });
 
+  function applyMode() {
+    var folder = currentFolder();
+    if (folder === destinations.login || folder === destinations.register) return;
+    if (readMode() !== 'clean' || document.getElementById('mpro-clean-badge')) return;
+    var b = document.createElement('div');
+    b.id = 'mpro-clean-badge';
+    b.textContent = 'Conta nova · sem dados de teste';
+    b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:58;background:#0a3d2a;color:#fff;font:600 12px Inter,sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:70%;text-align:center;pointer-events:none';
+    document.body.appendChild(b);
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     bindFormFeedback();
     bindPrototypeInteractions();
     setupDrawer();
+    applyMode();
   });
 })();
