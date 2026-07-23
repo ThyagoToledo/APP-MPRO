@@ -17,6 +17,10 @@ Localmente, `vercel dev` lê a env var de um arquivo `.env` (ignorado pelo git).
 
 Padrão REST por entidade. Coleção em `/api/<entidade>`; item por `?id=<uuid>`.
 
+As entidades são atendidas por um único roteador dinâmico `api/[entity].js` (mais `auth` e
+`health`) — três funções no total, para caber no limite de 12 Serverless Functions do plano Hobby.
+Os caminhos abaixo não mudam.
+
 | Método | Rota | Ação |
 | --- | --- | --- |
 | GET | `/api/health` | Diagnóstico do banco + contadores. |
