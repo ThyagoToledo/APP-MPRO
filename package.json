@@ -5,6 +5,6 @@
   "description": "M-PRO — protótipo com API serverless (Vercel) sobre PostgreSQL/Neon",
   "type": "module",
   "dependencies": {
-    "@neondatabase/serverless": "^0.10.4"
+    "@neondatabase/serverless": "^1.1.0"
   }
 }
