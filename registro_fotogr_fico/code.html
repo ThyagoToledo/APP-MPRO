@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>M-PRO - Registro FotogrÃ¡fico</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-low": "#f3f4f1",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary": "#1b6d24",
+                      "on-tertiary": "#ffffff",
+                      "primary": "#002d1d",
+                      "neutral-surface": "#F9FAFB",
+                      "on-background": "#1a1c1a",
+                      "on-secondary": "#ffffff",
+                      "monitorar-amber": "#F59E0B",
+                      "on-secondary-fixed": "#002204",
+                      "surface": "#f9faf6",
+                      "tertiary-fixed-dim": "#f5b7b4",
+                      "on-secondary-container": "#217128",
+                      "surface-bright": "#f9faf6",
+                      "on-primary-fixed-variant": "#264e3d",
+                      "on-surface-variant": "#414944",
+                      "tertiary-fixed": "#ffdad8",
+                      "secondary-fixed": "#a3f69c",
+                      "inverse-surface": "#2f312f",
+                      "surface-container-highest": "#e2e3e0",
+                      "primary-container": "#1a4332",
+                      "surface-tint": "#3e6654",
+                      "on-primary-fixed": "#002114",
+                      "surface-container": "#eeeeeb",
+                      "surface-variant": "#e2e3e0",
+                      "on-primary-container": "#85af99",
+                      "on-secondary-fixed-variant": "#005312",
+                      "tertiary": "#401b1b",
+                      "secondary-container": "#a0f399",
+                      "on-surface": "#1a1c1a",
+                      "inverse-on-surface": "#f0f1ee",
+                      "inverse-primary": "#a4d0b9",
+                      "secondary-fixed-dim": "#88d982",
+                      "on-error": "#ffffff",
+                      "primary-fixed": "#c0edd4",
+                      "on-tertiary-container": "#d29895",
+                      "surface-container-high": "#e8e8e5",
+                      "on-tertiary-fixed-variant": "#673a39",
+                      "outline-variant": "#c1c8c2",
+                      "error": "#ba1a1a",
+                      "error-container": "#ffdad6",
+                      "medicao-blue": "#2563EB",
+                      "on-error-container": "#93000a",
+                      "on-primary": "#ffffff",
+                      "outline": "#717973",
+                      "on-tertiary-fixed": "#331111",
+                      "primary-fixed-dim": "#a4d0b9",
+                      "surface-dim": "#d9dad7",
+                      "background": "#f9faf6",
+                      "corrigir-red": "#DC2626",
+                      "text-technical": "#374151",
+                      "tertiary-container": "#5a302f",
+                      "border-subtle": "#E5E7EB"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "stack-tight": "8px",
+                      "stack-loose": "24px",
+                      "unit": "4px",
+                      "margin-page": "16px",
+                      "gutter-desktop": "24px",
+                      "gutter-mobile": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": ["Inter"],
+                      "label-caps": ["Inter"],
+                      "headline-sm": ["Inter"],
+                      "headline-lg": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "headline-md": ["Inter"],
+                      "data-mono": ["JetBrains Mono"]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                      "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Hide scrollbar for cleaner UI */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #e2e3e0;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c1c8c2;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col md:flex-row antialiased">
+<!-- Mobile Top App Bar (Hidden on Desktop) -->
+<header class="md:hidden bg-primary dark:bg-primary-container fixed top-0 w-full z-50 flex justify-between items-center h-16 px-4">
+<button class="text-on-primary dark:text-on-primary-container transition-colors duration-200 hover:bg-primary-container/20 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</div>
+<button class="text-on-primary dark:text-on-primary-container transition-colors duration-200 hover:bg-primary-container/20 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<!-- Desktop Navigation Drawer (Hidden on Mobile) -->
+<aside class="hidden md:flex flex-col h-screen w-80 rounded-r-xl bg-surface dark:bg-neutral-surface border-r border-outline-variant fixed left-0 top-0 z-40 py-4">
+<!-- Header Profile -->
+<div class="px-6 mb-8 flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-headline-sm text-headline-sm">
+                TE
+            </div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-primary dark:text-primary-fixed">TÃ©cnico Especialista</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">ID: 44920</p>
+<p class="font-label-caps text-label-caps text-outline mt-1">VersÃ£o 2.4.0</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+                RelatÃ³rios
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
+                Equipamentos
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                ConfiguraÃ§Ãµes
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+                Suporte
+            </a>
+</nav>
+<!-- Logout -->
+<div class="px-4 mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                Sair
+            </a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full md:ml-80 pt-20 md:pt-8 pb-24 md:pb-8 px-margin-page md:px-gutter-desktop max-w-7xl mx-auto">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-stack-loose mb-stack-loose border-b border-border-subtle pb-4">
+<div>
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm mb-1">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span>Voltar para Nova Visita</span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">Registro FotogrÃ¡fico</h1>
+<p class="font-body-md text-body-md text-text-technical mt-1">Fazenda Boa EsperanÃ§a â€¢ TalhÃ£o 4A â€¢ {{DATA:DOCUMENT:DOCUMENT_1:Data}}</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center gap-2 h-11 px-4 border border-outline rounded-lg text-primary font-body-md text-body-md hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">add_a_photo</span>
+                    Capturar
+                </button>
+<button class="flex items-center justify-center gap-2 h-11 px-4 bg-secondary text-on-secondary rounded-lg font-body-md text-body-md hover:bg-secondary-container hover:text-on-secondary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined">save</span>
+                    Salvar Registros
+                </button>
+</div>
+</div>
+<!-- Photo Grid Bento Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-stack-loose">
+<!-- Photo Card 1 -->
+<div class="bg-neutral-surface border border-border-subtle rounded-xl overflow-hidden flex flex-col hover:border-primary transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+<!-- Image Header -->
+<div class="relative h-48 w-full bg-surface-container group">
+<div class="absolute inset-0 bg-cover bg-center w-full h-full" data-alt="Close up photograph of a healthy, bright green soybean leaf in an agricultural field. The lighting is bright sunlight, showing crisp details of the leaf veins and texture. The background is a soft blur of more crop plants and soil. The mood is scientific and agricultural, emphasizing the health of the plant. High resolution, sharp focus." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhI9C8Kl0s4Mmg42GYvHOeHv96r6i6qEKEPNHWw9Oy6qRi5B2uNJGkykBhn8akCfDJ0oyMJIkv4HuZR5o3sPMGpNHuN046qfkztImR8mEX3PXoEWuTVTZSGti4OgNDa7_5jlPfGrhCC25rlh9UdZHvtN7tbAmmkkO8pABI_S1mf76hdlVxAuRVhE_E-q_XoWMnMKhUHQLga_FbSIPvVuFarsdv_MZvJPI3XWvkdjxr06cyMeewTz2hOg')"></div>
+<!-- Overlay Controls -->
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur text-on-surface flex items-center justify-center hover:bg-white transition-colors" title="Reordenar">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur text-corrigir-red flex items-center justify-center hover:bg-white transition-colors" title="Excluir">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+<div class="absolute bottom-2 left-2 flex gap-2">
+<span class="bg-surface-container-lowest/90 backdrop-blur px-2 py-1 rounded text-data-mono font-data-mono text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            10:24
+                        </span>
+<span class="bg-secondary text-on-secondary px-2 py-1 rounded text-label-caps font-label-caps flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                            Incluir
+                        </span>
+</div>
+</div>
+<!-- Form Body -->
+<div class="p-4 flex flex-col gap-stack-tight flex-1">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">TÃTULO</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="Ex: RaÃ­zes TalhÃ£o 2" type="text" value="AnÃ¡lise Foliar - Setor Norte"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">CATEGORIA</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow">
+<option>NutriÃ§Ã£o</option>
+<option>Pragas</option>
+<option>DoenÃ§as</option>
+<option selected="">Desenvolvimento Vegetativo</option>
+<option>IrrigaÃ§Ã£o</option>
+</select>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">LEGENDA TÃ‰CNICA</label>
+<textarea class="w-full h-full min-h-[80px] bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow resize-none" placeholder="Descreva os achados tÃ©cnicos...">Desenvolvimento foliar adequado para o estÃ¡gio V4. ColoraÃ§Ã£o verde intensa indicando boa absorÃ§Ã£o de nitrogÃªnio.</textarea>
+</div>
+<div class="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center text-on-surface-variant font-body-sm text-body-sm">
+<span>Autor: T. Especialista</span>
+<span>Seq: #01</span>
+</div>
+</div>
+</div>
+<!-- Photo Card 2 -->
+<div class="bg-neutral-surface border border-border-subtle rounded-xl overflow-hidden flex flex-col hover:border-primary transition-colors focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+<!-- Image Header -->
+<div class="relative h-48 w-full bg-surface-container group">
+<div class="absolute inset-0 bg-cover bg-center w-full h-full" data-alt="Close up photograph of a damaged crop leaf showing signs of pest infestation, possibly small caterpillars or bite marks. The leaf has some brown spots and irregular edges. Bright outdoor daylight. Agricultural context, emphasizing the need for monitoring. Professional, scientific visual documentation style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAwoZjp_LVQJcRcJphi_K7e2QzNd6YUlj7Nocq61rpC694tFbiXbNUaPPaIaNhq77CMEahpgVLIEaFKKSPHvgvFEKJQ0jmYEt8gm6JR5NQ2NE60LMSxlHJiLTVML-0h4sjARdJk1B3qWSh-g4clXPKPvvnIBToc5Gwdb4GmHu4PQnf0msH7uNJx-uEDnSvz1JSY8XGHL02mq0UgDS9Fq140UF0tINY8sTrFqYsR2lppizpR5iX8WBqsdg')"></div>
+<!-- Overlay Controls -->
+<div class="absolute top-2 right-2 flex gap-1">
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur text-on-surface flex items-center justify-center hover:bg-white transition-colors" title="Reordenar">
+<span class="material-symbols-outlined text-[18px]">drag_indicator</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-surface-container-lowest/80 backdrop-blur text-corrigir-red flex items-center justify-center hover:bg-white transition-colors" title="Excluir">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+<div class="absolute bottom-2 left-2 flex gap-2">
+<span class="bg-surface-container-lowest/90 backdrop-blur px-2 py-1 rounded text-data-mono font-data-mono text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                            10:35
+                        </span>
+<span class="bg-surface-container-lowest text-on-surface px-2 py-1 rounded text-label-caps font-label-caps flex items-center gap-1 border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]">circle</span>
+                            Omitir
+                        </span>
+</div>
+</div>
+<!-- Form Body -->
+<div class="p-4 flex flex-col gap-stack-tight flex-1">
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">TÃTULO</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow" placeholder="Ex: RaÃ­zes TalhÃ£o 2" type="text" value="EvidÃªncia de MastigaÃ§Ã£o"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">CATEGORIA</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow">
+<option>NutriÃ§Ã£o</option>
+<option selected="">Pragas</option>
+<option>DoenÃ§as</option>
+<option>Desenvolvimento Vegetativo</option>
+<option>IrrigaÃ§Ã£o</option>
+</select>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant">LEGENDA TÃ‰CNICA</label>
+<textarea class="w-full h-full min-h-[80px] bg-surface-container-lowest border border-outline-variant rounded-md px-3 py-2 font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow resize-none" placeholder="Descreva os achados tÃ©cnicos...">PresenÃ§a de dano foliar severo na bordadura. Identificada Spodoptera frugiperda. NecessÃ¡ria intervenÃ§Ã£o imediata.</textarea>
+</div>
+<div class="mt-2 pt-2 border-t border-border-subtle flex justify-between items-center text-on-surface-variant font-body-sm text-body-sm">
+<span>Autor: T. Especialista</span>
+<span>Seq: #02</span>
+</div>
+</div>
+</div>
+<!-- Add New Placeholder Card -->
+<div class="bg-surface-container border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center p-8 min-h-[400px] hover:border-primary hover:bg-surface-container-low transition-colors cursor-pointer group">
+<div class="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors mb-4">
+<span class="material-symbols-outlined text-[32px]">add_photo_alternate</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-2">Adicionar Registro</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-center max-w-[200px]">Capture uma nova foto ou selecione da galeria.</p>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav Bar (Hidden on Desktop) -->
+<nav class="md:hidden bg-surface dark:bg-neutral-surface fixed bottom-0 w-full z-50 border-t border-outline-variant flex justify-around items-center h-20 px-2 pb-safe">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-transform scale-95 active:scale-90 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-transform scale-95 active:scale-90 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container hover:bg-surface-container-highest transition-transform scale-95 active:scale-90 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined filled-icon" data-icon="add_circle">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Nova Visita</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-highest transition-transform scale-95 active:scale-90 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+<span class="font-label-caps text-label-caps mt-1">Sincronizar</span>
+</a>
+</nav>
+<script src="../mpro-prototype.js"></script>
+</body></html>

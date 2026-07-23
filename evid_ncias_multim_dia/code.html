@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>M-PRO - Registro de EvidÃªncias MultimÃ­dia</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#3e6654",
+                        "background": "#f9faf6",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1a1c1a",
+                        "primary": "#002d1d",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#005312",
+                        "inverse-surface": "#2f312f",
+                        "surface-container-low": "#f3f4f1",
+                        "surface-container": "#eeeeeb",
+                        "surface": "#f9faf6",
+                        "monitorar-amber": "#F59E0B",
+                        "surface-bright": "#f9faf6",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#f5b7b4",
+                        "surface-container-high": "#e8e8e5",
+                        "outline-variant": "#c1c8c2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#5a302f",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9dad7",
+                        "on-secondary-container": "#217128",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#a0f399",
+                        "primary-fixed-dim": "#a4d0b9",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface-variant": "#414944",
+                        "inverse-primary": "#a4d0b9",
+                        "tertiary": "#401b1b",
+                        "on-tertiary-fixed": "#331111",
+                        "outline": "#717973",
+                        "primary-container": "#1a4332",
+                        "surface-container-highest": "#e2e3e0",
+                        "primary-fixed": "#c0edd4",
+                        "on-tertiary-fixed-variant": "#673a39",
+                        "surface-variant": "#e2e3e0",
+                        "on-tertiary-container": "#d29895",
+                        "inverse-on-surface": "#f0f1ee",
+                        "on-primary-fixed": "#002114",
+                        "on-secondary-fixed": "#002204",
+                        "tertiary-fixed": "#ffdad8",
+                        "on-primary-fixed-variant": "#264e3d",
+                        "text-technical": "#374151",
+                        "secondary-fixed": "#a3f69c",
+                        "corrigir-red": "#DC2626",
+                        "secondary": "#1b6d24",
+                        "neutral-surface": "#F9FAFB",
+                        "on-primary-container": "#85af99",
+                        "medicao-blue": "#2563EB",
+                        "border-subtle": "#E5E7EB"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter-mobile": "16px",
+                        "stack-loose": "24px",
+                        "gutter-desktop": "24px",
+                        "stack-tight": "8px",
+                        "unit": "4px",
+                        "margin-page": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .audio-wave {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 48px;
+        }
+        .audio-wave div {
+            width: 4px;
+            background-color: var(--primary, #002d1d);
+            border-radius: 999px;
+            animation: bounce 1s infinite alternate ease-in-out;
+        }
+        .audio-wave div:nth-child(1) { height: 30%; animation-delay: 0.1s; }
+        .audio-wave div:nth-child(2) { height: 60%; animation-delay: 0.2s; }
+        .audio-wave div:nth-child(3) { height: 100%; animation-delay: 0.3s; }
+        .audio-wave div:nth-child(4) { height: 80%; animation-delay: 0.4s; }
+        .audio-wave div:nth-child(5) { height: 40%; animation-delay: 0.5s; }
+        .audio-wave div:nth-child(6) { height: 70%; animation-delay: 0.6s; }
+        .audio-wave div:nth-child(7) { height: 90%; animation-delay: 0.7s; }
+        .audio-wave div:nth-child(8) { height: 50%; animation-delay: 0.8s; }
+        .audio-wave div:nth-child(9) { height: 20%; animation-delay: 0.9s; }
+        
+        @keyframes bounce {
+            0% { transform: scaleY(0.5); }
+            100% { transform: scaleY(1); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col pt-16 pb-20 md:pb-0 md:flex-row md:pt-0">
+<!-- TopAppBar -->
+<header class="bg-primary flex justify-between items-center h-16 px-4 w-full fixed top-0 w-full z-50 md:hidden">
+<button class="text-on-primary p-2">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<span class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</span>
+<button class="text-on-primary p-2">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<!-- NavigationDrawer (Desktop) -->
+<nav class="hidden md:flex flex-col h-screen py-4 bg-surface w-80 border-r border-outline-variant fixed left-0 top-0 z-40">
+<div class="px-6 pb-6 border-b border-outline-variant">
+<h1 class="font-headline-md text-headline-md text-primary font-bold mb-4">M-PRO</h1>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-semibold text-primary">TÃ©cnico Especialista</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">ID: 44920</div>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto py-4">
+<ul class="space-y-2 px-3">
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-body-md text-body-md">RelatÃ³rios</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-secondary-container text-on-secondary-container font-bold transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
+<span class="font-body-md text-body-md">Equipamentos</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">ConfiguraÃ§Ãµes</span>
+</a>
+</li>
+</ul>
+</div>
+<div class="p-4 border-t border-outline-variant">
+<div class="font-body-sm text-body-sm text-on-surface-variant text-center">VersÃ£o 2.4.0</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 px-gutter-mobile md:px-gutter-desktop py-stack-loose md:ml-80">
+<div class="max-w-4xl mx-auto">
+<header class="mb-stack-loose">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-unit">EvidÃªncias MultimÃ­dia</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Visita TÃ©cnica #9928 - Fazenda Boa EsperanÃ§a</p>
+</header>
+<!-- Tabs -->
+<div class="flex border-b border-outline-variant mb-stack-loose overflow-x-auto no-scrollbar">
+<button class="px-4 py-3 font-body-md text-body-md text-on-surface-variant whitespace-nowrap">Fotos (12)</button>
+<button class="px-4 py-3 font-body-md text-body-md text-on-surface-variant whitespace-nowrap">VÃ­deos (2)</button>
+<button class="px-4 py-3 font-body-md text-body-md text-primary border-b-2 border-primary font-semibold whitespace-nowrap">Ãudios (3)</button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-stack-loose">
+<!-- Active Recording Card -->
+<div class="bg-neutral-surface border border-outline-variant rounded-xl p-6 flex flex-col items-center">
+<div class="text-error font-body-sm text-body-sm flex items-center gap-2 mb-4">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                        Gravando
+                    </div>
+<div class="font-data-mono text-headline-md text-primary mb-6">02:45</div>
+<div class="w-full bg-surface-container-low rounded-lg p-4 mb-8">
+<div class="audio-wave w-full">
+<div></div><div></div><div></div><div></div><div></div>
+<div></div><div></div><div></div><div></div>
+<div></div><div></div><div></div><div></div><div></div>
+</div>
+</div>
+<div class="flex gap-4 w-full">
+<button class="flex-1 flex items-center justify-center gap-2 border border-outline-variant text-on-surface rounded-lg py-3 hover:bg-surface-container-low transition-colors font-body-md text-body-md font-semibold min-h-[44px]">
+<span class="material-symbols-outlined" data-icon="pause">pause</span>
+                            Pausar
+                        </button>
+<button class="flex-1 flex items-center justify-center gap-2 bg-primary text-on-primary rounded-lg py-3 hover:bg-primary-container transition-colors font-body-md text-body-md font-semibold min-h-[44px]">
+<span class="material-symbols-outlined" data-icon="stop">stop</span>
+                            Finalizar
+                        </button>
+</div>
+</div>
+<!-- Saved Evidence List -->
+<div class="space-y-stack-tight">
+<h3 class="font-headline-sm text-headline-sm text-primary mb-stack-tight">Salvos Recentemente</h3>
+<!-- Saved Audio Card -->
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined" data-icon="mic">mic</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Relato_Irrigacao_SetorB.m4a</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">12/10/2023 - 14:32 â€¢ 01:15</div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low p-2 rounded-md">
+<button class="text-primary p-1"><span class="material-symbols-outlined" data-icon="play_arrow">play_arrow</span></button>
+<div class="flex-1 h-1 bg-outline-variant rounded-full overflow-hidden">
+<div class="w-0 h-full bg-primary"></div>
+</div>
+<span class="font-data-mono text-data-mono text-on-surface-variant">00:00</span>
+</div>
+<div class="flex justify-end gap-2 mt-2">
+<button class="flex items-center gap-1 text-primary font-body-sm text-body-sm hover:underline px-2 py-1 min-h-[44px]">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+                                Transcrever
+                            </button>
+</div>
+</div>
+<!-- Saved Video Card -->
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex gap-4">
+<div class="relative w-24 h-24 rounded-md overflow-hidden bg-surface-container-high flex-shrink-0">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A close-up shot of an agricultural field showing a broken irrigation pipe spraying water, capturing the immediate issue in high detail under bright daylight." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpZaT6hPko3JHWELV3b14EmnDq2xsqXzcSXTXK5FH4CcGgBj-vTLperoCEF-ZtOCznkBF5Wi3lxTySoL_r65EFU2asUmQZtIgD8AUNBXu6Kh3007EBUtnPYn0nWQ6V0ARAJN9nxYO-fPhcilnTYttFog5SaSHkL3TXCmwAkcx6ImIsh7V4oGdLFuIglYK2bhLFWyEtB1ZOJfinD7iFi4AnpinSYvrG2dNQTCv5OC1nxpE0Baqdt6mqVA')"></div>
+<div class="absolute inset-0 bg-black/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-white" data-icon="play_circle">play_circle</span>
+</div>
+<div class="absolute bottom-1 right-1 bg-black/60 text-white font-data-mono text-[10px] px-1 rounded">
+                                00:45
+                            </div>
+</div>
+<div class="flex flex-col justify-between flex-1">
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface line-clamp-2">Vazamento_Tubulacao_Principal.mp4</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">12/10/2023 - 13:45</div>
+</div>
+<div class="flex justify-end">
+<button class="text-outline hover:text-error p-2 min-h-[44px]">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile) -->
+<nav class="flex justify-around items-center h-20 px-2 pb-safe w-full bg-surface border-t border-outline-variant fixed bottom-0 z-50 md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-16 h-full" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-16 h-full" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 h-12 my-auto" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Nova Visita</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant w-16 h-full" href="#">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+<span class="font-label-caps text-label-caps mt-1">Sincronizar</span>
+</a>
+</nav>
+<script src="../mpro-prototype.js"></script>
+</body></html>

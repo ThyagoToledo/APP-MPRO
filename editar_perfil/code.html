@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Editar Perfil - M-PRO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eeeeeb",
+                        "surface-container-low": "#f3f4f1",
+                        "on-primary": "#ffffff",
+                        "secondary": "#1b6d24",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#673a39",
+                        "secondary-container": "#a0f399",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1a",
+                        "inverse-on-surface": "#f0f1ee",
+                        "surface-container-highest": "#e2e3e0",
+                        "monitorar-amber": "#F59E0B",
+                        "surface-dim": "#d9dad7",
+                        "secondary-fixed-dim": "#88d982",
+                        "error": "#ba1a1a",
+                        "outline": "#717973",
+                        "tertiary-fixed": "#ffdad8",
+                        "tertiary-container": "#5a302f",
+                        "background": "#f9faf6",
+                        "inverse-surface": "#2f312f",
+                        "tertiary-fixed-dim": "#f5b7b4",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9faf6",
+                        "primary-container": "#1a4332",
+                        "on-surface-variant": "#414944",
+                        "corrigir-red": "#DC2626",
+                        "error-container": "#ffdad6",
+                        "on-surface": "#1a1c1a",
+                        "on-tertiary-fixed": "#331111",
+                        "outline-variant": "#c1c8c2",
+                        "secondary-fixed": "#a3f69c",
+                        "medicao-blue": "#2563EB",
+                        "surface-container-high": "#e8e8e5",
+                        "surface-tint": "#3e6654",
+                        "on-secondary-container": "#217128",
+                        "on-tertiary-container": "#d29895",
+                        "tertiary": "#401b1b",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#264e3d",
+                        "text-technical": "#374151",
+                        "on-primary-fixed": "#002114",
+                        "on-secondary-fixed-variant": "#005312",
+                        "on-secondary-fixed": "#002204",
+                        "primary-fixed": "#c0edd4",
+                        "neutral-surface": "#F9FAFB",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#a4d0b9",
+                        "primary": "#002d1d",
+                        "inverse-primary": "#a4d0b9",
+                        "border-subtle": "#E5E7EB",
+                        "surface": "#f9faf6",
+                        "on-primary-container": "#85af99",
+                        "surface-variant": "#e2e3e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-page": "16px",
+                        "gutter-mobile": "16px",
+                        "gutter-desktop": "24px",
+                        "stack-loose": "24px",
+                        "unit": "4px",
+                        "stack-tight": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input:focus-visible {
+            outline: 2px solid #002d1d; /* primary color */
+            outline-offset: -1px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased min-h-screen flex flex-col pt-16 pb-safe">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-primary flex justify-between items-center h-16 px-4 w-full shadow-none">
+<button aria-label="Voltar" class="text-on-primary p-2 -ml-2 rounded-full hover:bg-primary-container/20 transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</div>
+<button aria-label="Salvar" class="text-on-primary p-2 -mr-2 rounded-full hover:bg-primary-container/20 transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="check">check</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col p-margin-page md:px-gutter-desktop max-w-3xl mx-auto w-full">
+<div class="mb-stack-loose mt-stack-loose">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">Editar Perfil</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-unit">Atualize suas informaÃ§Ãµes tÃ©cnicas e profissionais.</p>
+</div>
+<!-- Profile Photo Section -->
+<section class="bg-neutral-surface border border-border-subtle rounded-xl p-margin-page mb-stack-loose flex flex-col items-center justify-center relative overflow-hidden">
+<div class="relative group cursor-pointer">
+<div class="w-32 h-32 rounded-full overflow-hidden border-4 border-surface shadow-sm relative bg-surface-container-high flex items-center justify-center">
+<img alt="Foto de perfil" class="w-full h-full object-cover" data-alt="A professional headshot of a smiling agricultural technician wearing a light green collared shirt. The background is a blurred, bright outdoor agricultural field on a sunny day. The lighting is natural and flattering, highlighting the technician's expert yet approachable demeanor. The image style is realistic, modern, and high-quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXrUbeYkTcRjvA7Yn2tUvzOvUFaL4-9v3g82AIXxB7PrdqXgvUCWbbg43UwN7nvqNPVEwl4nHenqG6pvtb6N3Z_UNNvvVrXP3s_fRachmot_whZvXG2cOMLUBY4_RFEJpPkbsjxRcGUnbx00WWIqiDvJ0O2yZ3ITzIb3Ls7PViwUmnXRMzK-a6lKbyzAAegqFqTxprvImS1108qXEKMoq85il9crLA6gRLlXPzObB1KAPwRRFFN4CIaQ"/>
+<div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+<span class="material-symbols-outlined text-white mb-1" data-icon="photo_camera">photo_camera</span>
+<span class="text-white font-body-sm text-body-sm">Alterar Foto</span>
+</div>
+</div>
+</div>
+<div class="mt-stack-tight text-center">
+<button class="font-body-sm text-body-sm text-primary hover:underline" type="button">Remover foto atual</button>
+</div>
+</section>
+<!-- Technical Details Form -->
+<form class="flex flex-col gap-stack-loose flex-grow">
+<fieldset class="bg-neutral-surface border border-border-subtle rounded-xl p-margin-page flex flex-col gap-margin-page">
+<legend class="sr-only">InformaÃ§Ãµes BÃ¡sicas</legend>
+<!-- Nome -->
+<div class="flex flex-col gap-unit">
+<label class="font-body-sm text-body-sm text-on-surface-variant font-semibold" for="nome">Nome Completo</label>
+<input class="bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-lg text-body-lg text-on-surface focus:border-primary focus:ring-1 focus:ring-primary w-full h-[48px] transition-colors" id="nome" name="nome" placeholder="Seu nome completo" type="text" value="TÃ©cnico Especialista"/>
+</div>
+<!-- ID TÃ©cnico -->
+<div class="flex flex-col gap-unit">
+<label class="font-body-sm text-body-sm text-on-surface-variant font-semibold" for="id_tecnico">ID do TÃ©cnico <span class="text-error">*</span></label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant material-symbols-outlined" data-icon="badge">badge</span>
+<input aria-required="true" class="bg-surface-container-low border border-outline-variant rounded-lg pl-12 pr-4 py-3 font-data-mono text-data-mono text-text-technical focus:border-primary focus:ring-1 focus:ring-primary w-full h-[48px] transition-colors" id="id_tecnico" name="id_tecnico" placeholder="Ex: 12345" readonly="" required="" title="ID nÃ£o pode ser alterado" type="text" value="44920"/>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]" data-icon="info">info</span> O ID tÃ©cnico Ã© gerado automaticamente pelo sistema.</span>
+</div>
+<!-- Empresa -->
+<div class="flex flex-col gap-unit">
+<label class="font-body-sm text-body-sm text-on-surface-variant font-semibold" for="empresa">Empresa / Filial</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant material-symbols-outlined" data-icon="business">business</span>
+<select class="bg-surface border border-outline-variant rounded-lg pl-12 pr-10 py-3 font-body-lg text-body-lg text-on-surface focus:border-primary focus:ring-1 focus:ring-primary w-full h-[48px] appearance-none transition-colors" id="empresa" name="empresa">
+<option value="matriz">AgroTech Matriz (SÃ£o Paulo)</option>
+<option selected="" value="filial1">AgroTech Filial Sul (ParanÃ¡)</option>
+<option value="filial2">AgroTech Filial Centro-Oeste (Mato Grosso)</option>
+</select>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant material-symbols-outlined pointer-events-none" data-icon="arrow_drop_down">arrow_drop_down</span>
+</div>
+</div>
+</fieldset>
+<!-- Action Buttons -->
+<div class="flex flex-col md:flex-row gap-margin-page mt-stack-loose mb-stack-loose pt-stack-loose border-t border-border-subtle">
+<button class="order-2 md:order-1 flex-1 py-3 px-6 rounded-lg border border-outline-variant text-on-surface font-body-lg text-body-lg font-semibold hover:bg-surface-container-highest transition-colors flex justify-center items-center h-[48px]" type="button">
+                    Cancelar
+                </button>
+<button class="order-1 md:order-2 flex-1 py-3 px-6 rounded-lg bg-secondary text-on-secondary font-body-lg text-body-lg font-semibold hover:bg-on-secondary-container transition-colors flex justify-center items-center h-[48px] shadow-sm" type="submit">
+                    Salvar AlteraÃ§Ãµes
+                </button>
+</div>
+</form>
+</main>
+<script src="../mpro-prototype.js"></script>
+</body></html>
