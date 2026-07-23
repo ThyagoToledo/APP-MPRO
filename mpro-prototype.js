@@ -422,6 +422,11 @@
       } else {
         sel.innerHTML = '<option value="">Selecione o cliente</option>' +
           list.map(function (c) { return '<option value="' + c.id + '">' + c.nome + '</option>'; }).join('');
+        // Pré-seleciona o cliente vindo do "Iniciar Visita" na tela de Clientes.
+        try {
+          var pre = localStorage.getItem('mpro_cliente_sel');
+          if (pre) { sel.value = pre; localStorage.removeItem('mpro_cliente_sel'); }
+        } catch (e) {}
       }
     }).catch(function () { sel.innerHTML = '<option value="">(cadastro offline)</option>'; });
 
@@ -464,6 +469,79 @@
     };
   }
 
+  // Tela de Clientes/Mapa: troca o card estático por uma lista real de clientes (da API).
+  function setupClientsMap() {
+    if (currentFolder() !== destinations.clients) return;
+    var wrapper = Array.prototype.slice.call(document.querySelectorAll('div')).filter(function (d) {
+      var c = d.className || '';
+      return /z-20/.test(c) && /absolute/.test(c) && d.querySelector('h2');
+    })[0];
+    if (!wrapper) return;
+    wrapper.innerHTML = '';
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '12px';
+    wrapper.style.overflowX = 'auto';
+    wrapper.style.padding = '4px 2px 8px';
+    wrapper.style.scrollSnapType = 'x mandatory';
+
+    function esc(t) { return (t || '').replace(/[&<>"]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[m]; }); }
+    function field(label, value) {
+      return '<div><p style="font:600 10px Inter,sans-serif;letter-spacing:.05em;color:#6b7d70;margin:0">' + label +
+        '</p><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:2px 0 0">' + esc(value || '—') + '</p></div>';
+    }
+    function cardHTML(c) {
+      return '<div class="mpro-cli-card" style="flex:0 0 86%;scroll-snap-align:center;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);overflow:hidden">' +
+        '<div style="height:6px;background:#2f9e57"></div><div style="padding:16px">' +
+        '<h2 style="font:700 18px Inter,sans-serif;color:#0b1f16;margin:0 0 4px">' + esc(c.nome) + '</h2>' +
+        '<p style="font:500 13px Inter,sans-serif;color:#4b5b50;margin:0 0 12px;display:flex;align-items:center;gap:4px">' +
+        '<span class="material-symbols-outlined" style="font-size:16px">mail</span>' + esc(c.contato_email || 'sem e-mail') + '</p>' +
+        '<div style="display:flex;gap:24px;border-top:1px solid #e3ebe4;padding-top:10px;margin-bottom:14px">' +
+        field('TELEFONE', c.contato_telefone) + field('DOCUMENTO', c.documento) + '</div>' +
+        '<div style="display:flex;gap:8px">' +
+        '<button data-det="1" style="flex:1;background:#eef3ef;color:#33453b;border:none;border-radius:8px;padding:12px;font:600 14px Inter,sans-serif;cursor:pointer">Ver Detalhes</button>' +
+        '<button data-visit="1" data-cid="' + c.id + '" style="flex:1;background:#0a3d2a;color:#fff;border:none;border-radius:8px;padding:12px;font:600 14px Inter,sans-serif;cursor:pointer">Iniciar Visita</button>' +
+        '</div></div></div>';
+    }
+
+    function render(list) {
+      if (!list || !list.length) {
+        wrapper.innerHTML = '<div style="flex:0 0 92%;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:20px;text-align:center">' +
+          '<p style="font:600 15px Inter,sans-serif;color:#0b1f16;margin:0 0 10px">Nenhum cliente cadastrado</p>' +
+          '<button id="mpro-add-cli" style="background:#0a3d2a;color:#fff;border:none;border-radius:8px;padding:12px 16px;font:600 14px Inter,sans-serif;cursor:pointer">Cadastrar na Nova Visita</button></div>';
+        var a = document.getElementById('mpro-add-cli');
+        if (a) a.addEventListener('click', function () { navigate('visit'); });
+        return;
+      }
+      wrapper.innerHTML = list.map(cardHTML).join('');
+      Array.prototype.forEach.call(wrapper.querySelectorAll('[data-visit]'), function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          try { localStorage.setItem('mpro_cliente_sel', b.getAttribute('data-cid')); } catch (er) {}
+          navigate('visit');
+        });
+      });
+      Array.prototype.forEach.call(wrapper.querySelectorAll('[data-det]'), function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var card = b.closest('.mpro-cli-card');
+          showToast('Cliente: ' + (card.querySelector('h2') || {}).textContent);
+        });
+      });
+    }
+
+    var todos = [];
+    API.get('clientes').then(function (list) { todos = list || []; render(todos); })
+      .catch(function () {
+        wrapper.innerHTML = '<div style="flex:0 0 92%;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:20px;text-align:center;font:500 14px Inter,sans-serif;color:#4b5b50">Clientes indisponíveis (sem conexão com a API).</div>';
+      });
+
+    var busca = document.querySelector('input[placeholder*="Buscar"], input[placeholder*="buscar"]');
+    if (busca) busca.addEventListener('input', function () {
+      var q = busca.value.trim().toLowerCase();
+      render(!q ? todos : todos.filter(function (c) { return (c.nome || '').toLowerCase().indexOf(q) >= 0; }));
+    });
+  }
+
   function applyMode() {
     var folder = currentFolder();
     if (folder === destinations.login || folder === destinations.register) return;
@@ -480,6 +558,7 @@
     bindPrototypeInteractions();
     setupDrawer();
     setupVisitForm();
+    setupClientsMap();
     applyMode();
   });
 })();
