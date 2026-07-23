@@ -241,6 +241,7 @@
         button.addEventListener('click', function () {
           var f = currentFolder();
           if (f === destinations.visit && /continuar/.test(label)) {
+            if (window.__mproSaveVisit) return window.__mproSaveVisit();
             showToast('Visita salva. Seguindo para o registro fotográfico.');
             return navigate('photos');
           }
@@ -269,6 +270,13 @@
     Array.prototype.forEach.call(document.querySelectorAll('button, a'), function (b) {
       var s = b.querySelector && b.querySelector('.material-symbols-outlined');
       if (s && s.textContent.trim() === 'menu') b.style.display = 'none';
+    });
+    // Centraliza o título/logo do header (o hambúrguer nativo foi escondido, então a marca
+    // deslizava para baixo do botão de menu flutuante).
+    Array.prototype.forEach.call(document.querySelectorAll('header h1, header h2'), function (t) {
+      t.style.flex = '1';
+      t.style.textAlign = 'center';
+      t.style.margin = '0';
     });
 
     var items = [
@@ -392,6 +400,70 @@
     }
   });
 
+  // Nova Visita ligada ao banco: seletor de cliente real + gravação da visita no Neon.
+  function setupVisitForm() {
+    if (currentFolder() !== destinations.visit) return;
+    var main = document.querySelector('main') || document.body;
+    var box = document.createElement('div');
+    box.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin:0 0 12px';
+    box.innerHTML = '<label style="font:600 13px Inter,sans-serif;color:#0b1f16">Cliente</label>' +
+      '<select id="mpro-cliente-select" style="padding:12px;border:1px solid #cdd8cf;border-radius:10px;font:500 14px Inter,sans-serif;background:#fff"><option value="">Carregando…</option></select>';
+    main.insertBefore(box, main.firstChild);
+    var sel = box.querySelector('select');
+
+    API.get('clientes').then(function (list) {
+      if (!list || !list.length) {
+        sel.innerHTML = '<option value="">Nenhum cliente — digite um novo abaixo</option>';
+        var inp = document.createElement('input');
+        inp.id = 'mpro-cliente-novo';
+        inp.placeholder = 'Nome do novo cliente';
+        inp.style.cssText = 'padding:12px;border:1px solid #cdd8cf;border-radius:10px;font:500 14px Inter,sans-serif';
+        box.appendChild(inp);
+      } else {
+        sel.innerHTML = '<option value="">Selecione o cliente</option>' +
+          list.map(function (c) { return '<option value="' + c.id + '">' + c.nome + '</option>'; }).join('');
+      }
+    }).catch(function () { sel.innerHTML = '<option value="">(cadastro offline)</option>'; });
+
+    var situacao = null;
+    Array.prototype.forEach.call(document.querySelectorAll('button'), function (b) {
+      var t = (b.innerText || '').toLowerCase();
+      if (/adequado|monitorar|corrigir/.test(t) && t.length < 20) {
+        b.addEventListener('click', function () {
+          situacao = /adequado/.test(t) ? 'adequado' : /monitorar/.test(t) ? 'monitorar' : 'corrigir';
+          showToast('Situação: ' + situacao);
+        });
+      }
+    });
+
+    window.__mproSaveVisit = function () {
+      var cid = sel.value;
+      var novo = document.getElementById('mpro-cliente-novo');
+      var ta = document.querySelector('textarea');
+      var obs = ta ? (ta.value || '').trim() : '';
+      function gravar(clienteId) {
+        var payload = { cliente_id: clienteId, status: 'finalizado' };
+        if (situacao) payload.situacao = situacao;
+        if (obs) payload.conclusao = obs;
+        API.post('visitas', payload).then(function () {
+          showToast('Visita registrada no banco.');
+          navigate('photos');
+        }).catch(function (e) {
+          if (apiIndisponivel(e)) { showToast('Visita salva (offline).'); navigate('photos'); return; }
+          showToast(e.message || 'Falha ao salvar a visita.');
+        });
+      }
+      if (!cid && novo && novo.value.trim()) {
+        API.post('clientes', { nome: novo.value.trim() })
+          .then(function (c) { gravar(c.id); })
+          .catch(function () { showToast('Visita salva (offline).'); navigate('photos'); });
+        return;
+      }
+      if (!cid) { showToast('Selecione um cliente primeiro.'); return; }
+      gravar(cid);
+    };
+  }
+
   function applyMode() {
     var folder = currentFolder();
     if (folder === destinations.login || folder === destinations.register) return;
@@ -407,6 +479,7 @@
     bindFormFeedback();
     bindPrototypeInteractions();
     setupDrawer();
+    setupVisitForm();
     applyMode();
   });
 })();
