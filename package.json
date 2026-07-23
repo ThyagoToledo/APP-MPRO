@@ -1,0 +1,10 @@
+{
+  "name": "app-mpro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "M-PRO — protótipo com API serverless (Vercel) sobre PostgreSQL/Neon",
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}

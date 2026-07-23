@@ -57,13 +57,48 @@
     window.location.href = appRoot() + destinations[screen] + '/code.html';
   }
 
+  // ---------- Cliente de dados (API serverless /api sobre Neon) ----------
+  var API = {
+    request: function (path, opts) {
+      opts = opts || {};
+      var ctrl = new AbortController();
+      var t = window.setTimeout(function () { ctrl.abort(); }, 7000);
+      return fetch('/api/' + path, {
+        method: opts.method || 'GET',
+        headers: opts.body ? { 'content-type': 'application/json' } : undefined,
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+        signal: ctrl.signal
+      }).then(function (r) {
+        window.clearTimeout(t);
+        return r.text().then(function (txt) {
+          var data = txt ? JSON.parse(txt) : null;
+          if (!r.ok) throw Object.assign(new Error((data && data.error) || ('HTTP ' + r.status)), { status: r.status, data: data });
+          return data;
+        });
+      }).catch(function (e) { window.clearTimeout(t); throw e; });
+    },
+    get: function (path) { return API.request(path); },
+    post: function (path, body) { return API.request(path, { method: 'POST', body: body }); },
+    patch: function (path, body) { return API.request(path, { method: 'PATCH', body: body }); },
+    del: function (path) { return API.request(path, { method: 'DELETE' }); }
+  };
+  window.MPRO = { api: API, navigate: navigate, toast: null };
+
+  function fieldValue(scope, selector) {
+    var el = scope.querySelector(selector);
+    return el ? (el.value || '').trim() : '';
+  }
+  function textInputs(scope) {
+    return Array.prototype.slice.call(scope.querySelectorAll('input[type="text"], input:not([type])'));
+  }
+
   function textOf(element) {
     return ((element.innerText || element.getAttribute('aria-label') || '') + ' ' +
       (element.querySelector('.material-symbols-outlined') || {}).textContent).toLowerCase();
   }
 
   function destinationFor(label) {
-    if (/nova visita|iniciar relat|criar visita|visita t/.test(label)) return 'visit';
+    if (/nova visita|iniciar visita|iniciar relat|criar visita|visita t/.test(label)) return 'visit';
     if (/cliente|fazenda|talh[aã]o|mapa/.test(label)) return 'clients';
     if (/assistente|intelig[eê]ncia|perguntar|chat/.test(label)) return 'ai';
     if (/evid[eê]ncia|m[ií]dia|upload/.test(label)) return 'evidence';
@@ -95,17 +130,55 @@
     toast._timer = window.setTimeout(function () { toast.style.opacity = '0'; }, 2400);
   }
 
+  // API indisponível (404/rede/timeout) → modo protótipo. 401/409 são respostas reais.
+  function apiIndisponivel(e) {
+    return !e || e.status === undefined || e.status === 404 || e.status === 405 || e.status >= 500;
+  }
+
+  function submitLogin(form) {
+    var senha = fieldValue(form, 'input[type="password"]');
+    var email = (fieldValue(form, 'input[type="email"]') || (textInputs(form)[0] && textInputs(form)[0].value) || '').trim();
+    if (!email || !senha) { showToast('Informe e-mail e senha.'); return; }
+    showToast('Entrando…');
+    API.post('auth?action=login', { email: email, senha: senha }).then(function (user) {
+      showToast('Bem-vindo, ' + (user.nome || email) + '.');
+      navigate('dashboard');
+    }).catch(function (e) {
+      if (apiIndisponivel(e)) { navigate('dashboard'); return; } // sem back-end: fluxo do protótipo
+      showToast(e.status === 401 ? 'E-mail ou senha inválidos.' : (e.message || 'Falha ao entrar.'));
+    });
+  }
+
+  function submitRegister(form) {
+    var ins = textInputs(form);
+    var payload = {
+      nome: (ins[0] && ins[0].value || '').trim(),
+      empresa: (ins[1] && ins[1].value || '').trim(),
+      email: fieldValue(form, 'input[type="email"]'),
+      senha: fieldValue(form, 'input[type="password"]')
+    };
+    if (!payload.email || !payload.senha) { showToast('Preencha e-mail e senha.'); return; }
+    showToast('Criando conta…');
+    API.post('auth?action=register', payload).then(function () {
+      showToast('Conta criada. Faça login para continuar.');
+      navigate('login');
+    }).catch(function (e) {
+      if (apiIndisponivel(e)) { showToast('Conta criada no protótipo. Faça login.'); navigate('login'); return; }
+      showToast(e.status === 409 ? 'E-mail já cadastrado.' : (e.message || 'Falha ao criar conta.'));
+    });
+  }
+
   function bindFormFeedback() {
     document.querySelectorAll('form').forEach(function (form) {
       form.addEventListener('submit', function (event) {
         event.preventDefault();
-        var label = (form.innerText || '').toLowerCase();
-        if (/senha|e-mail|email/.test(label) && /login|entrar/.test(document.body.innerText.toLowerCase())) {
-          navigate('dashboard');
-        } else if (/criar conta|nome completo/.test(label)) {
-          showToast('Conta criada no protótipo. Faça login para continuar.');
-          navigate('login');
-        } else if (currentFolder() === destinations.visit) {
+        var folder = currentFolder();
+        var body = document.body.innerText.toLowerCase();
+        if (folder === destinations.register || /criar conta|nome completo/.test((form.innerText || '').toLowerCase())) {
+          submitRegister(form);
+        } else if (folder === destinations.login || (/login|entrar/.test(body) && form.querySelector('input[type="password"]'))) {
+          submitLogin(form);
+        } else if (folder === destinations.visit) {
           showToast('Visita salva. Seguindo para o registro fotográfico.');
           navigate('photos');
         } else {
@@ -175,14 +248,23 @@
   }
 
   function setupDrawer() {
-    // O dashboard refinado já traz o próprio drawer + script inline.
-    if (document.getElementById('drawer-overlay') || document.getElementById('navigation-drawer')) return;
     var hamburger = document.getElementById('menu-btn') ||
       Array.prototype.slice.call(document.querySelectorAll('button')).filter(function (b) {
         var s = b.querySelector('.material-symbols-outlined');
         return s && s.textContent.trim() === 'menu';
       })[0];
     if (!hamburger) return;
+    // Menu unificado em TODAS as telas: esconde qualquer drawer nativo (o dashboard
+    // refinado tinha o seu) e clona o botão para remover listeners inline nativos.
+    ['navigation-drawer', 'drawer-overlay'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    if (hamburger.parentNode) {
+      var fresh = hamburger.cloneNode(true);
+      hamburger.parentNode.replaceChild(fresh, hamburger);
+      hamburger = fresh;
+    }
     hamburger.id = 'menu-btn'; // o handler global de clique ignora esse id
 
     var items = [
@@ -242,11 +324,12 @@
   document.addEventListener('click', function (event) {
     var control = event.target.closest('a,button');
     if (!control || control.id === 'menu-btn' || control.id === 'drawer-overlay') return;
+    // Botões de submit dentro de <form> são tratados pelo handler de submit (login/cadastro reais).
+    if (control.tagName === 'BUTTON' && control.form && (control.type === 'submit' || control.type === '')) return;
     var label = textOf(control);
     var folder = currentFolder();
     var destination = destinationFor(label);
-    if (folder === destinations.login && /entrar|continuar com google/.test(label)) destination = 'dashboard';
-    if (folder === destinations.register && /criar conta/.test(label)) destination = 'login';
+    if (folder === destinations.login && /continuar com google/.test(label)) destination = 'dashboard';
     if (folder === destinations.transcription && /descartar/.test(label)) destination = 'evidence';
     if (folder === destinations.transcription && /confirmar|integrar/.test(label)) destination = 'review';
     if (folder === destinations.review) {
