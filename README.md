@@ -26,7 +26,9 @@ APP-MPRO/
 ├── 📁 in_cio_dashboard_refinado/     # Dashboard principal
 ├── 📁 nova_visita_formul_rio/        # Formulário de visita técnica
 ├── 📁 ... (demais telas)             # Evidências, transcrição, revisão, IA, etc.
+├── 📁 api/                           # Funções serverless (Vercel) sobre o Neon
 ├── 📁 db/                            # schema.sql (PostgreSQL/Neon)
+├── 📄 package.json                   # Dependência do driver Neon
 └── 📁 doc/                           # Documentação técnica
 ```
 
@@ -36,6 +38,7 @@ APP-MPRO/
 
 - **[Fluxo e telas](doc/fluxo-e-telas.md)**: mapa de navegação, lista completa de telas e como o motor de navegação funciona.
 - **[Banco de dados](doc/banco-de-dados.md)**: modelo (PostgreSQL/Neon), tabelas e como aplicar o schema.
+- **[API](doc/api.md)**: endpoints serverless, variável de ambiente na Vercel e cliente no front.
 
 ---
 
@@ -63,12 +66,15 @@ python -m http.server 4173
 
 ---
 
-## Sobre o protótipo
+## Sobre o projeto
 
-Este repositório contém apenas o protótipo de interface (HTML, Tailwind via CDN e um script de
-navegação). Ele simula o fluxo de ponta a ponta — login, dashboard, cadastro de visita, registro
-fotográfico, evidências, transcrição, revisão em PDF e assistente de IA — sem back-end. A visão de
-produto e os requisitos completos são mantidos no vault de documentação do time.
+Front-end em HTML + Tailwind (CDN) com um motor de navegação compartilhado, e um back-end de
+funções serverless na Vercel sobre PostgreSQL/Neon. O fluxo cobre login, dashboard, cadastro de
+visita, registro fotográfico, evidências, transcrição, revisão em PDF e assistente de IA.
+
+Login e cadastro já persistem no banco; as demais telas consomem a API por `window.MPRO.api`
+(ver [doc/api.md](doc/api.md)). Sem a `DATABASE_URL` configurada na Vercel, a API responde 500 e o
+front cai no modo protótipo. A visão de produto e os requisitos completos ficam no vault do time.
 
 ---
 
