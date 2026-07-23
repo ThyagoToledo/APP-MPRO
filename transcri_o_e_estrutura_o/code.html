@@ -3,7 +3,7 @@
 <html lang="pt-BR"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>TranscriÃ§Ã£o de Ãudio - M-PRO</title>
+<title>Transcrição de Áudio - M-PRO</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
@@ -129,8 +129,8 @@
 <main class="flex-grow pt-20 px-gutter-mobile md:px-gutter-desktop pb-stack-loose max-w-4xl mx-auto w-full flex flex-col gap-stack-loose">
 <!-- Page Title Context -->
 <div>
-<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">RevisÃ£o de TranscriÃ§Ã£o</h1>
-<p class="font-body-md text-body-md text-on-surface-variant mt-1">Ãudio gravado em 24 Out 2023 - TalhÃ£o Leste</p>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">Revisão de Transcrição</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Áudio gravado em 24 Out 2023 - Talhão Leste</p>
 </div>
 <!-- Audio Mini-Player -->
 <section class="bg-surface-container-low border border-border-subtle rounded-xl p-4 flex items-center gap-4">
@@ -152,32 +152,32 @@
 <div class="flex justify-between items-end">
 <label class="font-headline-sm text-headline-sm text-primary" for="transcription-text">Texto Transcrito</label>
 <span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[16px]">edit</span> EditÃ¡vel
+<span class="material-symbols-outlined text-[16px]">edit</span> Editável
                 </span>
 </div>
-<textarea class="w-full h-48 md:h-64 bg-surface-container-lowest border border-border-subtle rounded-xl p-4 font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary resize-y" id="transcription-text" spellcheck="false">Observamos na Ã¡rea leste uma leve incidÃªncia de ferrugem nas folhas mais baixas. Recomendo aplicaÃ§Ã£o imediata do fungicida padrÃ£o. A umidade do solo estÃ¡ adequada, o sistema de gotejamento funcionou bem na Ãºltima noite. Ã‰ importante manter o monitoramento na prÃ³xima semana para avaliar a eficÃ¡cia da aplicaÃ§Ã£o.</textarea>
+<textarea class="w-full h-48 md:h-64 bg-surface-container-lowest border border-border-subtle rounded-xl p-4 font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary resize-y" id="transcription-text" spellcheck="false">Observamos na área leste uma leve incidência de ferrugem nas folhas mais baixas. Recomendo aplicação imediata do fungicida padrão. A umidade do solo está adequada, o sistema de gotejamento funcionou bem na última noite. É importante manter o monitoramento na próxima semana para avaliar a eficácia da aplicação.</textarea>
 </section>
 <!-- AI Structure Suggestion -->
 <section class="bg-surface-container border border-border-subtle rounded-xl overflow-hidden flex flex-col">
 <div class="bg-surface-container-high px-4 py-3 border-b border-border-subtle flex items-center gap-2">
 <span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
-<h2 class="font-headline-sm text-headline-sm text-primary">SugestÃ£o de Estrutura IA</h2>
+<h2 class="font-headline-sm text-headline-sm text-primary">Sugestão de Estrutura IA</h2>
 </div>
 <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
 <!-- Sanidade Card -->
 <div class="bg-surface-container-lowest border-l-4 border-error border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
 <span class="font-label-caps text-label-caps text-error uppercase tracking-wider">Sanidade</span>
-<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Observamos na Ã¡rea leste uma leve incidÃªncia de ferrugem nas folhas mais baixas."</p>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Observamos na área leste uma leve incidência de ferrugem nas folhas mais baixas."</p>
 </div>
-<!-- IrrigaÃ§Ã£o Card -->
+<!-- Irrigação Card -->
 <div class="bg-surface-container-lowest border-l-4 border-medicao-blue border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
-<span class="font-label-caps text-label-caps text-medicao-blue uppercase tracking-wider">IrrigaÃ§Ã£o</span>
-<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"A umidade do solo estÃ¡ adequada, o sistema de gotejamento funcionou bem na Ãºltima noite."</p>
+<span class="font-label-caps text-label-caps text-medicao-blue uppercase tracking-wider">Irrigação</span>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"A umidade do solo está adequada, o sistema de gotejamento funcionou bem na última noite."</p>
 </div>
-<!-- RecomendaÃ§Ãµes Card -->
+<!-- Recomendações Card -->
 <div class="bg-surface-container-lowest border-l-4 border-secondary border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
-<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">RecomendaÃ§Ãµes</span>
-<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Recomendo aplicaÃ§Ã£o imediata do fungicida padrÃ£o... Ã‰ importante manter o monitoramento."</p>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Recomendações</span>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Recomendo aplicação imediata do fungicida padrão... É importante manter o monitoramento."</p>
 </div>
 </div>
 </section>
@@ -190,7 +190,7 @@
             </button>
 <button class="px-6 py-3 bg-primary text-on-primary font-headline-sm text-headline-sm rounded-xl hover:bg-primary-container transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
 <span class="material-symbols-outlined">check_circle</span>
-                Confirmar e Integrar ao RelatÃ³rio
+                Confirmar e Integrar ao Relatório
             </button>
 </div>
 </footer>
