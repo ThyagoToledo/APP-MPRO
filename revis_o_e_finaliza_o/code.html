@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>M-PRO - RevisÃ£o e GeraÃ§Ã£o de PDF</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-low": "#f3f4f1",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#1b6d24",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#002d1d",
+                        "neutral-surface": "#F9FAFB",
+                        "on-background": "#1a1c1a",
+                        "on-secondary": "#ffffff",
+                        "monitorar-amber": "#F59E0B",
+                        "on-secondary-fixed": "#002204",
+                        "surface": "#f9faf6",
+                        "tertiary-fixed-dim": "#f5b7b4",
+                        "on-secondary-container": "#217128",
+                        "surface-bright": "#f9faf6",
+                        "on-primary-fixed-variant": "#264e3d",
+                        "on-surface-variant": "#414944",
+                        "tertiary-fixed": "#ffdad8",
+                        "secondary-fixed": "#a3f69c",
+                        "inverse-surface": "#2f312f",
+                        "surface-container-highest": "#e2e3e0",
+                        "primary-container": "#1a4332",
+                        "surface-tint": "#3e6654",
+                        "on-primary-fixed": "#002114",
+                        "surface-container": "#eeeeeb",
+                        "surface-variant": "#e2e3e0",
+                        "on-primary-container": "#85af99",
+                        "on-secondary-fixed-variant": "#005312",
+                        "tertiary": "#401b1b",
+                        "secondary-container": "#a0f399",
+                        "on-surface": "#1a1c1a",
+                        "inverse-on-surface": "#f0f1ee",
+                        "inverse-primary": "#a4d0b9",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#c0edd4",
+                        "on-tertiary-container": "#d29895",
+                        "surface-container-high": "#e8e8e5",
+                        "on-tertiary-fixed-variant": "#673a39",
+                        "outline-variant": "#c1c8c2",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "medicao-blue": "#2563EB",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "outline": "#717973",
+                        "on-tertiary-fixed": "#331111",
+                        "primary-fixed-dim": "#a4d0b9",
+                        "surface-dim": "#d9dad7",
+                        "background": "#f9faf6",
+                        "corrigir-red": "#DC2626",
+                        "text-technical": "#374151",
+                        "tertiary-container": "#5a302f",
+                        "border-subtle": "#E5E7EB"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-tight": "8px",
+                        "stack-loose": "24px",
+                        "unit": "4px",
+                        "margin-page": "16px",
+                        "gutter-desktop": "24px",
+                        "gutter-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased pb-24 md:pb-0 pt-16 md:pt-0 min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container flex justify-between items-center h-16 px-4 w-full">
+<button aria-label="Menu" class="material-symbols-outlined text-on-primary hover:bg-primary-container/20 transition-colors duration-200 p-2 rounded-full">
+            menu
+        </button>
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</h1>
+<button aria-label="Conta" class="material-symbols-outlined text-on-primary hover:bg-primary-container/20 transition-colors duration-200 p-2 rounded-full">
+            account_circle
+        </button>
+</header>
+<div class="flex h-screen pt-16 md:pt-0">
+<!-- NavigationDrawer (Desktop) -->
+<nav class="hidden md:flex flex-col h-full py-4 w-80 rounded-r-xl bg-surface dark:bg-neutral-surface border-r border-outline-variant fixed left-0 top-16 z-40">
+<div class="px-4 pb-4 border-b border-outline-variant mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-lg">
+                         TE
+                     </div>
+<div>
+<h2 class="font-body-md text-body-md text-primary font-bold">TÃ©cnico Especialista</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">ID: 44920</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">VersÃ£o 2.4.0</p>
+</div>
+</div>
+</div>
+<ul class="flex-1 px-2 space-y-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-body-md text-body-md">RelatÃ³rios</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined">agriculture</span>
+<span class="font-body-md text-body-md">Equipamentos</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md text-body-md">ConfiguraÃ§Ãµes</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md text-body-md">Suporte</span>
+</a>
+</li>
+</ul>
+<div class="px-2 mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-all duration-300" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md text-body-md">Sair</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-80 p-margin-page md:p-gutter-desktop max-w-5xl mx-auto w-full">
+<header class="mb-stack-loose">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background mb-stack-tight">RevisÃ£o do RelatÃ³rio</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Fazenda Boa Vista - TalhÃ£o Sul - 24/10/2023</p>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-loose mb-stack-loose">
+<!-- Resumo Nutricional -->
+<section class="bg-neutral-surface border border-border-subtle rounded-xl p-stack-loose">
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-stack-tight border-b border-border-subtle pb-2">Resumo Nutricional</h3>
+<div class="space-y-stack-tight mt-4">
+<div class="flex justify-between items-center py-2 border-b border-border-subtle border-dashed">
+<span class="font-body-md text-body-md text-text-technical">NitrogÃªnio (N)</span>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono text-on-surface">45 kg/ha</span>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">arrow_upward</span>
+</div>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-border-subtle border-dashed">
+<span class="font-body-md text-body-md text-text-technical">FÃ³sforo (P)</span>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono text-on-surface">20 kg/ha</span>
+<span class="material-symbols-outlined text-corrigir-red text-sm" style="font-variation-settings: 'FILL' 1;">arrow_downward</span>
+</div>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="font-body-md text-body-md text-text-technical">PotÃ¡ssio (K)</span>
+<div class="flex items-center gap-2">
+<span class="font-data-mono text-data-mono text-on-surface">60 kg/ha</span>
+<span class="material-symbols-outlined text-outline text-sm">horizontal_rule</span>
+</div>
+</div>
+</div>
+</section>
+<!-- AvaliaÃ§Ã£o de Pragas -->
+<section class="bg-neutral-surface border border-border-subtle rounded-xl p-stack-loose">
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-stack-tight border-b border-border-subtle pb-2">Status de Pragas</h3>
+<div class="space-y-stack-tight mt-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-corrigir-red" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-body-md text-body-md text-text-technical">Bicudo-do-algodoeiro</span>
+</div>
+<span class="px-2 py-1 bg-error-container text-on-error-container rounded font-label-caps text-label-caps">ALTO RISCO</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-monitorar-amber" style="font-variation-settings: 'FILL' 1;">error</span>
+<span class="font-body-md text-body-md text-text-technical">Lagarta-da-soja</span>
+</div>
+<span class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded font-label-caps text-label-caps">MONITORAR</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Galeria de EvidÃªncias -->
+<section class="mb-stack-loose">
+<h3 class="font-headline-sm text-headline-sm text-on-background mb-stack-tight">EvidÃªncias FotogrÃ¡ficas</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-unit">
+<div class="aspect-square bg-surface-container-high rounded border border-border-subtle overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A close-up photograph of a cotton plant leaf showing clear signs of insect damage, with irregular holes and browning edges. Taken in bright, natural daylight in an agricultural field. The focus is sharp on the leaf texture, with a blurred background of green foliage. The aesthetic is technical, clear, and documentary-style, suitable for an agricultural field report." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbX5wz16wvSz3yjDTDSfP4YT-S8KtwtgW1U1Cqxu32bXW-hN2TGYuuyXPe5ApfbE_H0JyFHqlCU-s4IoaH-U7o7KVcfKLmsntQ1fDfTX5kPasSy-RiZivBJQonYcvHWLhpM7OtOKiSWAktADIcS3wVAP-MIL9m1uoVOj1NJNxZiENnkzMbM72UJ2295X9G52BJKkgJy0DyA9JniXVKRudIuDwyY42-7DUzkwxMEacwIlyO4fVjo_vkvQ"/>
+<span class="absolute bottom-1 right-1 bg-black/60 text-white font-data-mono text-xs px-1 rounded">Foto 1</span>
+</div>
+<div class="aspect-square bg-surface-container-high rounded border border-border-subtle overflow-hidden relative">
+<img class="w-full h-full object-cover" data-alt="A wide shot of a soybean field under clear blue skies. The crop appears healthy and uniform in color. The lighting is bright and even, indicating midday conditions. The image serves as a general overview of the plot's condition. The style is objective and functional, typical of agricultural monitoring." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuJ8BsSRlbET-U3aUf8Qef-NTvR5s2F3dHXPaI2clQVj6VPrC0ztks2zSK9RGroX2LRbVmvDz7oRZCdpXmr5qa_faVRlUWOOth9398J6HcFKCt214GiQ6mE6bqvz4Aa_E0nU5nkH7ShY2pM1FwpJHe6IBiKfDbuEM6ktlLyMx63I0r43aYI61ixH2wR2bA7CT8Px4n1f7HuTxVaSvHCNgBE9iEgfaH0zp2V1XJcbeAr8ps0UogXa9ipw"/>
+<span class="absolute bottom-1 right-1 bg-black/60 text-white font-data-mono text-xs px-1 rounded">Foto 2</span>
+</div>
+<div class="aspect-square bg-surface-container-high rounded border border-border-subtle flex items-center justify-center border-dashed cursor-pointer hover:bg-surface-container-highest transition-colors">
+<div class="text-center text-on-surface-variant">
+<span class="material-symbols-outlined block mb-1">add_a_photo</span>
+<span class="font-body-sm text-body-sm block">Adicionar</span>
+</div>
+</div>
+</div>
+</section>
+<!-- AÃ§Ãµes -->
+<div class="flex flex-col md:flex-row gap-stack-tight justify-end pt-stack-loose border-t border-border-subtle">
+<button class="px-6 py-3 rounded border border-outline text-primary font-body-lg text-body-lg font-semibold hover:bg-surface-container-highest transition-colors">
+                    Editar Dados
+                </button>
+<button class="px-6 py-3 rounded bg-secondary text-on-secondary font-body-lg text-body-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                    Gerar RelatÃ³rio PDF
+                </button>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface dark:bg-neutral-surface border-t border-outline-variant flex justify-around items-center h-20 px-2 pb-safe w-full">
+<a class="flex flex-col items-center justify-center text-on-surface-variant scale-95 active:scale-90 transition-transform hover:bg-surface-container-highest p-2 rounded" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant scale-95 active:scale-90 transition-transform hover:bg-surface-container-highest p-2 rounded" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-caps text-label-caps mt-1">Clientes</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Nova Visita</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant scale-95 active:scale-90 transition-transform hover:bg-surface-container-highest p-2 rounded" href="#">
+<span class="material-symbols-outlined">sync</span>
+<span class="font-label-caps text-label-caps mt-1">Sincronizar</span>
+</a>
+</nav>
+<script src="../mpro-prototype.js"></script>
+</body></html>

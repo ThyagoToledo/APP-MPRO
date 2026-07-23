@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TranscriÃ§Ã£o de Ãudio - M-PRO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#3e6654",
+                        "background": "#f9faf6",
+                        "on-error-container": "#93000a",
+                        "on-background": "#1a1c1a",
+                        "primary": "#002d1d",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#005312",
+                        "inverse-surface": "#2f312f",
+                        "surface-container-low": "#f3f4f1",
+                        "surface-container": "#eeeeeb",
+                        "surface": "#f9faf6",
+                        "monitorar-amber": "#F59E0B",
+                        "surface-bright": "#f9faf6",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#f5b7b4",
+                        "surface-container-high": "#e8e8e5",
+                        "outline-variant": "#c1c8c2",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#5a302f",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d9dad7",
+                        "on-secondary-container": "#217128",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#a0f399",
+                        "primary-fixed-dim": "#a4d0b9",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#88d982",
+                        "on-surface-variant": "#414944",
+                        "inverse-primary": "#a4d0b9",
+                        "tertiary": "#401b1b",
+                        "on-tertiary-fixed": "#331111",
+                        "outline": "#717973",
+                        "primary-container": "#1a4332",
+                        "surface-container-highest": "#e2e3e0",
+                        "primary-fixed": "#c0edd4",
+                        "on-tertiary-fixed-variant": "#673a39",
+                        "surface-variant": "#e2e3e0",
+                        "on-tertiary-container": "#d29895",
+                        "inverse-on-surface": "#f0f1ee",
+                        "on-primary-fixed": "#002114",
+                        "on-secondary-fixed": "#002204",
+                        "tertiary-fixed": "#ffdad8",
+                        "on-primary-fixed-variant": "#264e3d",
+                        "text-technical": "#374151",
+                        "secondary-fixed": "#a3f69c",
+                        "corrigir-red": "#DC2626",
+                        "secondary": "#1b6d24",
+                        "neutral-surface": "#F9FAFB",
+                        "on-primary-container": "#85af99",
+                        "medicao-blue": "#2563EB",
+                        "border-subtle": "#E5E7EB"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter-mobile": "16px",
+                        "stack-loose": "24px",
+                        "gutter-desktop": "24px",
+                        "stack-tight": "8px",
+                        "unit": "4px",
+                        "margin-page": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "headline-md": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "data-mono": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased min-h-screen flex flex-col">
+<!-- TopAppBar (from JSON) -->
+<header class="bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container font-headline-sm text-headline-sm fixed top-0 w-full z-50 flex justify-between items-center h-16 px-4">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-primary-container/20 transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-primary-container/20 transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-grow pt-20 px-gutter-mobile md:px-gutter-desktop pb-stack-loose max-w-4xl mx-auto w-full flex flex-col gap-stack-loose">
+<!-- Page Title Context -->
+<div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">RevisÃ£o de TranscriÃ§Ã£o</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Ãudio gravado em 24 Out 2023 - TalhÃ£o Leste</p>
+</div>
+<!-- Audio Mini-Player -->
+<section class="bg-surface-container-low border border-border-subtle rounded-xl p-4 flex items-center gap-4">
+<button class="w-12 h-12 flex-shrink-0 bg-primary text-on-primary rounded-full flex items-center justify-center hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="flex-grow flex flex-col gap-2">
+<div class="flex justify-between items-center font-data-mono text-data-mono text-text-technical">
+<span>00:45</span>
+<span>02:15</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full w-1/3 rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- Transcription Editor -->
+<section class="flex flex-col gap-stack-tight">
+<div class="flex justify-between items-end">
+<label class="font-headline-sm text-headline-sm text-primary" for="transcription-text">Texto Transcrito</label>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">edit</span> EditÃ¡vel
+                </span>
+</div>
+<textarea class="w-full h-48 md:h-64 bg-surface-container-lowest border border-border-subtle rounded-xl p-4 font-body-lg text-body-lg text-on-surface focus:ring-2 focus:ring-primary focus:border-primary resize-y" id="transcription-text" spellcheck="false">Observamos na Ã¡rea leste uma leve incidÃªncia de ferrugem nas folhas mais baixas. Recomendo aplicaÃ§Ã£o imediata do fungicida padrÃ£o. A umidade do solo estÃ¡ adequada, o sistema de gotejamento funcionou bem na Ãºltima noite. Ã‰ importante manter o monitoramento na prÃ³xima semana para avaliar a eficÃ¡cia da aplicaÃ§Ã£o.</textarea>
+</section>
+<!-- AI Structure Suggestion -->
+<section class="bg-surface-container border border-border-subtle rounded-xl overflow-hidden flex flex-col">
+<div class="bg-surface-container-high px-4 py-3 border-b border-border-subtle flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h2 class="font-headline-sm text-headline-sm text-primary">SugestÃ£o de Estrutura IA</h2>
+</div>
+<div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Sanidade Card -->
+<div class="bg-surface-container-lowest border-l-4 border-error border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-error uppercase tracking-wider">Sanidade</span>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Observamos na Ã¡rea leste uma leve incidÃªncia de ferrugem nas folhas mais baixas."</p>
+</div>
+<!-- IrrigaÃ§Ã£o Card -->
+<div class="bg-surface-container-lowest border-l-4 border-medicao-blue border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-medicao-blue uppercase tracking-wider">IrrigaÃ§Ã£o</span>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"A umidade do solo estÃ¡ adequada, o sistema de gotejamento funcionou bem na Ãºltima noite."</p>
+</div>
+<!-- RecomendaÃ§Ãµes Card -->
+<div class="bg-surface-container-lowest border-l-4 border-secondary border-y border-r border-border-subtle rounded-r-lg p-3 flex flex-col gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">RecomendaÃ§Ãµes</span>
+<p class="font-body-sm text-body-sm text-on-surface line-clamp-3">"Recomendo aplicaÃ§Ã£o imediata do fungicida padrÃ£o... Ã‰ importante manter o monitoramento."</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Area -->
+<footer class="bg-surface border-t border-border-subtle p-4 w-full sticky bottom-0 z-40">
+<div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-end gap-4">
+<button class="px-6 py-3 border border-outline font-headline-sm text-headline-sm text-primary rounded-xl hover:bg-surface-container-low transition-colors w-full sm:w-auto">
+                Descartar
+            </button>
+<button class="px-6 py-3 bg-primary text-on-primary font-headline-sm text-headline-sm rounded-xl hover:bg-primary-container transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+<span class="material-symbols-outlined">check_circle</span>
+                Confirmar e Integrar ao RelatÃ³rio
+            </button>
+</div>
+</footer>
+<script src="../mpro-prototype.js"></script>
+</body></html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Perfil - M-PRO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#5a302f",
+                        "tertiary": "#401b1b",
+                        "on-tertiary-fixed": "#331111",
+                        "tertiary-fixed-dim": "#f5b7b4",
+                        "primary-container": "#1a4332",
+                        "on-secondary-container": "#217128",
+                        "on-secondary-fixed": "#002204",
+                        "on-background": "#1a1c1a",
+                        "medicao-blue": "#2563EB",
+                        "corrigir-red": "#DC2626",
+                        "on-primary-fixed-variant": "#264e3d",
+                        "secondary-fixed": "#a3f69c",
+                        "surface-bright": "#f9faf6",
+                        "primary-fixed-dim": "#a4d0b9",
+                        "primary-fixed": "#c0edd4",
+                        "on-primary-fixed": "#002114",
+                        "outline-variant": "#c1c8c2",
+                        "on-secondary-fixed-variant": "#005312",
+                        "secondary-fixed-dim": "#88d982",
+                        "surface-container-high": "#e8e8e5",
+                        "on-error-container": "#93000a",
+                        "text-technical": "#374151",
+                        "on-secondary": "#ffffff",
+                        "surface-tint": "#3e6654",
+                        "primary": "#002d1d",
+                        "on-tertiary-fixed-variant": "#673a39",
+                        "background": "#f9faf6",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#2f312f",
+                        "surface-container": "#eeeeeb",
+                        "on-primary-container": "#85af99",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e2e3e0",
+                        "secondary-container": "#a0f399",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d9dad7",
+                        "monitorar-amber": "#F59E0B",
+                        "border-subtle": "#E5E7EB",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#d29895",
+                        "on-surface-variant": "#414944",
+                        "inverse-on-surface": "#f0f1ee",
+                        "outline": "#717973",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e2e3e0",
+                        "inverse-primary": "#a4d0b9",
+                        "neutral-surface": "#F9FAFB",
+                        "surface": "#f9faf6",
+                        "surface-container-low": "#f3f4f1",
+                        "secondary": "#1b6d24",
+                        "tertiary-fixed": "#ffdad8",
+                        "on-surface": "#1a1c1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-loose": "24px",
+                        "unit": "4px",
+                        "stack-tight": "8px",
+                        "margin-page": "16px",
+                        "gutter-desktop": "24px",
+                        "gutter-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "data-mono": ["JetBrains Mono"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "data-mono": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- TopAppBar -->
+<header class="bg-primary dark:bg-primary-container text-on-primary dark:text-on-primary-container fixed top-0 w-full z-50 bg-primary flat no shadows transition-colors duration-200 flex justify-between items-center h-16 px-4 w-full">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-primary-container/20">
+<span class="material-symbols-outlined text-[24px]">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-on-primary">M-PRO</h1>
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-primary-container/20">
+<span class="material-symbols-outlined text-[24px]">account_circle</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="pt-[80px] pb-[100px] px-margin-page max-w-4xl mx-auto space-y-stack-loose">
+<!-- Profile Header Card -->
+<section class="bg-neutral-surface border border-outline-variant rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
+<div class="relative w-24 h-24 rounded-full overflow-hidden border-2 border-primary">
+<img class="w-full h-full object-cover" data-alt="Professional portrait of a male agricultural technician in a green polo shirt, smiling slightly, standing outdoors in a sunlit field with an out of focus tractor in the background. Bright lighting, modern corporate farming aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSM6cteCTDfMqjIHiunppdhnWWGuUWze8KFqBZyyPWypkdlE-39mfyXXEl-_XMN3AUBDzt_lU1GCIwu6SGp-Uq14alq8634nXfwWgTU7m6j-M4ehiSaftJ2qABWCWz7-cD2lFhv3zgxQUYsCtAgU1s025HDIVCklD0vnzikEiDEkV3tgkArR5XvDWXFpZVnR2d8bs4oc7bKvOHZ3YXOVgJ8XGcLc09uz5ryRYa60ws95pROsBohKxofQ"/>
+</div>
+<div class="text-center md:text-left flex-1">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">TÃ©cnico Especialista</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">ID: <span class="font-data-mono text-data-mono">44920</span></p>
+<div class="flex items-center justify-center md:justify-start gap-2 mt-2">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">business</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">AgroTech Solutions S.A.</span>
+</div>
+</div>
+<button class="bg-primary text-on-primary font-body-md text-body-md px-6 py-3 rounded-lg hover:bg-primary-container transition-colors w-full md:w-auto flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                Editar Perfil
+            </button>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-[32px] text-primary mb-2">check_circle</span>
+<span class="font-data-mono text-data-mono text-primary text-2xl font-bold">142</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Visitas Realizadas</span>
+</div>
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-[32px] text-monitorar-amber mb-2">pending_actions</span>
+<span class="font-data-mono text-data-mono text-monitorar-amber text-2xl font-bold">5</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">RelatÃ³rios Pendentes</span>
+</div>
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-[32px] text-medicao-blue mb-2">sync_saved_locally</span>
+<span class="font-data-mono text-data-mono text-medicao-blue text-2xl font-bold">12</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">Sincronizados Hoje</span>
+</div>
+<div class="bg-neutral-surface border border-outline-variant rounded-lg p-4 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-[32px] text-primary mb-2">star_rate</span>
+<span class="font-data-mono text-data-mono text-primary text-2xl font-bold">4.9</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mt-1">AvaliaÃ§Ã£o MÃ©dia</span>
+</div>
+</section>
+<!-- Settings List -->
+<section class="bg-neutral-surface border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 bg-surface-container border-b border-outline-variant">
+<h3 class="font-headline-sm text-headline-sm text-primary">ConfiguraÃ§Ãµes e SincronizaÃ§Ã£o</h3>
+</div>
+<ul class="divide-y divide-outline-variant">
+<li class="p-4 hover:bg-surface-container-highest transition-colors cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">wifi_off</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Modo Offline</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Baixar dados para uso sem internet</p>
+</div>
+</div>
+<div class="w-10 h-6 bg-primary rounded-full relative">
+<div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+</div>
+</li>
+<li class="p-4 hover:bg-surface-container-highest transition-colors cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">sync</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">SincronizaÃ§Ã£o AutomÃ¡tica</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sincronizar ao detectar rede Wi-Fi</p>
+</div>
+</div>
+<div class="w-10 h-6 bg-surface-variant rounded-full relative border border-outline">
+<div class="absolute left-1 top-1 w-4 h-4 bg-outline rounded-full"></div>
+</div>
+</li>
+<li class="p-4 hover:bg-surface-container-highest transition-colors cursor-pointer flex items-center justify-between">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant">storage</span>
+<div>
+<p class="font-body-md text-body-md text-on-surface font-medium">Limpar Cache Local</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">245 MB ocupados</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</li>
+</ul>
+</section>
+<!-- Danger Zone -->
+<section class="pt-stack-loose">
+<button class="w-full flex items-center justify-center gap-2 py-4 text-corrigir-red border border-corrigir-red rounded-lg font-body-md text-body-md font-medium hover:bg-error-container transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+                Sair da Conta
+            </button>
+</section>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant mt-8">VersÃ£o 2.4.0 (Build 893)</p>
+</main>
+<script src="../mpro-prototype.js"></script>
+</body></html>
