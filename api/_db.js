@@ -28,11 +28,11 @@ export async function readJson(req) {
   try { return JSON.parse(raw); } catch { return {}; }
 }
 
-// Fábrica de CRUD para tabelas simples do schema mpro.
+// CRUD genérico para tabelas do schema mpro.
 // opts: { table, cols:[colunas graváveis], filters:[colunas de filtro GET], orderBy }
-export function crud(opts) {
+export async function crudHandler(opts, req, res) {
   const { table, cols, filters = [], orderBy = 'criado_em' } = opts;
-  return async (req, res) => {
+  {
     try {
       const id = query(req, 'id');
       if (req.method === 'OPTIONS') return send(res, 204, {});
