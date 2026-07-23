@@ -4,3 +4,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Segredos — NUNCA versionar
+Chaves.md
+.env
+.env.*

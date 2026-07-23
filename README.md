@@ -26,6 +26,7 @@ APP-MPRO/
 ├── 📁 in_cio_dashboard_refinado/     # Dashboard principal
 ├── 📁 nova_visita_formul_rio/        # Formulário de visita técnica
 ├── 📁 ... (demais telas)             # Evidências, transcrição, revisão, IA, etc.
+├── 📁 db/                            # schema.sql (PostgreSQL/Neon)
 └── 📁 doc/                           # Documentação técnica
 ```
 
@@ -34,6 +35,7 @@ APP-MPRO/
 ## Hub de Documentação
 
 - **[Fluxo e telas](doc/fluxo-e-telas.md)**: mapa de navegação, lista completa de telas e como o motor de navegação funciona.
+- **[Banco de dados](doc/banco-de-dados.md)**: modelo (PostgreSQL/Neon), tabelas e como aplicar o schema.
 
 ---
 
