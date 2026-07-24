@@ -193,3 +193,11 @@ DROP TRIGGER IF EXISTS trg_visitas_atualizado_em ON mpro.visitas;
 CREATE TRIGGER trg_visitas_atualizado_em
   BEFORE UPDATE ON mpro.visitas
   FOR EACH ROW EXECUTE FUNCTION mpro.set_atualizado_em();
+
+-- ---------- Escopo por usuário (dono dos registros) ----------
+ALTER TABLE mpro.clientes     ADD COLUMN IF NOT EXISTS owner text;
+ALTER TABLE mpro.visitas      ADD COLUMN IF NOT EXISTS owner text;
+ALTER TABLE mpro.equipamentos ADD COLUMN IF NOT EXISTS owner text;
+CREATE INDEX IF NOT EXISTS idx_clientes_owner     ON mpro.clientes(owner);
+CREATE INDEX IF NOT EXISTS idx_visitas_owner      ON mpro.visitas(owner);
+CREATE INDEX IF NOT EXISTS idx_equipamentos_owner ON mpro.equipamentos(owner);
