@@ -102,7 +102,7 @@
     if (/cliente|fazenda|talh[aã]o|mapa/.test(label)) return 'clients';
     if (/assistente|intelig[eê]ncia|perguntar|chat/.test(label)) return 'ai';
     if (/evid[eê]ncia|m[ií]dia|upload/.test(label)) return 'evidence';
-    if (/foto|registro fotogr/.test(label)) return 'photos';
+    if (/registro fotogr/.test(label)) return 'photos';
     if (/transcr|estrutur/.test(label)) return 'transcription';
     if (/revis|finaliz|gerar pdf|publicar/.test(label)) return 'review';
     if (/equipamento|sensor/.test(label)) return 'equipment';
@@ -266,6 +266,12 @@
     try { ['mpro_mode', 'mpro_session', 'mpro_cliente_sel'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
     navigate('login');
   }
+  // Dono dos dados (escopo por usuário): e-mail da sessão; demo usa a conta de demonstração.
+  function currentOwner() {
+    var s = readSession();
+    if (s && s.email) return s.email;
+    return readMode() === 'demo' ? 'demo@mpro.app' : '';
+  }
 
   function setupDrawer() {
     var folder = currentFolder();
@@ -276,17 +282,26 @@
     ['navigation-drawer', 'drawer-overlay'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
+    // Esconde qualquer sidebar/menu de desktop: todo <aside> e os <nav> com md:flex + largura fixa
+    // (algumas telas — Evidências, Dashboard, Revisão — usam <nav>, não <aside>).
     Array.prototype.forEach.call(document.querySelectorAll('aside'), function (a) { a.style.display = 'none'; });
+    Array.prototype.forEach.call(document.querySelectorAll('nav'), function (n) {
+      var c = n.getAttribute('class') || '';
+      if (/md:flex/.test(c) && /w-(56|60|64|72|80)/.test(c)) n.style.display = 'none';
+    });
     Array.prototype.forEach.call(document.querySelectorAll('button, a'), function (b) {
       var s = b.querySelector && b.querySelector('.material-symbols-outlined');
       if (s && s.textContent.trim() === 'menu') b.style.display = 'none';
     });
-    // Centraliza o título/logo do header (o hambúrguer nativo foi escondido, então a marca
-    // deslizava para baixo do botão de menu flutuante).
-    Array.prototype.forEach.call(document.querySelectorAll('header h1, header h2'), function (t) {
-      t.style.flex = '1';
-      t.style.textAlign = 'center';
-      t.style.margin = '0';
+    // Centraliza a marca do header (h1/h2/div) entre o menu e a conta, sem ficar sob o botão.
+    Array.prototype.forEach.call(document.querySelectorAll('header'), function (hdr) {
+      Array.prototype.forEach.call(hdr.children, function (ch) {
+        if (ch.tagName !== 'BUTTON' && (ch.textContent || '').trim()) {
+          ch.style.flex = '1';
+          ch.style.textAlign = 'center';
+          ch.style.margin = '0';
+        }
+      });
     });
 
     var items = [
@@ -376,7 +391,7 @@
       event.preventDefault();
       try {
         localStorage.setItem('mpro_mode', 'demo');
-        localStorage.setItem('mpro_session', JSON.stringify({ name: 'Conta demonstração', demo: true }));
+        localStorage.setItem('mpro_session', JSON.stringify({ name: 'Conta demonstração', email: 'demo@mpro.app', demo: true }));
       } catch (e) {}
       return navigate('dashboard');
     }
@@ -427,7 +442,7 @@
     main.insertBefore(box, main.firstChild);
     var sel = box.querySelector('select');
 
-    API.get('clientes').then(function (list) {
+    API.get('clientes?owner=' + encodeURIComponent(currentOwner())).then(function (list) {
       if (!list || !list.length) {
         sel.innerHTML = '<option value="">Nenhum cliente — digite um novo abaixo</option>';
         var inp = document.createElement('input');
@@ -463,7 +478,7 @@
       var ta = document.querySelector('textarea');
       var obs = ta ? (ta.value || '').trim() : '';
       function gravar(clienteId) {
-        var payload = { cliente_id: clienteId, status: 'finalizado' };
+        var payload = { cliente_id: clienteId, status: 'finalizado', owner: currentOwner() };
         if (situacao) payload.situacao = situacao;
         if (obs) payload.conclusao = obs;
         API.post('visitas', payload).then(function () {
@@ -475,7 +490,7 @@
         });
       }
       if (!cid && novo && novo.value.trim()) {
-        API.post('clientes', { nome: novo.value.trim() })
+        API.post('clientes', { nome: novo.value.trim(), owner: currentOwner() })
           .then(function (c) { gravar(c.id); })
           .catch(function () { showToast('Visita salva (offline).'); navigate('photos'); });
         return;
@@ -546,7 +561,7 @@
     }
 
     var todos = [];
-    API.get('clientes').then(function (list) { todos = list || []; render(todos); })
+    API.get('clientes?owner=' + encodeURIComponent(currentOwner())).then(function (list) { todos = list || []; render(todos); })
       .catch(function () {
         wrapper.innerHTML = '<div style="flex:0 0 92%;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:20px;text-align:center;font:500 14px Inter,sans-serif;color:#4b5b50">Clientes indisponíveis (sem conexão com a API).</div>';
       });
@@ -558,16 +573,31 @@
     });
   }
 
-  function applyMode() {
-    var folder = currentFolder();
-    if (folder === destinations.login || folder === destinations.register) return;
-    if (readMode() !== 'clean' || document.getElementById('mpro-clean-badge')) return;
-    var b = document.createElement('div');
-    b.id = 'mpro-clean-badge';
-    b.textContent = 'Conta nova · sem dados de teste';
-    b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:58;background:#0a3d2a;color:#fff;font:600 12px Inter,sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);max-width:70%;text-align:center;pointer-events:none';
-    document.body.appendChild(b);
+  // "Alterar Foto" (editar perfil): abre seletor de imagem e mostra a prévia no avatar.
+  function setupEditProfile() {
+    if (currentFolder() !== destinations.editProfile) return;
+    var trig = Array.prototype.slice.call(document.querySelectorAll('.cursor-pointer, button, div, label')).filter(function (el) {
+      var t = (el.textContent || '').trim();
+      return /alterar foto/i.test(t) && t.length < 30;
+    })[0];
+    if (!trig) return;
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.style.display = 'none';
+    document.body.appendChild(input);
+    trig.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); input.click(); });
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      var url = URL.createObjectURL(file);
+      var img = document.querySelector('main img') || document.querySelector('img');
+      if (img) { img.src = url; return showToast('Foto atualizada (prévia).'); }
+      var bg = document.querySelector('[style*="background-image"]');
+      if (bg) { bg.style.backgroundImage = "url('" + url + "')"; return showToast('Foto atualizada (prévia).'); }
+      showToast('Foto selecionada (prévia).');
+    });
   }
+
+  function applyMode() { /* modo indicado no subtítulo do menu lateral; sem badge flutuante */ }
 
   document.addEventListener('DOMContentLoaded', function () {
     bindFormFeedback();
@@ -575,6 +605,7 @@
     setupDrawer();
     setupVisitForm();
     setupClientsMap();
+    setupEditProfile();
     applyMode();
   });
 })();
