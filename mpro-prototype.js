@@ -91,6 +91,15 @@
   function textInputs(scope) {
     return Array.prototype.slice.call(scope.querySelectorAll('input[type="text"], input:not([type])'));
   }
+  function escHtml(t) {
+    return (t == null ? '' : String(t)).replace(/[&<>"]/g, function (m) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[m];
+    });
+  }
+  function fmtDate(d) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
+    return m ? m[3] + '/' + m[2] + '/' + m[1] : (d || '');
+  }
 
   function textOf(element) {
     return ((element.innerText || element.getAttribute('aria-label') || '') + ' ' +
@@ -597,6 +606,95 @@
     });
   }
 
+  // Equipamentos: lista real (por dono) + filtros por status com contagem viva.
+  function setupEquipamentos() {
+    if (currentFolder() !== destinations.equipment) return;
+    var grid = document.querySelector('[class*="xl:grid-cols-3"]') ||
+      document.querySelector('[class*="md:grid-cols-2"]');
+    if (!grid) return;
+    var ST = {
+      adequado: { label: 'Adequado', bg: '#e0f2e6', fg: '#1e7a44' },
+      monitorar: { label: 'Monitorar', bg: '#fdf1d6', fg: '#9a6a05' },
+      manutencao: { label: 'Manutenção', bg: '#fde3e0', fg: '#b3261e' }
+    };
+    function card(e) {
+      var st = ST[e.status] || { label: e.status || '—', bg: '#eef3ef', fg: '#33453b' };
+      return '<div class="mpro-eq-card" data-status="' + (e.status || '') + '" style="background:#fff;border:1px solid #e3ebe4;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px">' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+        '<h3 style="font:700 15px Inter,sans-serif;color:#0b1f16;margin:0">' + escHtml(e.nome) + '</h3>' +
+        '<span style="font:700 11px Inter,sans-serif;padding:3px 8px;border-radius:999px;white-space:nowrap;background:' + st.bg + ';color:' + st.fg + '">' + st.label + '</span></div>' +
+        '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:0">' + escHtml(e.tipo || 'Equipamento') + '</p>' +
+        '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:0">Próx. manutenção: ' + escHtml(fmtDate(e.proxima_manutencao) || '—') + '</p></div>';
+    }
+    var filtros = Array.prototype.slice.call(document.querySelectorAll('button')).filter(function (b) {
+      return /todos|adequado|monitorar|manuten/i.test(b.innerText || '') && (b.innerText || '').length < 24;
+    });
+    var todos = [];
+    function atualizaContagens() {
+      var c = { adequado: 0, monitorar: 0, manutencao: 0 };
+      todos.forEach(function (e) { if (c[e.status] != null) c[e.status]++; });
+      filtros.forEach(function (b) {
+        var t = (b.innerText || '').toLowerCase();
+        var n = /todos/.test(t) ? todos.length : /adequado/.test(t) ? c.adequado : /monitorar/.test(t) ? c.monitorar : c.manutencao;
+        b.innerHTML = b.innerHTML.replace(/\(\d+\)/, '(' + n + ')');
+      });
+    }
+    function render(status) {
+      var list = (!status || status === 'todos') ? todos : todos.filter(function (e) { return e.status === status; });
+      if (!list.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid #e3ebe4;border-radius:12px;padding:22px;text-align:center;font:500 14px Inter,sans-serif;color:#5b6b60">Nenhum equipamento' + (status && status !== 'todos' ? ' neste status' : ' cadastrado') + '.</div>';
+        return;
+      }
+      grid.innerHTML = list.map(card).join('');
+    }
+    filtros.forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var t = (b.innerText || '').toLowerCase();
+        var status = /adequado/.test(t) ? 'adequado' : /monitorar/.test(t) ? 'monitorar' : /manuten/.test(t) ? 'manutencao' : 'todos';
+        filtros.forEach(function (x) { x.style.opacity = '0.55'; });
+        b.style.opacity = '1';
+        render(status);
+      });
+    });
+    API.get('equipamentos?owner=' + encodeURIComponent(currentOwner())).then(function (list) {
+      todos = list || []; atualizaContagens(); render('todos');
+    }).catch(function () {
+      grid.innerHTML = '<div style="grid-column:1/-1;padding:22px;text-align:center;color:#5b6b60;font:500 14px Inter,sans-serif">Equipamentos indisponíveis.</div>';
+    });
+  }
+
+  // Dashboard: lista "Visitas Recentes" real (por dono).
+  function setupDashboard() {
+    if (currentFolder() !== destinations.dashboard) return;
+    var rows = document.querySelectorAll('[class*="cursor-pointer"][class*="justify-between"]');
+    if (!rows.length) return;
+    var listEl = rows[0].parentElement;
+    if (!listEl) return;
+    var owner = currentOwner();
+    Promise.all([
+      API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return []; }),
+      API.get('clientes?owner=' + encodeURIComponent(owner)).catch(function () { return []; })
+    ]).then(function (res) {
+      var visitas = res[0] || [], clientes = res[1] || [];
+      var nome = {}; clientes.forEach(function (c) { nome[c.id] = c.nome; });
+      if (!visitas.length) {
+        listEl.innerHTML = '<div style="padding:18px;text-align:center;font:500 14px Inter,sans-serif;color:#5b6b60">Nenhuma visita recente.</div>';
+        return;
+      }
+      var COR = { adequado: '#2f9e57', monitorar: '#c98a1e', corrigir: '#c0392b' };
+      listEl.innerHTML = visitas.slice(0, 6).map(function (v) {
+        var cor = COR[v.situacao] || '#9aa5a0';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #eef3ef">' +
+          '<div><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:0">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</p>' +
+          '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:2px 0 0">' +
+          (v.data_visita ? 'Visita em ' + fmtDate(v.data_visita) : 'Rascunho') +
+          (v.responsavel ? ' · ' + escHtml(v.responsavel) : '') + '</p></div>' +
+          '<span title="' + escHtml(v.situacao || '') + '" style="width:12px;height:12px;border-radius:50%;background:' + cor + '"></span></div>';
+      }).join('');
+    });
+  }
+
   function applyMode() { /* modo indicado no subtítulo do menu lateral; sem badge flutuante */ }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -606,6 +704,8 @@
     setupVisitForm();
     setupClientsMap();
     setupEditProfile();
+    setupEquipamentos();
+    setupDashboard();
     applyMode();
   });
 })();
