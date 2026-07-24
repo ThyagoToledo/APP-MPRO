@@ -1,6 +1,17 @@
 (function () {
   'use strict';
 
+  // Reduz o "flash de duas interfaces" no reload: esconde o menu lateral nativo do desktop
+  // já antes da primeira pintura (o menu flutuante unificado é injetado logo em seguida).
+  try {
+    if (!/login_m_pro|registro_m_pro/.test(window.location.pathname)) {
+      var _st = document.createElement('style');
+      _st.textContent = 'aside{display:none!important}' +
+        'nav[class*="md:flex"][class*="w-8"],nav[class*="md:flex"][class*="w-7"],nav[class*="md:flex"][class*="w-6"]{display:none!important}';
+      (document.head || document.documentElement).appendChild(_st);
+    }
+  } catch (e) {}
+
   var root = 'stitch_monitoramento_mpro';
   var destinations = {
     dashboard: 'in_cio_dashboard_refinado',
@@ -667,31 +678,68 @@
   // Dashboard: lista "Visitas Recentes" real (por dono).
   function setupDashboard() {
     if (currentFolder() !== destinations.dashboard) return;
-    var rows = document.querySelectorAll('[class*="cursor-pointer"][class*="justify-between"]');
-    if (!rows.length) return;
-    var listEl = rows[0].parentElement;
-    if (!listEl) return;
     var owner = currentOwner();
+    function findHeading(re) {
+      return Array.prototype.slice.call(document.querySelectorAll('h1,h2,h3')).filter(function (h) { return re.test(h.textContent || ''); })[0];
+    }
+    var COR = { adequado: '#2f9e57', monitorar: '#c98a1e', corrigir: '#c0392b' };
+
     Promise.all([
       API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return []; }),
       API.get('clientes?owner=' + encodeURIComponent(owner)).catch(function () { return []; })
     ]).then(function (res) {
       var visitas = res[0] || [], clientes = res[1] || [];
       var nome = {}; clientes.forEach(function (c) { nome[c.id] = c.nome; });
-      if (!visitas.length) {
-        listEl.innerHTML = '<div style="padding:18px;text-align:center;font:500 14px Inter,sans-serif;color:#5b6b60">Nenhuma visita recente.</div>';
-        return;
+      var finalizadas = visitas.filter(function (v) { return v.status === 'finalizado'; });
+      var rascunhos = visitas.filter(function (v) { return v.status === 'rascunho'; });
+
+      // --- Visitas Recentes (tabela) ---
+      var vHead = findHeading(/Visitas Recentes/i), table = null, sec = vHead;
+      while (sec && !table) { table = sec.querySelector && sec.querySelector('table'); sec = sec.parentElement; }
+      var tbody = table && table.querySelector('tbody');
+      if (tbody) {
+        if (!finalizadas.length) {
+          tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center;color:#5b6b60;font:500 14px Inter,sans-serif">Nenhuma visita recente.</td></tr>';
+        } else {
+          tbody.innerHTML = finalizadas.slice(0, 8).map(function (v) {
+            var cor = COR[v.situacao] || '#9aa5a0';
+            return '<tr style="border-bottom:1px solid #eef3ef">' +
+              '<td style="padding:16px;font:500 13px Inter,sans-serif;color:#4b5b50;white-space:nowrap">' + escHtml(fmtDate(v.data_visita)) + '</td>' +
+              '<td style="padding:16px"><div style="font:700 14px Inter,sans-serif;color:#0b1f16">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</div>' +
+              (v.responsavel ? '<div style="font:500 12px Inter,sans-serif;color:#5b6b60;margin-top:2px">' + escHtml(v.responsavel) + '</div>' : '') + '</td>' +
+              '<td style="padding:16px"><span style="display:inline-flex;align-items:center;gap:6px;font:600 12px Inter,sans-serif;color:' + cor + '"><span style="width:9px;height:9px;border-radius:50%;background:' + cor + '"></span>' + escHtml(v.situacao || '—') + '</span></td>' +
+              '<td style="padding:16px"><a href="#" data-go="review" style="font:600 13px Inter,sans-serif;color:#0a3d2a">Ver</a></td></tr>';
+          }).join('');
+          Array.prototype.forEach.call(tbody.querySelectorAll('a[data-go]'), function (a) {
+            a.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); navigate(a.getAttribute('data-go')); });
+          });
+        }
       }
-      var COR = { adequado: '#2f9e57', monitorar: '#c98a1e', corrigir: '#c0392b' };
-      listEl.innerHTML = visitas.slice(0, 6).map(function (v) {
-        var cor = COR[v.situacao] || '#9aa5a0';
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #eef3ef">' +
-          '<div><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:0">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</p>' +
-          '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:2px 0 0">' +
-          (v.data_visita ? 'Visita em ' + fmtDate(v.data_visita) : 'Rascunho') +
-          (v.responsavel ? ' · ' + escHtml(v.responsavel) : '') + '</p></div>' +
-          '<span title="' + escHtml(v.situacao || '') + '" style="width:12px;height:12px;border-radius:50%;background:' + cor + '"></span></div>';
-      }).join('');
+
+      // --- Rascunhos Ativos ---
+      var rHead = findHeading(/Rascunhos? Ativ/i);
+      if (rHead) {
+        var card = rHead.closest('[class*="col-span-2"]') || rHead.closest('div');
+        var badge = Array.prototype.slice.call(card.querySelectorAll('span')).filter(function (s) { return /PENDENTE/i.test(s.textContent || ''); })[0];
+        if (badge) badge.textContent = rascunhos.length + ' PENDENTE' + (rascunhos.length === 1 ? '' : 'S');
+        var items = card.querySelectorAll('[class*="cursor-pointer"]');
+        var listEl = items.length ? items[0].parentElement : null;
+        if (listEl) {
+          if (!rascunhos.length) {
+            listEl.innerHTML = '<div style="padding:16px;text-align:center;font:500 13px Inter,sans-serif;color:#5b6b60">Nenhum rascunho ativo.</div>';
+          } else {
+            listEl.innerHTML = rascunhos.slice(0, 6).map(function (v) {
+              return '<div data-go="visit" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f2f7f3;border-radius:12px;margin-bottom:8px;cursor:pointer">' +
+                '<div><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:0">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</p>' +
+                '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:2px 0 0">Rascunho · ' + escHtml(fmtDate(v.data_visita) || 'hoje') + '</p></div>' +
+                '<span class="material-symbols-outlined" style="color:#0a3d2a">chevron_right</span></div>';
+            }).join('');
+            Array.prototype.forEach.call(listEl.querySelectorAll('[data-go]'), function (el) {
+              el.addEventListener('click', function () { navigate('visit'); });
+            });
+          }
+        }
+      }
     });
   }
 
