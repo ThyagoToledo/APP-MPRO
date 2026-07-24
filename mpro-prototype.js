@@ -163,14 +163,20 @@
     };
     if (!payload.email || !payload.senha) { showToast('Preencha e-mail e senha.'); return; }
     showToast('Criando conta…');
-    function marcaLimpa() { try { localStorage.setItem('mpro_mode', 'clean'); localStorage.removeItem('mpro_session'); } catch (e) {} }
-    API.post('auth?action=register', payload).then(function () {
-      marcaLimpa(); // conta nova → HUD limpo (sem dados de teste)
-      showToast('Conta criada. Faça login para continuar.');
-      navigate('login');
+    // Conta nova → entra direto no app, em modo limpo (HUD sem dados de teste).
+    function entraLimpo(user) {
+      try {
+        localStorage.setItem('mpro_mode', 'clean');
+        localStorage.setItem('mpro_session', JSON.stringify({ name: (user && user.nome) || payload.nome || payload.email, email: payload.email }));
+      } catch (e) {}
+      navigate('dashboard');
+    }
+    API.post('auth?action=register', payload).then(function (user) {
+      showToast('Conta criada. Bem-vindo!');
+      entraLimpo(user);
     }).catch(function (e) {
-      if (apiIndisponivel(e)) { marcaLimpa(); showToast('Conta criada. Faça login.'); navigate('login'); return; }
-      showToast(e.status === 409 ? 'E-mail já cadastrado.' : (e.message || 'Falha ao criar conta.'));
+      if (apiIndisponivel(e)) { showToast('Conta criada (offline).'); entraLimpo(null); return; }
+      showToast(e.status === 409 ? 'E-mail já cadastrado. Faça login.' : (e.message || 'Falha ao criar conta.'));
     });
   }
 
@@ -256,6 +262,10 @@
 
   function readMode() { try { return localStorage.getItem('mpro_mode') || ''; } catch (e) { return ''; } }
   function readSession() { try { return JSON.parse(localStorage.getItem('mpro_session') || 'null'); } catch (e) { return null; } }
+  function logout() {
+    try { ['mpro_mode', 'mpro_session', 'mpro_cliente_sel'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {}
+    navigate('login');
+  }
 
   function setupDrawer() {
     var folder = currentFolder();
@@ -350,7 +360,9 @@
       e.preventDefault();
       e.stopPropagation();
       toggle(false);
-      navigate(link.getAttribute('data-screen'));
+      var scr = link.getAttribute('data-screen');
+      if (scr === 'login') return logout();
+      navigate(scr);
     });
   }
 
@@ -390,6 +402,10 @@
       event.preventDefault();
       if (window.history.length > 1) return window.history.back();
       return navigate(BACK_FALLBACK[folder] || 'dashboard');
+    }
+    if (destination === 'login' && /(^|\s)sair(\s|$)|logout/.test(label)) {
+      event.preventDefault();
+      return logout();
     }
     if (destination && (control.getAttribute('href') === '#' || control.tagName === 'BUTTON' || isCard)) {
       event.preventDefault();
