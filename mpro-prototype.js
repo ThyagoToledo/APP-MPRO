@@ -1,23 +1,13 @@
 (function () {
   'use strict';
 
-  // Reduz o "flash de duas interfaces" no reload: esconde o menu lateral nativo do desktop
-  // já antes da primeira pintura (o menu flutuante unificado é injetado logo em seguida).
-  try {
-    if (!/login_m_pro|registro_m_pro/.test(window.location.pathname)) {
-      var _st = document.createElement('style');
-      _st.textContent = 'aside{display:none!important}' +
-        'nav[class*="md:flex"][class*="w-8"],nav[class*="md:flex"][class*="w-7"],nav[class*="md:flex"][class*="w-6"]{display:none!important}';
-      (document.head || document.documentElement).appendChild(_st);
-    }
-  } catch (e) {}
-
   var root = 'stitch_monitoramento_mpro';
   var destinations = {
     dashboard: 'in_cio_dashboard_refinado',
     login: 'login_m_pro_fundo_planta_o',
     register: 'registro_m_pro_fundo_floresta',
-    clients: 'mapa_de_clientes_e_planta_es',
+    clients: 'clientes',
+    map: 'mapa_de_clientes_e_planta_es',
     visit: 'nova_visita_formul_rio',
     evidence: 'evid_ncias_multim_dia',
     photos: 'registro_fotogr_fico',
@@ -68,6 +58,43 @@
     window.location.href = appRoot() + destinations[screen] + '/code.html';
   }
 
+  // Injeta o tema novo (tokens + fontes) o quanto antes, antes do primeiro paint,
+  // e esconde os menus nativos antigos para reduzir o "flash de duas interfaces" no reload.
+  (function injectThemeEarly() {
+    try {
+      var folder = currentFolder();
+      if (document.getElementById('mpro-theme-css')) return;
+      var link = document.createElement('link');
+      link.id = 'mpro-theme-css';
+      link.rel = 'stylesheet';
+      link.href = appRoot() + 'mpro-theme.css';
+      document.head.appendChild(link);
+
+      var fontLinks = [
+        'https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap',
+        'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=block'
+      ];
+      fontLinks.forEach(function (href) {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = href;
+        document.head.appendChild(l);
+      });
+
+      try {
+        var theme = localStorage.getItem('mpro_theme');
+        if (theme === 'claro' || theme === 'escuro') document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+
+      if (folder !== destinations.login && folder !== destinations.register) {
+        var st = document.createElement('style');
+        st.textContent = 'aside{display:none!important}' +
+          'nav[class*="md:flex"][class*="w-8"],nav[class*="md:flex"][class*="w-7"],nav[class*="md:flex"][class*="w-6"]{display:none!important}';
+        (document.head || document.documentElement).appendChild(st);
+      }
+    } catch (e) {}
+  })();
+
   // ---------- Cliente de dados (API serverless /api sobre Neon) ----------
   var API = {
     request: function (path, opts) {
@@ -111,15 +138,22 @@
     var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || '');
     return m ? m[3] + '/' + m[2] + '/' + m[1] : (d || '');
   }
+  var STATUS_META = {
+    adequado: { label: 'Adequado', icon: 'check_circle' },
+    monitorar: { label: 'Monitorar', icon: 'warning' },
+    corrigir: { label: 'Corrigir', icon: 'error' }
+  };
 
   function textOf(element) {
+    var icon = element.querySelector('.material-symbols-outlined');
     return ((element.innerText || element.getAttribute('aria-label') || '') + ' ' +
-      (element.querySelector('.material-symbols-outlined') || {}).textContent).toLowerCase();
+      (icon ? icon.textContent : '')).toLowerCase();
   }
 
   function destinationFor(label) {
     if (/nova visita|iniciar visita|iniciar relat|criar visita|visita t/.test(label)) return 'visit';
-    if (/cliente|fazenda|talh[aã]o|mapa/.test(label)) return 'clients';
+    if (/^mapa$|\bmapa\b/.test(label)) return 'map';
+    if (/cliente|fazenda|talh[aã]o/.test(label)) return 'clients';
     if (/assistente|intelig[eê]ncia|perguntar|chat/.test(label)) return 'ai';
     if (/evid[eê]ncia|m[ií]dia|upload/.test(label)) return 'evidence';
     if (/registro fotogr/.test(label)) return 'photos';
@@ -128,7 +162,7 @@
     if (/equipamento|sensor/.test(label)) return 'equipment';
     if (/configura/.test(label)) return 'settings';
     if (/editar perfil/.test(label)) return 'editProfile';
-    if (/perfil|account_circle|person/.test(label)) return 'profile';
+    if (/perfil|account_circle|person$/.test(label)) return 'profile';
     if (/sair|logout/.test(label)) return 'login';
     if (/criar conta|cadastre-se|registro/.test(label)) return 'register';
     if (/voltar para o login|login|entrar|google/.test(label)) return 'login';
@@ -141,7 +175,7 @@
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'mpro-toast';
-      toast.style.cssText = 'position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:100;background:#002d1d;color:#fff;padding:12px 18px;border-radius:999px;font:600 14px Inter,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:opacity .2s';
+      toast.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:100;background:var(--primary,#002d1d);color:#fff;padding:12px 18px;border-radius:999px;font:600 14px var(--font-body,Inter,sans-serif);box-shadow:0 8px 24px rgba(0,0,0,.22);transition:opacity .2s';
       document.body.appendChild(toast);
     }
     toast.textContent = message;
@@ -202,6 +236,7 @@
 
   function bindFormFeedback() {
     document.querySelectorAll('form').forEach(function (form) {
+      if (form.dataset.mproOwnSubmit) return; // formulários das telas novas (ex.: sheet de cliente) se cuidam sozinhos
       form.addEventListener('submit', function (event) {
         event.preventDefault();
         var folder = currentFolder();
@@ -210,9 +245,6 @@
           submitRegister(form);
         } else if (folder === destinations.login || (/login|entrar/.test(body) && form.querySelector('input[type="password"]'))) {
           submitLogin(form);
-        } else if (folder === destinations.visit) {
-          showToast('Visita salva. Seguindo para o registro fotográfico.');
-          navigate('photos');
         } else {
           showToast('Alterações salvas no protótipo.');
         }
@@ -253,6 +285,7 @@
     }
 
     document.querySelectorAll('button').forEach(function (button) {
+      if (button.closest('[data-action],[data-close],.mpro-sheet,.mpro-header')) return;
       var label = textOf(button);
       if (/fotos|v[ií]deos|[aá]udios|transcri/.test(label)) {
         button.addEventListener('click', function () {
@@ -266,11 +299,6 @@
       if (/salvar|guardar|aplicar|confirmar/.test(label)) {
         button.addEventListener('click', function () {
           var f = currentFolder();
-          if (f === destinations.visit && /continuar/.test(label)) {
-            if (window.__mproSaveVisit) return window.__mproSaveVisit();
-            showToast('Visita salva. Seguindo para o registro fotográfico.');
-            return navigate('photos');
-          }
           if (f === destinations.transcription && /confirmar/.test(label)) {
             return navigate('review');
           }
@@ -292,24 +320,38 @@
     if (s && s.email) return s.email;
     return readMode() === 'demo' ? 'demo@mpro.app' : '';
   }
+  function initials(name) {
+    var parts = (name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'MP';
+    return (parts[0][0] + (parts[1] ? parts[1][0] : parts[0][1] || '')).toUpperCase();
+  }
 
-  function setupDrawer() {
+  // ---------- Shell: header (reskin), drawer, bottom-nav + FAB, rail de desktop ----------
+  function setupShell() {
     var folder = currentFolder();
-    if (folder === destinations.login || folder === destinations.register) return; // sem menu antes do login
+    if (folder === destinations.login || folder === destinations.register) return;
+    document.body.classList.add('mpro-shell-body', 'mpro-has-shell');
 
-    // Esconde qualquer menu nativo (drawer do refinado, sidebars <aside> e hambúrgueres das telas)
-    // para que exista UM único menu, igual em mobile e desktop.
+    // Esconde qualquer menu/drawer nativo remanescente das telas antigas (Stitch),
+    // para existir um único sistema de navegação em todas as telas.
     ['navigation-drawer', 'drawer-overlay'].forEach(function (id) {
       var el = document.getElementById(id); if (el) el.style.display = 'none';
     });
-    // Esconde qualquer sidebar/menu de desktop: todo <aside> e os <nav> com md:flex + largura fixa
-    // (algumas telas — Evidências, Dashboard, Revisão — usam <nav>, não <aside>).
     Array.prototype.forEach.call(document.querySelectorAll('aside'), function (a) { a.style.display = 'none'; });
     Array.prototype.forEach.call(document.querySelectorAll('nav'), function (n) {
+      if (n.classList.contains('mpro-bottomnav') || n.classList.contains('mpro-rail')) return;
       var c = n.getAttribute('class') || '';
       if (/md:flex/.test(c) && /w-(56|60|64|72|80)/.test(c)) n.style.display = 'none';
     });
+    // Telas novas já trazem o botão de menu embutido no próprio header (.mpro-header) —
+    // nesse caso ele é religado ao drawer abaixo, sem duplicar com o botão flutuante.
+    var headerMenuBtn = null;
+    Array.prototype.forEach.call(document.querySelectorAll('.mpro-header button, .mpro-header a'), function (b) {
+      var s = b.querySelector && b.querySelector('.material-symbols-outlined');
+      if (s && s.textContent.trim() === 'menu') headerMenuBtn = b;
+    });
     Array.prototype.forEach.call(document.querySelectorAll('button, a'), function (b) {
+      if (b.closest('.mpro-header')) return; // tratado acima
       var s = b.querySelector && b.querySelector('.material-symbols-outlined');
       if (s && s.textContent.trim() === 'menu') b.style.display = 'none';
     });
@@ -324,86 +366,143 @@
       });
     });
 
-    var items = [
-      { icon: 'home', text: 'Início', screen: 'dashboard' },
-      { icon: 'groups', text: 'Clientes e Plantações', screen: 'clients' },
-      { icon: 'add_task', text: 'Nova Visita', screen: 'visit' },
-      { icon: 'photo_camera', text: 'Registro Fotográfico', screen: 'photos' },
-      { icon: 'perm_media', text: 'Evidências', screen: 'evidence' },
-      { icon: 'smart_toy', text: 'Assistente IA', screen: 'ai' },
-      { icon: 'agriculture', text: 'Equipamentos', screen: 'equipment' },
-      { icon: 'person', text: 'Perfil', screen: 'profile' },
-      { icon: 'settings', text: 'Configurações', screen: 'settings' },
-      { icon: 'logout', text: 'Sair', screen: 'login' }
-    ];
-    var current = folder;
     var mode = readMode(), sess = readSession();
-    var sub = mode === 'demo' ? 'Conta demonstração' : mode === 'clean' ? 'Conta nova' :
-      (sess && (sess.name || sess.email)) || 'Monitoramento agronômico';
+    var subtitle = mode === 'demo' ? 'Conta demonstração' : mode === 'clean' ? 'Conta nova' : 'Monitoramento agronômico';
+    var name = (sess && (sess.name || sess.email)) || 'Técnico de campo';
+    var email = (sess && sess.email) || '';
 
+    // ---- Drawer (itens secundários; navegação principal fica no bottom-nav/rail) ----
+    var drawerItems = [
+      { icon: 'folder_open', text: 'Evidências', screen: 'evidence' },
+      { icon: 'photo_camera', text: 'Registro fotográfico', screen: 'photos' },
+      { icon: 'graphic_eq', text: 'Transcrição', screen: 'transcription' },
+      { icon: 'fact_check', text: 'Revisão e finalização', screen: 'review' },
+      { icon: 'precision_manufacturing', text: 'Equipamentos', screen: 'equipment' },
+      { icon: 'smart_toy', text: 'Assistente IA', screen: 'ai' },
+      { sep: true },
+      { icon: 'person', text: 'Perfil', screen: 'profile' },
+      { icon: 'manage_accounts', text: 'Editar perfil', screen: 'editProfile' },
+      { icon: 'settings', text: 'Configurações', screen: 'settings' }
+    ];
     var overlay = document.createElement('div');
-    overlay.id = 'mpro-drawer-overlay';
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s';
-
-    var panel = document.createElement('nav');
-    panel.style.cssText = 'position:fixed;top:0;left:0;height:100%;width:82%;max-width:300px;background:#f7fbf7;z-index:61;transform:translateX(-105%);transition:transform .25s ease;box-shadow:2px 0 24px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow-y:auto';
-    var header = '<div style="padding:20px;background:#0a3d2a;color:#fff;display:flex;align-items:flex-start;justify-content:space-between">' +
-      '<div><div style="font:700 18px Inter,sans-serif">M-PRO</div>' +
-      '<div style="font:500 13px Inter,sans-serif;opacity:.85">' + sub + '</div></div>' +
-      '<button data-close="1" aria-label="Fechar" style="background:none;border:none;color:#fff;cursor:pointer;padding:0;line-height:1">' +
-      '<span class="material-symbols-outlined">close</span></button></div>';
-    var links = items.map(function (it) {
-      var active = destinations[it.screen] === current;
-      return '<a href="#" data-screen="' + it.screen + '" style="' + (active ? 'background:#dbeede;' : '') +
-        'display:flex;align-items:center;gap:14px;padding:14px 20px;color:#0b1f16;text-decoration:none;font:' +
-        (active ? '700' : '500') + ' 15px Inter,sans-serif"><span class="material-symbols-outlined">' +
-        it.icon + '</span>' + it.text + '</a>';
-    }).join('');
-    panel.innerHTML = header + '<div style="padding:8px 0;flex:1">' + links + '</div>';
-
-    // Botão de menu flutuante — sempre visível (mobile e desktop).
-    // Se a tela tem um "voltar" no canto, desloca para não sobrepor.
-    var hasBack = Array.prototype.some.call(document.querySelectorAll('button, a'), function (b) {
-      var s = b.querySelector && b.querySelector('.material-symbols-outlined');
-      return s && /arrow_back/.test(s.textContent.trim());
-    });
-    var btn = document.createElement('button');
-    btn.id = 'mpro-menu-btn';
-    btn.setAttribute('aria-label', 'Abrir menu');
-    btn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
-    btn.style.cssText = 'position:fixed;top:12px;left:' + (hasBack ? '60px' : '12px') +
-      ';z-index:59;width:44px;height:44px;border-radius:12px;border:none;background:#0a3d2a;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer';
+    overlay.className = 'mpro-drawer-overlay';
+    var drawer = document.createElement('nav');
+    drawer.className = 'mpro-drawer';
+    drawer.innerHTML =
+      '<div class="mpro-drawer-head">' +
+      '<div class="mpro-drawer-user">' +
+      '<div class="mpro-drawer-avatar">' + escHtml(initials(name)) + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1">' +
+      '<span class="mpro-drawer-name">' + escHtml(name) + '</span>' +
+      (email ? '<span class="mpro-drawer-email">' + escHtml(email) + '</span>' : '') + '</div>' +
+      '<button type="button" class="mpro-drawer-close" data-close="1" aria-label="Fechar"><span class="material-symbols-outlined">close</span></button>' +
+      '</div><span class="mpro-drawer-badge">' + escHtml(subtitle.toUpperCase()) + '</span></div>' +
+      '<div class="mpro-drawer-nav">' + drawerItems.map(function (it) {
+        if (it.sep) return '<div class="mpro-drawer-sep"></div>';
+        var active = destinations[it.screen] === folder;
+        return '<a href="#" class="mpro-drawer-link' + (active ? ' active' : '') + '" data-screen="' + it.screen + '">' +
+          '<span class="material-symbols-outlined">' + it.icon + '</span>' + it.text + '</a>';
+      }).join('') + '</div>' +
+      '<div class="mpro-drawer-foot"><a href="#" class="mpro-drawer-link logout" data-screen="login">' +
+      '<span class="material-symbols-outlined">logout</span>Sair</a></div>';
 
     document.body.appendChild(overlay);
-    document.body.appendChild(panel);
-    document.body.appendChild(btn);
+    document.body.appendChild(drawer);
 
-    function toggle(open) {
-      var willOpen = open === undefined ? panel.style.transform !== 'translateX(0px)' : open;
-      panel.style.transform = willOpen ? 'translateX(0px)' : 'translateX(-105%)';
-      overlay.style.opacity = willOpen ? '1' : '0';
-      overlay.style.pointerEvents = willOpen ? 'auto' : 'none';
-      btn.style.opacity = willOpen ? '0' : '1';
+    function toggleDrawer(open) {
+      var willOpen = open === undefined ? !drawer.classList.contains('open') : open;
+      drawer.classList.toggle('open', willOpen);
+      overlay.classList.toggle('open', willOpen);
       document.body.classList.toggle('overflow-hidden', willOpen);
     }
-    btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggle(true); });
-    overlay.addEventListener('click', function () { toggle(false); });
-    panel.addEventListener('click', function (e) {
-      if (e.target.closest('[data-close]')) { e.preventDefault(); e.stopPropagation(); return toggle(false); }
+    overlay.addEventListener('click', function () { toggleDrawer(false); });
+    drawer.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) { e.preventDefault(); return toggleDrawer(false); }
       var link = e.target.closest('a[data-screen]');
       if (!link) return;
       e.preventDefault();
-      e.stopPropagation();
-      toggle(false);
+      toggleDrawer(false);
       var scr = link.getAttribute('data-screen');
       if (scr === 'login') return logout();
       navigate(scr);
     });
+
+    // Botão que abre o drawer: reaproveita o botão do header nas telas novas; nas
+    // telas antigas (Stitch), cria um botão flutuante único, igual em todas.
+    if (headerMenuBtn) {
+      headerMenuBtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggleDrawer(true); });
+    } else {
+      var hasBack = Array.prototype.some.call(document.querySelectorAll('button, a'), function (b) {
+        var s = b.querySelector && b.querySelector('.material-symbols-outlined');
+        return s && /arrow_back/.test(s.textContent.trim()) && !b.closest('.mpro-drawer');
+      });
+      var menuBtn = document.createElement('button');
+      menuBtn.className = 'mpro-menu-btn';
+      menuBtn.type = 'button';
+      menuBtn.setAttribute('aria-label', 'Abrir menu');
+      menuBtn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+      menuBtn.style.cssText = 'position:fixed;top:12px;left:' + (hasBack ? '60px' : '12px') +
+        ';z-index:59;width:44px;height:44px;border-radius:12px;border:none;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.28);cursor:pointer';
+      menuBtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); toggleDrawer(true); });
+      document.body.appendChild(menuBtn);
+    }
+
+    // ---- Bottom-nav (mobile) + FAB ----
+    var navItems = [
+      { icon: 'home', text: 'Início', screen: 'dashboard' },
+      { icon: 'groups', text: 'Clientes', screen: 'clients' },
+      { icon: 'map', text: 'Mapa', screen: 'map' },
+      { icon: 'assignment', text: 'Visitas', screen: 'visit' }
+    ];
+    var bottomNav = document.createElement('nav');
+    bottomNav.className = 'mpro-bottomnav';
+    bottomNav.innerHTML = navItems.map(function (it) {
+      var active = destinations[it.screen] === folder;
+      return '<button type="button" class="mpro-nav-item' + (active ? ' active' : '') + '" data-screen="' + it.screen + '">' +
+        '<span class="material-symbols-outlined">' + it.icon + '</span>' + it.text + '</button>';
+    }).join('');
+    document.body.appendChild(bottomNav);
+    bottomNav.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-screen]');
+      if (btn) navigate(btn.getAttribute('data-screen'));
+    });
+
+    if (folder !== destinations.visit) {
+      var fab = document.createElement('button');
+      fab.type = 'button';
+      fab.className = 'mpro-fab';
+      fab.innerHTML = '<span class="material-symbols-outlined">add</span>Nova visita';
+      fab.addEventListener('click', function () { navigate('visit'); });
+      document.body.appendChild(fab);
+    }
+
+    // ---- Rail (desktop, ≥900px): substitui bottom-nav + botão de menu ----
+    var railItems = navItems.concat([
+      { icon: 'precision_manufacturing', text: 'Equip.', screen: 'equipment' },
+      { icon: 'smart_toy', text: 'IA', screen: 'ai' }
+    ]);
+    var rail = document.createElement('nav');
+    rail.className = 'mpro-rail';
+    rail.innerHTML = '<div class="mpro-rail-brand">M-PRO</div>' +
+      railItems.map(function (it, i) {
+        var active = destinations[it.screen] === folder;
+        var sep = i === 3 ? '<div class="mpro-rail-sep"></div>' : '';
+        return sep + '<button type="button" class="mpro-rail-item' + (active ? ' active' : '') + '" data-screen="' + it.screen + '">' +
+          '<span class="material-symbols-outlined">' + it.icon + '</span>' + it.text + '</button>';
+      }).join('') +
+      '<button type="button" class="mpro-rail-avatar" data-open-drawer="1" aria-label="Conta">' + escHtml(initials(name)) + '</button>';
+    document.body.appendChild(rail);
+    rail.addEventListener('click', function (e) {
+      if (e.target.closest('[data-open-drawer]')) return toggleDrawer(true);
+      var btn = e.target.closest('[data-screen]');
+      if (btn) navigate(btn.getAttribute('data-screen'));
+    });
   }
 
   document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-action],[data-close],.mpro-sheet')) return; // telas novas cuidam da própria interação
     var control = event.target.closest('a,button,[role="button"],.cursor-pointer');
-    if (!control || control.id === 'menu-btn' || control.id === 'mpro-menu-btn' || control.id === 'drawer-overlay') return;
+    if (!control || control.closest('.mpro-drawer,.mpro-bottomnav,.mpro-rail,.mpro-menu-btn,.mpro-header')) return;
     var label = textOf(control);
     var folder = currentFolder();
     // Login com Google → entra na conta de demonstração (dados de teste).
@@ -451,145 +550,339 @@
     }
   });
 
-  // Nova Visita ligada ao banco: seletor de cliente real + gravação da visita no Neon.
-  function setupVisitForm() {
-    if (currentFolder() !== destinations.visit) return;
-    var main = document.querySelector('main') || document.body;
-    var box = document.createElement('div');
-    box.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin:0 0 12px';
-    box.innerHTML = '<label style="font:600 13px Inter,sans-serif;color:#0b1f16">Cliente</label>' +
-      '<select id="mpro-cliente-select" style="padding:12px;border:1px solid #cdd8cf;border-radius:10px;font:500 14px Inter,sans-serif;background:#fff"><option value="">Carregando…</option></select>';
-    main.insertBefore(box, main.firstChild);
-    var sel = box.querySelector('select');
+  // ---------- Dashboard: dados reais (por dono) ----------
+  function setupDashboard() {
+    if (currentFolder() !== destinations.dashboard) return;
+    var owner = currentOwner();
+    var sess = readSession(), mode = readMode();
+    var firstName = ((sess && sess.name) || '').trim().split(/\s+/)[0];
 
-    API.get('clientes?owner=' + encodeURIComponent(currentOwner())).then(function (list) {
-      if (!list || !list.length) {
-        sel.innerHTML = '<option value="">Nenhum cliente — digite um novo abaixo</option>';
-        var inp = document.createElement('input');
-        inp.id = 'mpro-cliente-novo';
-        inp.placeholder = 'Nome do novo cliente';
-        inp.style.cssText = 'padding:12px;border:1px solid #cdd8cf;border-radius:10px;font:500 14px Inter,sans-serif';
-        box.appendChild(inp);
-      } else {
-        sel.innerHTML = '<option value="">Selecione o cliente</option>' +
-          list.map(function (c) { return '<option value="' + c.id + '">' + c.nome + '</option>'; }).join('');
-        // Pré-seleciona o cliente vindo do "Iniciar Visita" na tela de Clientes.
-        try {
-          var pre = localStorage.getItem('mpro_cliente_sel');
-          if (pre) { sel.value = pre; localStorage.removeItem('mpro_cliente_sel'); }
-        } catch (e) {}
+    var greetEl = document.querySelector('[data-role="dashboard-greeting"]');
+    if (greetEl) greetEl.textContent = (mode === 'clean' ? 'Bem-vindo' : 'Bom dia') + (firstName ? ', ' + firstName : '');
+    var dateEl = document.querySelector('[data-role="dashboard-date"]');
+    if (dateEl) {
+      var d = new Date();
+      var dias = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+      var dd = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0');
+      dateEl.textContent = dias[d.getDay()] + ' · ' + dd + '/' + mm + '/' + d.getFullYear() + (mode === 'clean' ? ' · CONTA NOVA' : '');
+    }
+
+    Promise.all([
+      API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return null; }),
+      API.get('clientes?owner=' + encodeURIComponent(owner)).catch(function () { return null; })
+    ]).then(function (res) {
+      var erro = res[0] === null && res[1] === null;
+      var visitas = res[0] || [], clientes = res[1] || [];
+      var nome = {}; clientes.forEach(function (c) { nome[c.id] = c.nome; });
+      var finalizadas = visitas.filter(function (v) { return v.status === 'finalizado'; });
+      var rascunhos = visitas.filter(function (v) { return v.status === 'rascunho'; });
+
+      var statEl = document.querySelector('[data-role="dashboard-stats"]');
+      if (statEl) {
+        var corrigirCount = finalizadas.filter(function (v) { return v.situacao === 'corrigir'; }).length;
+        statEl.innerHTML =
+          statNum(visitas.length, 'visitas<br>no mês') +
+          statNum(clientes.length, 'clientes<br>ativos') +
+          statNum(corrigirCount, 'laudos a<br>finalizar', corrigirCount > 0);
       }
-    }).catch(function () { sel.innerHTML = '<option value="">(cadastro offline)</option>'; });
 
-    var situacao = null;
-    Array.prototype.forEach.call(document.querySelectorAll('button'), function (b) {
-      var t = (b.innerText || '').toLowerCase();
-      if (/adequado|monitorar|corrigir/.test(t) && t.length < 20) {
-        b.addEventListener('click', function () {
-          situacao = /adequado/.test(t) ? 'adequado' : /monitorar/.test(t) ? 'monitorar' : 'corrigir';
-          showToast('Situação: ' + situacao);
-        });
+      var draftBadge = document.querySelector('[data-role="dashboard-draft-badge"]');
+      if (draftBadge) draftBadge.textContent = rascunhos.length + ' PENDENTE' + (rascunhos.length === 1 ? '' : 'S');
+      var draftList = document.querySelector('[data-role="dashboard-drafts"]');
+      if (draftList) {
+        if (erro) {
+          draftList.innerHTML = errorRow('Não foi possível carregar os rascunhos.');
+        } else if (!rascunhos.length) {
+          draftList.innerHTML = '<div class="mpro-empty"><span class="material-symbols-outlined">edit_note</span>' +
+            '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Nenhum rascunho</span>' +
+            '<span style="font-size:13px;color:var(--on-surface-variant);line-height:1.4">Visitas iniciadas ficam aqui até você finalizar o laudo.</span></div></div>';
+        } else {
+          draftList.innerHTML = rascunhos.slice(0, 6).map(function (v) {
+            return '<div class="mpro-list-row" data-go="visit" style="cursor:pointer">' +
+              '<div style="width:4px;border-radius:2px;background:var(--monitorar);align-self:stretch;flex:none"></div>' +
+              '<div style="flex:1;display:flex;flex-direction:column;gap:2px;min-width:0">' +
+              '<span style="font-size:15px;font-weight:600;line-height:1.25">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</span>' +
+              '<span style="font-family:var(--font-mono);font-size:12px;color:var(--on-surface-variant)">salvo ' + escHtml(fmtDate(v.data_visita) || 'hoje') + '</span></div>' +
+              '<span class="material-symbols-outlined" style="color:var(--outline);align-self:center">chevron_right</span></div>';
+          }).join('');
+          Array.prototype.forEach.call(draftList.querySelectorAll('[data-go]'), function (el) {
+            el.addEventListener('click', function () { navigate('visit'); });
+          });
+        }
+      }
+
+      var recentList = document.querySelector('[data-role="dashboard-recent"]');
+      if (recentList) {
+        if (erro) {
+          recentList.innerHTML = errorRow('Não foi possível carregar as visitas recentes.');
+        } else if (!finalizadas.length) {
+          recentList.innerHTML = '<span style="font-size:15px;line-height:1.45;color:var(--on-surface-variant)">Nenhuma visita registrada. A primeira aparece aqui com o status nutricional do laudo.</span>';
+        } else {
+          recentList.innerHTML = finalizadas.slice(0, 8).map(function (v) {
+            var st = STATUS_META[v.situacao] || { label: v.situacao || '—', icon: 'remove' };
+            return '<div class="mpro-list-row">' +
+              '<div style="width:4px;border-radius:2px;background:var(--' + (v.situacao || 'outline') + ',var(--outline));align-self:stretch;flex:none"></div>' +
+              '<div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">' +
+              '<span style="font-size:15px;font-weight:600;line-height:1.2">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</span>' +
+              '<div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--font-mono);font-size:12px;color:var(--on-surface-variant)">' + escHtml(fmtDate(v.data_visita)) + '</span>' +
+              '<span class="mpro-status ' + escHtml(v.situacao || '') + '"><span class="material-symbols-outlined">' + st.icon + '</span>' + st.label.toUpperCase() + '</span></div></div>' +
+              '<a href="#" data-action="ver-visita" data-go="review" style="align-self:center;font-size:13px;font-weight:700;color:var(--secondary)">Ver</a></div>';
+          }).join('');
+          Array.prototype.forEach.call(recentList.querySelectorAll('[data-go]'), function (a) {
+            a.addEventListener('click', function (e) { e.preventDefault(); navigate(a.getAttribute('data-go')); });
+          });
+        }
       }
     });
 
-    window.__mproSaveVisit = function () {
-      var cid = sel.value;
-      var novo = document.getElementById('mpro-cliente-novo');
-      var ta = document.querySelector('textarea');
-      var obs = ta ? (ta.value || '').trim() : '';
-      function gravar(clienteId) {
-        var payload = { cliente_id: clienteId, status: 'finalizado', owner: currentOwner() };
-        if (situacao) payload.situacao = situacao;
-        if (obs) payload.conclusao = obs;
-        API.post('visitas', payload).then(function () {
-          showToast('Visita registrada no banco.');
-          navigate('photos');
-        }).catch(function (e) {
-          if (apiIndisponivel(e)) { showToast('Visita salva (offline).'); navigate('photos'); return; }
-          showToast(e.message || 'Falha ao salvar a visita.');
-        });
-      }
-      if (!cid && novo && novo.value.trim()) {
-        API.post('clientes', { nome: novo.value.trim(), owner: currentOwner() })
-          .then(function (c) { gravar(c.id); })
-          .catch(function () { showToast('Visita salva (offline).'); navigate('photos'); });
-        return;
-      }
-      if (!cid) { showToast('Selecione um cliente primeiro.'); return; }
-      gravar(cid);
-    };
+    function statNum(n, label, danger) {
+      return '<div class="mpro-stat"><span style="font:800 36px/1 var(--font-display);letter-spacing:-.03em' +
+        (danger ? ';color:var(--corrigir)' : '') + '">' + n + '</span>' +
+        '<span style="font-size:12px;font-weight:500;color:var(--on-surface-variant);line-height:1.2">' + label + '</span></div>';
+    }
+    function errorRow(msg) {
+      return '<div class="mpro-error-box"><div style="display:flex;gap:10px;align-items:flex-start">' +
+        '<span class="material-symbols-outlined" style="color:var(--error)">error</span>' +
+        '<span style="font-size:14px;color:var(--on-surface-variant)">' + escHtml(msg) + '</span></div>' +
+        '<button type="button" class="mpro-btn-primary" data-retry="1" style="height:44px;font-size:14px">' +
+        '<span class="material-symbols-outlined" style="font-size:18px">refresh</span>Tentar novamente</button></div>';
+    }
+    document.addEventListener('click', function (e) { if (e.target.closest('[data-retry]')) setupDashboard(); });
   }
 
-  // Tela de Clientes/Mapa: troca o card estático por uma lista real de clientes (da API).
-  function setupClientsMap() {
+  // ---------- Tela Clientes: lista real, busca, filtro por status, cadastro em bottom sheet ----------
+  function statusColorVar(s) { return s === 'adequado' ? 'var(--adequado)' : s === 'monitorar' ? 'var(--monitorar)' : s === 'corrigir' ? 'var(--corrigir)' : 'var(--outline)'; }
+
+  function ultimaSituacaoPorCliente(visitas) {
+    var out = {};
+    (visitas || []).filter(function (v) { return v.status === 'finalizado'; }).forEach(function (v) {
+      var atual = out[v.cliente_id];
+      if (!atual || (v.data_visita || '') > atual.data) out[v.cliente_id] = { data: v.data_visita, situacao: v.situacao };
+    });
+    var map = {};
+    Object.keys(out).forEach(function (k) { map[k] = out[k].situacao; });
+    return map;
+  }
+
+  function setupClientesScreen() {
     if (currentFolder() !== destinations.clients) return;
-    var wrapper = Array.prototype.slice.call(document.querySelectorAll('div')).filter(function (d) {
-      var c = d.className || '';
-      return /z-20/.test(c) && /absolute/.test(c) && d.querySelector('h2');
-    })[0];
-    if (!wrapper) return;
-    wrapper.innerHTML = '';
-    wrapper.style.display = 'flex';
-    wrapper.style.gap = '12px';
-    wrapper.style.overflowX = 'auto';
-    wrapper.style.padding = '4px 2px 8px';
-    wrapper.style.scrollSnapType = 'x mandatory';
+    var listEl = document.querySelector('[data-role="clientes-list"]');
+    var chipsEl = document.querySelector('[data-role="clientes-chips"]');
+    var searchEl = document.querySelector('[data-role="clientes-search"]');
+    if (!listEl) return;
+    var todos = [], statusPorCliente = {}, filtroAtivo = 'todos';
 
-    function esc(t) { return (t || '').replace(/[&<>"]/g, function (m) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[m]; }); }
-    function field(label, value) {
-      return '<div><p style="font:600 10px Inter,sans-serif;letter-spacing:.05em;color:#6b7d70;margin:0">' + label +
-        '</p><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:2px 0 0">' + esc(value || '—') + '</p></div>';
-    }
-    function cardHTML(c) {
-      return '<div class="mpro-cli-card" style="flex:0 0 86%;scroll-snap-align:center;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);overflow:hidden">' +
-        '<div style="height:6px;background:#2f9e57"></div><div style="padding:16px">' +
-        '<h2 style="font:700 18px Inter,sans-serif;color:#0b1f16;margin:0 0 4px">' + esc(c.nome) + '</h2>' +
-        '<p style="font:500 13px Inter,sans-serif;color:#4b5b50;margin:0 0 12px;display:flex;align-items:center;gap:4px">' +
-        '<span class="material-symbols-outlined" style="font-size:16px">mail</span>' + esc(c.contato_email || 'sem e-mail') + '</p>' +
-        '<div style="display:flex;gap:24px;border-top:1px solid #e3ebe4;padding-top:10px;margin-bottom:14px">' +
-        field('TELEFONE', c.contato_telefone) + field('DOCUMENTO', c.documento) + '</div>' +
-        '<div style="display:flex;gap:8px">' +
-        '<button data-det="1" style="flex:1;background:#eef3ef;color:#33453b;border:none;border-radius:8px;padding:12px;font:600 14px Inter,sans-serif;cursor:pointer">Ver Detalhes</button>' +
-        '<button data-visit="1" data-cid="' + c.id + '" style="flex:1;background:#0a3d2a;color:#fff;border:none;border-radius:8px;padding:12px;font:600 14px Inter,sans-serif;cursor:pointer">Iniciar Visita</button>' +
-        '</div></div></div>';
+    function card(c) {
+      var situacao = statusPorCliente[c.id];
+      var st = STATUS_META[situacao];
+      return '<div class="mpro-list-row" data-cid="' + c.id + '" style="cursor:pointer">' +
+        '<div style="width:4px;border-radius:2px;background:' + statusColorVar(situacao) + ';align-self:stretch;flex:none"></div>' +
+        '<div style="flex:1;display:flex;flex-direction:column;gap:4px;min-width:0">' +
+        '<span style="font-size:16px;font-weight:600;line-height:1.25;text-wrap:pretty">' + escHtml(c.nome) + '</span>' +
+        '<span style="font-family:var(--font-mono);font-size:12px;color:var(--on-surface-variant)">' + escHtml(c.contato_email || c.contato_telefone || 'sem contato cadastrado') + '</span>' +
+        (st ? '<span class="mpro-status ' + situacao + '"><span class="material-symbols-outlined">' + st.icon + '</span>' + st.label.toUpperCase() + '</span>' :
+          '<span class="mpro-status" style="color:var(--on-surface-variant)"><span class="material-symbols-outlined">remove</span>SEM VISITA</span>') +
+        '</div><span class="material-symbols-outlined" style="color:var(--outline);align-self:center">chevron_right</span></div>';
     }
 
-    function render(list) {
-      if (!list || !list.length) {
-        wrapper.innerHTML = '<div style="flex:0 0 92%;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:20px;text-align:center">' +
-          '<p style="font:600 15px Inter,sans-serif;color:#0b1f16;margin:0 0 10px">Nenhum cliente cadastrado</p>' +
-          '<button id="mpro-add-cli" style="background:#0a3d2a;color:#fff;border:none;border-radius:8px;padding:12px 16px;font:600 14px Inter,sans-serif;cursor:pointer">Cadastrar na Nova Visita</button></div>';
-        var a = document.getElementById('mpro-add-cli');
-        if (a) a.addEventListener('click', function () { navigate('visit'); });
+    function render() {
+      var q = ((searchEl && searchEl.value) || '').trim().toLowerCase();
+      var list = todos.filter(function (c) {
+        if (filtroAtivo !== 'todos' && statusPorCliente[c.id] !== filtroAtivo) return false;
+        if (!q) return true;
+        return (c.nome || '').toLowerCase().indexOf(q) >= 0 || (c.contato_email || '').toLowerCase().indexOf(q) >= 0;
+      });
+      if (!list.length) {
+        listEl.innerHTML = '<div class="mpro-empty" style="margin:16px"><span class="material-symbols-outlined">group_off</span>' +
+          '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Nenhum cliente encontrado</span>' +
+          '<span style="font-size:13px;color:var(--on-surface-variant)">' + (q || filtroAtivo !== 'todos' ? 'Ajuste a busca ou o filtro.' : 'Cadastre o primeiro cliente com o botão acima.') + '</span></div></div>';
         return;
       }
-      wrapper.innerHTML = list.map(cardHTML).join('');
-      Array.prototype.forEach.call(wrapper.querySelectorAll('[data-visit]'), function (b) {
-        b.addEventListener('click', function (e) {
-          e.stopPropagation();
-          try { localStorage.setItem('mpro_cliente_sel', b.getAttribute('data-cid')); } catch (er) {}
+      listEl.innerHTML = list.map(card).join('');
+      Array.prototype.forEach.call(listEl.querySelectorAll('[data-cid]'), function (row) {
+        row.addEventListener('click', function () {
+          try { localStorage.setItem('mpro_cliente_sel', row.getAttribute('data-cid')); } catch (e) {}
           navigate('visit');
         });
       });
-      Array.prototype.forEach.call(wrapper.querySelectorAll('[data-det]'), function (b) {
-        b.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var card = b.closest('.mpro-cli-card');
-          showToast('Cliente: ' + (card.querySelector('h2') || {}).textContent);
-        });
+    }
+
+    function renderChips() {
+      if (!chipsEl) return;
+      var counts = { todos: todos.length, adequado: 0, monitorar: 0, corrigir: 0 };
+      todos.forEach(function (c) { var s = statusPorCliente[c.id]; if (s && counts[s] != null) counts[s]++; });
+      var defs = [
+        { key: 'todos', label: null },
+        { key: 'adequado', label: 'Adequado' },
+        { key: 'monitorar', label: 'Monitorar' },
+        { key: 'corrigir', label: 'Corrigir' }
+      ];
+      chipsEl.innerHTML = defs.map(function (d) {
+        var active = filtroAtivo === d.key;
+        var dot = d.key === 'todos' ? '' : '<span style="width:8px;height:8px;border-radius:50%;background:' + statusColorVar(d.key) + '"></span>';
+        return '<button type="button" class="mpro-chip' + (active ? ' active' : '') + '" data-filter="' + d.key + '">' +
+          dot + (d.label || '') + ' <span style="font-family:var(--font-mono);font-size:12px;opacity:.75">' + counts[d.key] + '</span></button>';
+      }).join('');
+      Array.prototype.forEach.call(chipsEl.querySelectorAll('[data-filter]'), function (b) {
+        b.addEventListener('click', function () { filtroAtivo = b.getAttribute('data-filter'); renderChips(); render(); });
       });
     }
 
-    var todos = [];
-    API.get('clientes?owner=' + encodeURIComponent(currentOwner())).then(function (list) { todos = list || []; render(todos); })
-      .catch(function () {
-        wrapper.innerHTML = '<div style="flex:0 0 92%;background:#fff;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.16);padding:20px;text-align:center;font:500 14px Inter,sans-serif;color:#4b5b50">Clientes indisponíveis (sem conexão com a API).</div>';
+    function carregar() {
+      var owner = currentOwner();
+      Promise.all([
+        API.get('clientes?owner=' + encodeURIComponent(owner)),
+        API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return []; })
+      ]).then(function (res) {
+        todos = res[0] || [];
+        statusPorCliente = ultimaSituacaoPorCliente(res[1]);
+        renderChips(); render();
+      }).catch(function () {
+        listEl.innerHTML = '<div class="mpro-error-box" style="margin:16px"><span style="font-size:14px;color:var(--on-surface-variant)">Clientes indisponíveis (sem conexão com a API).</span></div>';
       });
+    }
+    carregar();
+    if (searchEl) searchEl.addEventListener('input', render);
 
-    var busca = document.querySelector('input[placeholder*="Buscar"], input[placeholder*="buscar"]');
-    if (busca) busca.addEventListener('input', function () {
-      var q = busca.value.trim().toLowerCase();
-      render(!q ? todos : todos.filter(function (c) { return (c.nome || '').toLowerCase().indexOf(q) >= 0; }));
+    // ---- Bottom sheet: novo cliente ----
+    var sheet = document.querySelector('[data-role="clientes-sheet"]');
+    var backdrop = document.querySelector('[data-role="clientes-sheet-backdrop"]');
+    function openSheet(open) {
+      if (!sheet || !backdrop) return;
+      sheet.classList.toggle('open', open);
+      backdrop.classList.toggle('open', open);
+      if (open) { var f = sheet.querySelector('input'); if (f) window.setTimeout(function () { f.focus(); }, 200); }
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-action="novo-cliente"]'), function (b) {
+      b.addEventListener('click', function () { openSheet(true); });
+    });
+    if (backdrop) backdrop.addEventListener('click', function () { openSheet(false); });
+    if (sheet) {
+      sheet.addEventListener('click', function (e) { if (e.target.closest('[data-close]')) openSheet(false); });
+      var form = sheet.querySelector('form');
+      if (form) {
+        form.dataset.mproOwnSubmit = '1';
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var nome = fieldValue(form, '[name="nome"]');
+          if (!nome) { showToast('Informe o nome do cliente.'); return; }
+          var payload = {
+            nome: nome,
+            documento: fieldValue(form, '[name="documento"]'),
+            contato_email: fieldValue(form, '[name="email"]'),
+            contato_telefone: fieldValue(form, '[name="telefone"]'),
+            owner: currentOwner()
+          };
+          var municipio = fieldValue(form, '[name="municipio"]'), uf = fieldValue(form, '[name="uf"]');
+          if (municipio || uf) payload.nome = payload.nome; // município/UF ficam para a propriedade (fora do escopo deste formulário rápido)
+          API.post('clientes', payload).then(function () {
+            showToast('Cliente cadastrado.');
+            form.reset();
+            openSheet(false);
+            carregar();
+          }).catch(function (err) {
+            if (apiIndisponivel(err)) { showToast('Cliente salvo (offline).'); form.reset(); openSheet(false); return; }
+            showToast(err.message || 'Falha ao cadastrar cliente.');
+          });
+        });
+      }
+    }
+  }
+
+  // ---------- Tela Mapa: marcadores por status + sheet do cliente ----------
+  function hashPercent(id, salt) {
+    var s = String(id) + salt, h = 0;
+    for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return 15 + (h % 71); // 15%–85%, evita colar nas bordas
+  }
+  var MAP_BOUNDS = { latMin: -20, latMax: -14, lonMin: -50, lonMax: -44 };
+  function posicaoNoMapa(prop, clienteId) {
+    var lat = prop && prop.latitude != null ? Number(prop.latitude) : null;
+    var lon = prop && prop.longitude != null ? Number(prop.longitude) : null;
+    if (lat != null && lon != null && !isNaN(lat) && !isNaN(lon)) {
+      var x = ((lon - MAP_BOUNDS.lonMin) / (MAP_BOUNDS.lonMax - MAP_BOUNDS.lonMin)) * 100;
+      var y = ((MAP_BOUNDS.latMax - lat) / (MAP_BOUNDS.latMax - MAP_BOUNDS.latMin)) * 100;
+      return { x: Math.max(6, Math.min(94, x)), y: Math.max(10, Math.min(90, y)), real: true };
+    }
+    return { x: hashPercent(clienteId, 'x'), y: hashPercent(clienteId, 'y'), real: false };
+  }
+
+  function setupMapaScreen() {
+    if (currentFolder() !== destinations.map) return;
+    var canvas = document.querySelector('[data-role="mapa-canvas"]');
+    var countEl = document.querySelector('[data-role="mapa-count"]');
+    var sheet = document.querySelector('[data-role="mapa-sheet"]');
+    var backdrop = document.querySelector('[data-role="mapa-sheet-backdrop"]');
+    if (!canvas) return;
+    var owner = currentOwner();
+
+    function abrirSheet(c, situacao) {
+      if (!sheet || !backdrop) return;
+      var st = STATUS_META[situacao];
+      sheet.innerHTML =
+        '<div class="mpro-sheet-handle"><span></span></div>' +
+        '<div class="mpro-sheet-body">' +
+        '<div style="display:flex;gap:12px;align-items:flex-start">' +
+        '<div style="width:4px;align-self:stretch;border-radius:2px;background:' + statusColorVar(situacao) + ';flex:none"></div>' +
+        '<div style="flex:1;display:flex;flex-direction:column;gap:4px">' +
+        '<h3 style="margin:0;font:800 24px/1.05 var(--font-display);letter-spacing:-.01em">' + escHtml(c.nome) + '</h3>' +
+        '<span style="font-family:var(--font-mono);font-size:12px;color:var(--on-surface-variant)">' + escHtml(c.contato_email || c.contato_telefone || 'sem contato') + '</span>' +
+        (st ? '<span class="mpro-status ' + situacao + '"><span class="material-symbols-outlined">' + st.icon + '</span>' + st.label.toUpperCase() + '</span>' : '') +
+        '</div><button type="button" class="mpro-header-btn" data-close="1" style="color:var(--on-surface-variant)"><span class="material-symbols-outlined">close</span></button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;padding:16px 0 4px">' +
+        '<button type="button" class="mpro-btn-secondary" style="flex:1" data-action="ver-detalhes">Ver detalhes</button>' +
+        '<button type="button" class="mpro-btn-primary" style="flex:1.2" data-action="iniciar-visita" data-cid="' + c.id + '">' +
+        '<span class="material-symbols-outlined">add</span>Iniciar visita</button></div></div>';
+      sheet.classList.add('open'); backdrop.classList.add('open');
+    }
+    function fecharSheet() { if (sheet) sheet.classList.remove('open'); if (backdrop) backdrop.classList.remove('open'); }
+    if (backdrop) backdrop.addEventListener('click', fecharSheet);
+    if (sheet) sheet.addEventListener('click', function (e) {
+      if (e.target.closest('[data-close]')) return fecharSheet();
+      var visitBtn = e.target.closest('[data-action="iniciar-visita"]');
+      if (visitBtn) { try { localStorage.setItem('mpro_cliente_sel', visitBtn.getAttribute('data-cid')); } catch (er) {} return navigate('visit'); }
+      if (e.target.closest('[data-action="ver-detalhes"]')) showToast('Detalhes completos do cliente no próximo fluxo do protótipo.');
+    });
+
+    Promise.all([
+      API.get('clientes?owner=' + encodeURIComponent(owner)),
+      API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return []; }),
+      API.get('propriedades').catch(function () { return []; })
+    ]).then(function (res) {
+      var clientes = res[0] || [], statusPorCliente = ultimaSituacaoPorCliente(res[1]), propriedades = res[2] || [];
+      var propPorCliente = {};
+      propriedades.forEach(function (p) { if (!propPorCliente[p.cliente_id]) propPorCliente[p.cliente_id] = p; });
+      if (countEl) countEl.textContent = clientes.length + ' cliente' + (clientes.length === 1 ? '' : 's');
+      if (!clientes.length) {
+        canvas.innerHTML += '<div class="mpro-empty" style="position:absolute;left:16px;right:16px;top:16px;background:var(--surface)">' +
+          '<span class="material-symbols-outlined">location_off</span>' +
+          '<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">Nenhum cliente para mostrar</span>' +
+          '<span style="font-size:13px;color:var(--on-surface-variant)">Cadastre um cliente na tela Clientes.</span></div></div>';
+        return;
+      }
+      var pins = document.createElement('div');
+      pins.style.cssText = 'position:absolute;inset:0';
+      clientes.forEach(function (c) {
+        var situacao = statusPorCliente[c.id];
+        var pos = posicaoNoMapa(propPorCliente[c.id], c.id);
+        var st = STATUS_META[situacao] || { label: 'Sem visita', icon: 'help' };
+        var bg = situacao ? statusColorVar(situacao) : 'var(--outline)';
+        var fg = situacao === 'monitorar' ? '#231400' : (situacao === 'adequado' ? '#08130c' : '#fff');
+        var pin = document.createElement('button');
+        pin.type = 'button';
+        pin.setAttribute('data-cid', c.id);
+        pin.setAttribute('data-action', 'abrir-cliente-mapa');
+        pin.style.cssText = 'position:absolute;left:' + pos.x + '%;top:' + pos.y + '%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;border:none;background:none;cursor:pointer;padding:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))';
+        pin.innerHTML = '<span style="display:flex;align-items:center;gap:4px;height:32px;padding:0 10px;border-radius:999px;background:' + bg + ';color:' + fg + ';font-size:12px;font-weight:800;border:2px solid #fff;white-space:nowrap"><span class="material-symbols-outlined" style="font-size:16px">' + st.icon + '</span>' + escHtml(c.nome.split(' ')[0] === 'Fazenda' || c.nome.split(' ')[0] === 'Sítio' ? c.nome.split(' ').slice(0, 2).join(' ') : c.nome.split(' ')[0]) + '</span>' +
+          '<span style="width:2px;height:8px;background:#fff"></span>';
+        pin.addEventListener('click', function () { abrirSheet(c, situacao); });
+        pins.appendChild(pin);
+      });
+      canvas.appendChild(pins);
+    }).catch(function () {
+      canvas.innerHTML += '<div class="mpro-error-box" style="position:absolute;left:16px;right:16px;top:16px;background:var(--surface)">' +
+        '<span style="font-size:14px;color:var(--on-surface-variant)">Não foi possível carregar os clientes no mapa.</span></div>';
     });
   }
 
@@ -675,85 +968,171 @@
     });
   }
 
-  // Dashboard: lista "Visitas Recentes" real (por dono).
-  function setupDashboard() {
-    if (currentFolder() !== destinations.dashboard) return;
+  // ---------- Nova Visita: wizard de 2 etapas, ligado à API ----------
+  function setupNovaVisita() {
+    if (currentFolder() !== destinations.visit) return;
+    var steps = Array.prototype.slice.call(document.querySelectorAll('[data-step]'));
+    if (!steps.length) return;
+    var stepIndex = 0;
     var owner = currentOwner();
-    function findHeading(re) {
-      return Array.prototype.slice.call(document.querySelectorAll('h1,h2,h3')).filter(function (h) { return re.test(h.textContent || ''); })[0];
+    var estado = { cliente_id: null, clienteNome: '', unidade: '', cultura: '', responsavel: '', situacao: {}, medicoes: [] };
+
+    var clienteSel = document.querySelector('[data-role="visita-cliente"]');
+    if (clienteSel) {
+      API.get('clientes?owner=' + encodeURIComponent(owner)).then(function (list) {
+        list = list || [];
+        if (!list.length) {
+          clienteSel.innerHTML = '<option value="">Nenhum cliente — cadastre um antes</option>';
+          return;
+        }
+        clienteSel.innerHTML = '<option value="">Selecionar cliente</option>' +
+          list.map(function (c) { return '<option value="' + c.id + '">' + escHtml(c.nome) + '</option>'; }).join('');
+        try {
+          var pre = localStorage.getItem('mpro_cliente_sel');
+          if (pre) { clienteSel.value = pre; localStorage.removeItem('mpro_cliente_sel'); }
+        } catch (e) {}
+      }).catch(function () { clienteSel.innerHTML = '<option value="">(indisponível offline)</option>'; });
     }
-    var COR = { adequado: '#2f9e57', monitorar: '#c98a1e', corrigir: '#c0392b' };
 
-    Promise.all([
-      API.get('visitas?owner=' + encodeURIComponent(owner)).catch(function () { return []; }),
-      API.get('clientes?owner=' + encodeURIComponent(owner)).catch(function () { return []; })
-    ]).then(function (res) {
-      var visitas = res[0] || [], clientes = res[1] || [];
-      var nome = {}; clientes.forEach(function (c) { nome[c.id] = c.nome; });
-      var finalizadas = visitas.filter(function (v) { return v.status === 'finalizado'; });
-      var rascunhos = visitas.filter(function (v) { return v.status === 'rascunho'; });
-
-      // --- Visitas Recentes (tabela) ---
-      var vHead = findHeading(/Visitas Recentes/i), table = null, sec = vHead;
-      while (sec && !table) { table = sec.querySelector && sec.querySelector('table'); sec = sec.parentElement; }
-      var tbody = table && table.querySelector('tbody');
-      if (tbody) {
-        if (!finalizadas.length) {
-          tbody.innerHTML = '<tr><td colspan="4" style="padding:20px;text-align:center;color:#5b6b60;font:500 14px Inter,sans-serif">Nenhuma visita recente.</td></tr>';
-        } else {
-          tbody.innerHTML = finalizadas.slice(0, 8).map(function (v) {
-            var cor = COR[v.situacao] || '#9aa5a0';
-            return '<tr style="border-bottom:1px solid #eef3ef">' +
-              '<td style="padding:16px;font:500 13px Inter,sans-serif;color:#4b5b50;white-space:nowrap">' + escHtml(fmtDate(v.data_visita)) + '</td>' +
-              '<td style="padding:16px"><div style="font:700 14px Inter,sans-serif;color:#0b1f16">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</div>' +
-              (v.responsavel ? '<div style="font:500 12px Inter,sans-serif;color:#5b6b60;margin-top:2px">' + escHtml(v.responsavel) + '</div>' : '') + '</td>' +
-              '<td style="padding:16px"><span style="display:inline-flex;align-items:center;gap:6px;font:600 12px Inter,sans-serif;color:' + cor + '"><span style="width:9px;height:9px;border-radius:50%;background:' + cor + '"></span>' + escHtml(v.situacao || '—') + '</span></td>' +
-              '<td style="padding:16px"><a href="#" data-go="review" style="font:600 13px Inter,sans-serif;color:#0a3d2a">Ver</a></td></tr>';
-          }).join('');
-          Array.prototype.forEach.call(tbody.querySelectorAll('a[data-go]'), function (a) {
-            a.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); navigate(a.getAttribute('data-go')); });
-          });
-        }
-      }
-
-      // --- Rascunhos Ativos ---
-      var rHead = findHeading(/Rascunhos? Ativ/i);
-      if (rHead) {
-        var card = rHead.closest('[class*="col-span-2"]') || rHead.closest('div');
-        var badge = Array.prototype.slice.call(card.querySelectorAll('span')).filter(function (s) { return /PENDENTE/i.test(s.textContent || ''); })[0];
-        if (badge) badge.textContent = rascunhos.length + ' PENDENTE' + (rascunhos.length === 1 ? '' : 'S');
-        var items = card.querySelectorAll('[class*="cursor-pointer"]');
-        var listEl = items.length ? items[0].parentElement : null;
-        if (listEl) {
-          if (!rascunhos.length) {
-            listEl.innerHTML = '<div style="padding:16px;text-align:center;font:500 13px Inter,sans-serif;color:#5b6b60">Nenhum rascunho ativo.</div>';
-          } else {
-            listEl.innerHTML = rascunhos.slice(0, 6).map(function (v) {
-              return '<div data-go="visit" style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#f2f7f3;border-radius:12px;margin-bottom:8px;cursor:pointer">' +
-                '<div><p style="font:600 14px Inter,sans-serif;color:#0b1f16;margin:0">' + escHtml(nome[v.cliente_id] || 'Cliente') + '</p>' +
-                '<p style="font:500 12px Inter,sans-serif;color:#5b6b60;margin:2px 0 0">Rascunho · ' + escHtml(fmtDate(v.data_visita) || 'hoje') + '</p></div>' +
-                '<span class="material-symbols-outlined" style="color:#0a3d2a">chevron_right</span></div>';
-            }).join('');
-            Array.prototype.forEach.call(listEl.querySelectorAll('[data-go]'), function (el) {
-              el.addEventListener('click', function () { navigate('visit'); });
-            });
-          }
-        }
-      }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-role="visita-cultura"] [data-chip]'), function (chip) {
+      chip.addEventListener('click', function () {
+        Array.prototype.forEach.call(chip.parentElement.querySelectorAll('[data-chip]'), function (c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+        estado.cultura = chip.getAttribute('data-chip');
+      });
     });
-  }
 
-  function applyMode() { /* modo indicado no subtítulo do menu lateral; sem badge flutuante */ }
+    Array.prototype.forEach.call(document.querySelectorAll('[data-role^="visita-situacao-"]'), function (group) {
+      var bloco = group.getAttribute('data-role').replace('visita-situacao-', '');
+      Array.prototype.forEach.call(group.querySelectorAll('[data-chip]'), function (chip) {
+        chip.addEventListener('click', function () {
+          var val = chip.getAttribute('data-chip');
+          var already = chip.classList.contains('active');
+          Array.prototype.forEach.call(group.querySelectorAll('[data-chip]'), function (c) {
+            c.classList.remove('active'); c.style.background = ''; c.style.color = ''; c.style.borderColor = '';
+          });
+          if (!already) {
+            chip.classList.add('active');
+            var bg = val === 'adequado' ? 'var(--adequado)' : val === 'monitorar' ? 'var(--monitorar)' : 'var(--corrigir)';
+            var fg = val === 'monitorar' ? '#231400' : val === 'adequado' ? '#08130c' : '#fff';
+            chip.style.background = bg; chip.style.color = fg; chip.style.borderColor = bg;
+            estado.situacao[bloco] = val;
+          } else {
+            delete estado.situacao[bloco];
+          }
+        });
+      });
+    });
+
+    var medicoesList = document.querySelector('[data-role="visita-medicoes"]');
+    var addMedicaoBtn = document.querySelector('[data-action="add-medicao"]');
+    function renderMedicoes() {
+      if (!medicoesList) return;
+      medicoesList.innerHTML = estado.medicoes.map(function (m, i) {
+        return '<div style="display:flex;align-items:center;gap:12px;border-top:1px solid var(--outline-variant);padding-top:8px">' +
+          '<div style="width:4px;height:44px;border-radius:2px;background:var(--medicao);flex:none"></div>' +
+          '<div style="flex:1;display:flex;flex-direction:column;gap:1px"><input placeholder="Rótulo (ex.: pressão de irrigação)" value="' + escHtml(m.rotulo) + '" data-med="rotulo" data-i="' + i + '" style="border:none;background:none;font-size:14px;font-weight:600;color:var(--on-surface);width:100%;padding:0" /></div>' +
+          '<input placeholder="valor" value="' + escHtml(m.valor) + '" data-med="valor" data-i="' + i + '" style="width:56px;border:none;border-bottom:1px solid var(--outline-variant);background:none;font-family:var(--font-mono);font-size:16px;text-align:right;padding:2px" />' +
+          '<input placeholder="un." value="' + escHtml(m.unidade) + '" data-med="unidade" data-i="' + i + '" style="width:44px;border:none;background:none;font-size:13px;color:var(--on-surface-variant)" />' +
+          '<button type="button" data-remove-med="' + i + '" style="border:none;background:none;color:var(--outline);cursor:pointer"><span class="material-symbols-outlined">close</span></button></div>';
+      }).join('');
+      Array.prototype.forEach.call(medicoesList.querySelectorAll('[data-med]'), function (inp) {
+        inp.addEventListener('input', function () {
+          estado.medicoes[Number(inp.getAttribute('data-i'))][inp.getAttribute('data-med')] = inp.value;
+        });
+      });
+      Array.prototype.forEach.call(medicoesList.querySelectorAll('[data-remove-med]'), function (b) {
+        b.addEventListener('click', function () { estado.medicoes.splice(Number(b.getAttribute('data-remove-med')), 1); renderMedicoes(); });
+      });
+    }
+    if (addMedicaoBtn) addMedicaoBtn.addEventListener('click', function () {
+      estado.medicoes.push({ rotulo: '', valor: '', unidade: '' });
+      renderMedicoes();
+    });
+
+    function showStep(i) {
+      stepIndex = Math.max(0, Math.min(steps.length - 1, i));
+      steps.forEach(function (s, idx) { s.style.display = idx === stepIndex ? 'flex' : 'none'; });
+      var pct = Math.round(((stepIndex + 1) / steps.length) * 100);
+      var bar = document.querySelector('[data-role="visita-progress-bar"]');
+      var label = document.querySelector('[data-role="visita-progress-label"]');
+      if (bar) bar.style.width = pct + '%';
+      if (label) label.textContent = 'ETAPA ' + (stepIndex + 1) + ' DE ' + steps.length;
+      var pctEl = document.querySelector('[data-role="visita-progress-pct"]');
+      if (pctEl) pctEl.textContent = pct + '%';
+      var nextBtn = document.querySelector('[data-action="visita-avancar"]');
+      if (nextBtn) nextBtn.textContent = stepIndex === steps.length - 1 ? 'Salvar visita' : 'Avançar';
+    }
+
+    function validarEtapa1() {
+      var erros = false;
+      if (clienteSel && !clienteSel.value) { marcarErro(clienteSel, true); erros = true; } else if (clienteSel) marcarErro(clienteSel, false);
+      var unidadeEl = document.querySelector('[data-role="visita-unidade"]');
+      if (unidadeEl && !(unidadeEl.value || '').trim()) { marcarErro(unidadeEl, true); erros = true; } else if (unidadeEl) marcarErro(unidadeEl, false);
+      if (erros) showToast('Preencha os campos obrigatórios (*) antes de avançar.');
+      return !erros;
+    }
+    function marcarErro(el, on) {
+      var wrap = el.closest('[data-field]') || el;
+      wrap.classList.toggle('error', on);
+      var err = wrap.parentElement && wrap.parentElement.querySelector('.mpro-field-error');
+      if (err) err.style.display = on ? 'flex' : 'none';
+    }
+
+    function gravar(finalizar) {
+      if (!clienteSel || !clienteSel.value) { showToast('Selecione um cliente primeiro.'); return; }
+      var payload = {
+        cliente_id: clienteSel.value,
+        status: finalizar ? 'finalizado' : 'rascunho',
+        owner: owner,
+        cultura: estado.cultura || null,
+        responsavel: fieldValue(document, '[data-role="visita-responsavel"]') || null,
+        condicao_geral: estado.situacao.geral || null,
+        irrigacao: estado.situacao.irrigacao || null,
+        nutricao: estado.situacao.nutricao || null,
+        situacao: estado.situacao.geral || estado.situacao.nutricao || estado.situacao.irrigacao || null
+      };
+      API.post('visitas', payload).then(function (v) {
+        var reqs = (estado.medicoes || []).filter(function (m) { return m.rotulo; }).map(function (m) {
+          return API.post('medicoes', { visita_id: v.id, rotulo: m.rotulo, valor: m.valor || null, unidade: m.unidade || null }).catch(function () {});
+        });
+        Promise.all(reqs).then(function () {
+          showToast(finalizar ? 'Visita registrada no banco.' : 'Rascunho salvo.');
+          navigate(finalizar ? 'photos' : 'dashboard');
+        });
+      }).catch(function (e) {
+        if (apiIndisponivel(e)) { showToast(finalizar ? 'Visita salva (offline).' : 'Rascunho salvo (offline).'); navigate(finalizar ? 'photos' : 'dashboard'); return; }
+        showToast(e.message || 'Falha ao salvar a visita.');
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-action="visita-avancar"]')) {
+        if (stepIndex === 0 && !validarEtapa1()) return;
+        if (stepIndex < steps.length - 1) return showStep(stepIndex + 1);
+        gravar(true);
+      }
+      if (e.target.closest('[data-action="visita-voltar-etapa"]')) {
+        if (stepIndex > 0) return showStep(stepIndex - 1);
+        if (window.history.length > 1) return window.history.back();
+        navigate('dashboard');
+      }
+      if (e.target.closest('[data-action="visita-salvar-rascunho"]')) gravar(false);
+    });
+
+    renderMedicoes();
+    showStep(0);
+  }
 
   document.addEventListener('DOMContentLoaded', function () {
     bindFormFeedback();
     bindPrototypeInteractions();
-    setupDrawer();
-    setupVisitForm();
-    setupClientsMap();
+    setupShell();
+    setupDashboard();
+    setupClientesScreen();
+    setupMapaScreen();
+    setupNovaVisita();
     setupEditProfile();
     setupEquipamentos();
-    setupDashboard();
-    applyMode();
   });
 })();
