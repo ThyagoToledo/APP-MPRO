@@ -1,80 +1,62 @@
 <h1 align="center">M-PRO</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
-</p>
-
-<p align="center">
-  Protótipo navegável do <b>M-PRO</b>, plataforma de acompanhamento agronômico que transforma
-  anotações de campo em relatórios padronizados, com histórico por cliente e consultas por IA.
+  Plataforma de acompanhamento agronômico que transforma anotações de campo em relatórios
+  padronizados, preserva o histórico técnico de cada cliente e permite consultas assistidas
+  por IA com rastreabilidade até a visita de origem.
 </p>
 
 ---
 
-## Estrutura do Projeto
+## Estado deste repositório
 
-```
-APP-MPRO/
-├── 📄 index.html                     # Entrada: redireciona para a tela de login
-├── 📄 mpro-prototype.js              # Motor de navegação compartilhado por todas as telas
-├── 📄 vercel.json                    # Configuração do deploy estático na Vercel
-├── 📄 testar-app-mpro.bat            # Servidor local para testar no Windows
-├── 📁 login_m_pro_fundo_planta_o/    # Cada pasta é uma tela (code.html)
-├── 📁 in_cio_dashboard_refinado/     # Dashboard principal
-├── 📁 nova_visita_formul_rio/        # Formulário de visita técnica
-├── 📁 ... (demais telas)             # Evidências, transcrição, revisão, IA, etc.
-├── 📁 api/                           # Funções serverless (Vercel) sobre o Neon
-├── 📁 db/                            # schema.sql (PostgreSQL/Neon)
-├── 📄 package.json                   # Dependência do driver Neon
-└── 📁 doc/                           # Documentação técnica
-```
+**Este repositório contém apenas documentação.** O protótipo navegável (15 telas HTML, motor de
+navegação, API serverless e schema PostgreSQL) foi removido em 27/07/2026 para que a construção
+recomece a partir de uma especificação organizada, e não de um protótipo acumulado.
 
----
-
-## Hub de Documentação
-
-- **[Fluxo e telas](doc/fluxo-e-telas.md)**: mapa de navegação, lista completa de telas e como o motor de navegação funciona.
-- **[Banco de dados](doc/banco-de-dados.md)**: modelo (PostgreSQL/Neon), tabelas e como aplicar o schema.
-- **[API](doc/api.md)**: endpoints serverless, variável de ambiente na Vercel e cliente no front.
-
----
-
-## Quick Start
-
-### Deploy na Vercel
-
-O projeto é um site estático — não há etapa de build. Basta importar o repositório na Vercel
-(ou rodar a CLI); o `index.html` da raiz é servido automaticamente e redireciona para o login.
+Nada foi perdido: todo o código está no histórico do git, no commit `beffe4d`
+(também publicado em `ThyagoToledo/APP-MPRO`). Para consultar ou recuperar:
 
 ```bash
-npm i -g vercel
-vercel
+git show beffe4d --stat
+git checkout beffe4d -- <caminho>
 ```
 
-### Execução local
-
-No Windows, dê um duplo clique em `testar-app-mpro.bat` (ele valida o Python e sobe um servidor
-local). Em qualquer sistema com Python:
-
-```bash
-python -m http.server 4173
-# abra http://localhost:4173/
-```
+O que aquele código provou na prática está registrado em
+[Roadmap e estado](doc/07-roadmap-e-estado.md) — leia antes de reimplementar.
 
 ---
 
-## Sobre o projeto
+## Hub de documentação
 
-Front-end em HTML + Tailwind (CDN) com um motor de navegação compartilhado, e um back-end de
-funções serverless na Vercel sobre PostgreSQL/Neon. O fluxo cobre login, dashboard, cadastro de
-visita, registro fotográfico, evidências, transcrição, revisão em PDF e assistente de IA.
+| Documento | Para quê |
+| --- | --- |
+| [1. Visão do produto](doc/01-visao-produto.md) | O que o M-PRO é, para quem, o que está dentro e fora do escopo. |
+| [2. Requisitos](doc/02-requisitos.md) | Requisitos funcionais e não funcionais, regras de negócio, critérios de aceite. |
+| [3. Sistema de telas](doc/03-sistema-de-telas.md) | Mapa de navegação, contrato de navegação e o detalhamento de cada tela. |
+| [4. Modelo de dados](doc/04-modelo-de-dados.md) | Entidades, relações e enums que sustentam o produto. |
+| [5. Contrato da API](doc/05-contrato-api.md) | Endpoints, filtros e regras de autorização esperados do back-end. |
+| [6. Design system](doc/06-design-system.md) | Tokens de cor, tipografia, espaçamento e ergonomia de campo. |
+| [7. Roadmap e estado](doc/07-roadmap-e-estado.md) | Fases, backlog priorizado e o que já foi validado no protótipo. |
 
-Login e cadastro já persistem no banco; as demais telas consomem a API por `window.MPRO.api`
-(ver [doc/api.md](doc/api.md)). Sem a `DATABASE_URL` configurada na Vercel, a API responde 500 e o
-front cai no modo protótipo. A visão de produto e os requisitos completos ficam no vault do time.
+Comece por [Visão do produto](doc/01-visao-produto.md) e depois
+[Sistema de telas](doc/03-sistema-de-telas.md) — juntos eles descrevem o produto inteiro.
+
+---
+
+## Relação com o vault
+
+A fonte de verdade de produto vive no vault do time, em
+`Brain/doc/10_projects/Colaborador1/mpro-app`:
+
+- `00_spec/mpro-app-visao-requisitos.md` — visão e requisitos originais;
+- `01_plan/mpro-app-planejamento-mvp.md` — fases, backlog e riscos;
+- `02_design/mpro-app-experiencia-relatorio-fotografico.md` — experiência de visita e PDF;
+- `02_design/mpro-prompt-claude-design-v2.md` — sistema visual e contrato de navegação;
+- `03_context/` — auditorias de relatório real, bugs e visitas de referência.
+
+Esta documentação é a **projeção técnica** daquele material: o vault define o que o produto
+precisa ser; o `doc/` deste repositório define como isso vira telas, dados e API.
 
 ---
 
