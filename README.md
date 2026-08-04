@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="app/assets/mpro-app-icon.svg" width="112" alt="Símbolo da marca M-PRO">
+</p>
+
 <h1 align="center">M-PRO</h1>
 
 <p align="center">
@@ -10,12 +14,59 @@
 
 ## Estado deste repositório
 
-**Este repositório contém apenas documentação.** O protótipo navegável (15 telas HTML, motor de
-navegação, API serverless e schema PostgreSQL) foi removido em 27/07/2026 para que a construção
-recomece a partir de uma especificação organizada, e não de um protótipo acumulado.
+| Pasta | O que é |
+| --- | --- |
+| `doc/` | Especificação do produto — a fonte de verdade. |
+| `app/` | Front-end de campo, em HTML/CSS/JS sem build. |
+| `app/vendor/` | Leaflet 1.9.4 local (mapa) — única dependência, sem CDN em runtime. |
+| `design/` | Canvas "M-PRO Campo" importado do Claude Design, com o runtime que ele usa. |
+| `output/pdf/` | Prancha de interfaces e evidências da auditoria visual. |
 
-Nada foi perdido: todo o código está no histórico do git, no commit `beffe4d`
-(também publicado em `ThyagoToledo/APP-MPRO`). Para consultar ou recuperar:
+O `app/` implementa a interface navegável completa em HTML/CSS/JS: Login, Registro, Dashboard,
+Clientes e detalhe, Mapa, Visitas e detalhe, Nova visita em 4 etapas, Registro fotográfico,
+Evidências, Transcrição, Revisão/PDF, Equipamentos, Assistente IA, Perfil, Editar perfil e
+Configurações. A marca fornecida foi vetorizada em `app/assets/` e aplicada ao favicon, cabeçalhos,
+rail e telas de sessão.
+
+Busca, filtros, cadastros em sheet, rascunhos, observações, medições, recomendações, fotos,
+finalização de visita, manutenção de equipamentos, conversa com referências, perfil e preferências
+funcionam localmente, com edição e exclusão de clientes, visitas (incluindo duplicar como rascunho)
+e equipamentos. O mapa é um Leaflet real com OpenStreetMap e camada de satélite Esri (sem chave):
+marcadores por status sincronizados com o cadastro, busca e filtro no próprio mapa, "Minha
+localização" com tratamento de permissão negada, rota externa via app de mapas e card de cliente
+com ações. Há tema claro/escuro, shell responsivo e estados de carregamento, vazio, erro e offline.
+Os dados ficam no `localStorage`, escopados por conta de demonstração ou conta nova — não há
+back-end, autenticação real, upload remoto nem IA remota; os blocos do mapa dependem de rede.
+
+O passe de acabamento de 03/08/2026 consolidou foco visível, hierarquia de superfícies, estados de
+interação, busca com contagem sincronizada, filtros mais claros, confirmação destrutiva destacada,
+contenção de foco em sheets/drawer e instruções explícitas nos fluxos demonstrativos. A camada de
+acabamento está isolada em `app/css/polish.css`, sobre os tokens e componentes existentes.
+
+### Rodar
+
+```bash
+python -m http.server 4173 --directory app
+```
+
+Depois abra `http://localhost:4173`. Não há dependências nem passo de build.
+
+### Verificação local
+
+```bash
+Get-ChildItem app/js -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName }
+```
+
+Em 03/08/2026, as 18 superfícies de rota foram abertas nos breakpoints mobile e desktop; os fluxos
+de conta nova, cadastro, mapa, visita completa, equipamentos, assistente e tema foram exercitados
+sem erro de console ou overflow horizontal. O roteiro e as limitações estão em
+[Roadmap e estado](doc/07-roadmap-e-estado.md).
+
+Uma prancha de 12 páginas com dez telas representativas e o resumo da auditoria está disponível em
+[Interfaces de exemplo — 03/08/2026](output/pdf/mpro-interfaces-2026-08-03.pdf).
+
+O protótipo anterior (15 telas HTML, API serverless e schema PostgreSQL) foi removido em
+27/07/2026 e está preservado no commit `beffe4d`, também publicado em `ThyagoToledo/APP-MPRO`:
 
 ```bash
 git show beffe4d --stat

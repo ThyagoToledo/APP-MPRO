@@ -4,6 +4,12 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+__pycache__/
+*.pyc
+
+# Ferramentas locais e artefatos temporários de QA
+.claude/
+tmp/
 
 # Segredos — NUNCA versionar
 Chaves.md

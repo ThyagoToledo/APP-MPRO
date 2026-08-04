@@ -1,0 +1,95 @@
+/* Tokens do design "M-PRO Campo" (Claude Design) — ver design/M-PRO Campo.dc.html */
+:root {
+  --primary: #002d1d;
+  --primary-container: #1a4332;
+  --on-primary: #ffffff;
+  --primary-fixed: #c0edd4;
+  --secondary: #1b6d24;
+  --secondary-container: #a0f399;
+  --accent-ink: #002d1d;
+  --on-secondary: #ffffff;
+  --surface: #f9faf6;
+  --surface-container: #f0f1ee;
+  --surface-raised: #ffffff;
+  --surface-soft: #f4f6f1;
+  --surface-tint: #edf4ee;
+  --on-surface: #1a1c1a;
+  --on-surface-variant: #414944;
+  --outline: #717973;
+  --outline-variant: #c1c8c2;
+
+  --adequado: #2f9e57;
+  --monitorar: #f59e0b;
+  --corrigir: #dc2626;
+  --medicao: #2563eb;
+  --error: #ba1a1a;
+
+  --on-adequado: #08130c;
+  --on-monitorar: #231400;
+  --on-corrigir: #ffffff;
+
+  --nav-dim: #93a99b;
+  --map-a: #dfe4d8;
+  --map-b: #cfd8c6;
+  --skel: #e4e7e0;
+
+  --scrim: rgba(0, 23, 14, .56);
+  --shadow: 0 12px 32px rgba(0, 45, 29, .12);
+  --shadow-sm: 0 1px 2px rgba(0, 45, 29, .05), 0 4px 14px rgba(0, 45, 29, .045);
+  --shadow-md: 0 8px 24px rgba(0, 45, 29, .09);
+  --shadow-lg: 0 18px 48px rgba(0, 45, 29, .15);
+  --focus-ring: rgba(27, 109, 36, .28);
+
+  --ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-pill: 999px;
+
+  --touch: 48px;
+  --touch-lg: 56px;
+
+  --font-display: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Inter Tight', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+[data-theme="escuro"] {
+  --primary: #00170e;
+  --primary-container: #1a4332;
+  --primary-fixed: #c0edd4;
+  --accent-ink: #c0edd4;
+  --surface: #0e1310;
+  --surface-container: #19201b;
+  --surface-raised: #151b17;
+  --surface-soft: #121813;
+  --surface-tint: #17231b;
+  --on-surface: #e7ece6;
+  --on-surface-variant: #b2bdb4;
+  --outline: #8c968e;
+  --outline-variant: #2d352f;
+
+  --adequado: #5fd48a;
+  --monitorar: #fbbf24;
+  --corrigir: #ff6b6b;
+  --medicao: #7dabff;
+  --error: #ffb4ab;
+
+  --on-adequado: #08130c;
+  --on-monitorar: #231400;
+  --on-corrigir: #1a0000;
+
+  --nav-dim: #8fa697;
+  --map-a: #141a15;
+  --map-b: #1b241c;
+  --skel: #222a23;
+  --shadow: 0 12px 32px rgba(0, 0, 0, .34);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .2), 0 5px 16px rgba(0, 0, 0, .16);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, .26);
+  --shadow-lg: 0 20px 56px rgba(0, 0, 0, .38);
+  --focus-ring: rgba(95, 212, 138, .25);
+}

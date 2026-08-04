@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">M-PRO</title>
+  <rect width="512" height="512" rx="96" fill="#f4f0e9"/>
+  <path fill="#213a18" fill-rule="evenodd" d="M182 102h250a6 6 0 0 1 6 6v194c0 11-4 20-12 28l-76 75c-7 7-15 10-25 10H76V211c0-12 4-21 12-29l75-73c5-5 11-7 19-7Zm-31 68v181h58V204l-58-34Zm75 0v85l59 34v-85l-59-34Zm77 0v181h20l38-38V204l-58-34Z"/>
+</svg>
