@@ -1083,6 +1083,14 @@ button.listtile:hover { background: var(--surface-container); }
 
 /* ---------- mapa Leaflet ---------- */
 
+.map-page {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .map-frame { position: relative; flex: 1; min-height: 420px; display: flex; }
 
 .map--leaflet {
@@ -1137,3 +1145,12 @@ button.listtile:hover { background: var(--surface-container); }
 .leaflet-tooltip { font-family: var(--font-body); font-weight: 600; }
 
 [data-theme="escuro"] .map--leaflet .leaflet-tile-pane { filter: brightness(.72) saturate(.85) contrast(1.05); }
+
+@media (max-width: 899px) {
+  .view { scrollbar-width: none; }
+  .view::-webkit-scrollbar { display: none; }
+  .map-page { flex: none; min-height: auto; }
+  .map-page > .chiprow,
+  .map-page > .map-frame { flex: none; }
+  .map-page > .chiprow { min-height: calc(var(--touch) + 2px); }
+}

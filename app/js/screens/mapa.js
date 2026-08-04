@@ -151,6 +151,7 @@ MPRO.screens.mapa = (function () {
     camadaMinhaPosicao = null;
 
     var itens = clientesNoMapa();
+    var layout = window.matchMedia('(min-width: 900px)').matches ? 'desktop' : 'mobile';
     var mapa = L.map(container, { zoomControl: false, attributionControl: true });
     mapaAtual = mapa;
 
@@ -164,18 +165,24 @@ MPRO.screens.mapa = (function () {
 
     L.control.zoom({ position: 'topright', zoomInTitle: 'Aumentar zoom', zoomOutTitle: 'Diminuir zoom' }).addTo(mapa);
 
-    if (visao) {
+    if (visao && visao.layout === layout) {
       mapa.setView(visao.center, visao.zoom);
     } else if (itens.length) {
       var limites = L.latLngBounds(itens.map(function (item) { return [item.pos.lat, item.pos.lng]; }));
       if (minhaPosicao) limites.extend([minhaPosicao.lat, minhaPosicao.lng]);
-      mapa.fitBounds(limites, { paddingTopLeft: [56, 88], paddingBottomRight: [56, 56], maxZoom: 12 });
+      mapa.fitBounds(limites, layout === 'mobile'
+        ? { paddingTopLeft: [28, 52], paddingBottomRight: [28, 44], maxZoom: 12 }
+        : { paddingTopLeft: [56, 88], paddingBottomRight: [56, 56], maxZoom: 12 });
+      if (layout === 'mobile') {
+        mapa.setZoom(Math.min(mapa.getZoom() + 1, 12), { animate: false });
+        mapa.panBy([0, -28], { animate: false });
+      }
     } else {
       mapa.setView(minhaPosicao ? [minhaPosicao.lat, minhaPosicao.lng] : CENTRO_PADRAO, ZOOM_PADRAO);
     }
 
     mapa.on('moveend zoomend', function () {
-      visao = { center: [mapa.getCenter().lat, mapa.getCenter().lng], zoom: mapa.getZoom() };
+      visao = { center: [mapa.getCenter().lat, mapa.getCenter().lng], zoom: mapa.getZoom(), layout: layout };
     });
 
     itens.forEach(function (item) {
@@ -324,7 +331,7 @@ MPRO.screens.mapa = (function () {
         if (vivo) montaMapa(vivo, ctx);
       }, 0);
 
-      return h('div', { style: 'display:flex;flex-direction:column;gap:12px;flex:1;min-height:0' }, [
+      return h('div', { class: 'map-page' }, [
         !navigator.onLine ? h('div', { class: 'notice' }, [
           ui.icon('cloud_off', null),
           h('div', { class: 'notice__body' }, [

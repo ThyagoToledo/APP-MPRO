@@ -20,7 +20,7 @@
 | `app/` | Front-end de campo, em HTML/CSS/JS sem build. |
 | `app/vendor/` | Leaflet 1.9.4 local (mapa) — única dependência, sem CDN em runtime. |
 | `design/` | Canvas "M-PRO Campo" importado do Claude Design, com o runtime que ele usa. |
-| `output/pdf/` | Prancha de interfaces e evidências da auditoria visual. |
+| `output/pdf/` | Pranchas de auditoria e apresentação visual do produto. |
 
 O `app/` implementa a interface navegável completa em HTML/CSS/JS: Login, Registro, Dashboard,
 Clientes e detalhe, Mapa, Visitas e detalhe, Nova visita em 4 etapas, Registro fotográfico,
@@ -51,6 +51,13 @@ python -m http.server 4173 --directory app
 
 Depois abra `http://localhost:4173`. Não há dependências nem passo de build.
 
+### Deploy (Vercel)
+
+O `vercel.json` na raiz aponta `outputDirectory` para `app/` — sem framework, sem build. Basta
+importar o repositório no Vercel (ou `vercel --prod` com a CLI) que a Home vira `app/index.html` e
+os caminhos relativos (`css/`, `js/`, `vendor/`) resolvem a partir dali. A navegação é toda por
+hash (`#/rota`), então não é preciso configurar rewrite/fallback de SPA no servidor.
+
 ### Verificação local
 
 ```bash
@@ -64,6 +71,13 @@ sem erro de console ou overflow horizontal. O roteiro e as limitações estão e
 
 Uma prancha de 12 páginas com dez telas representativas e o resumo da auditoria está disponível em
 [Interfaces de exemplo — 03/08/2026](output/pdf/mpro-interfaces-2026-08-03.pdf).
+
+A apresentação destinada a clientes está em
+[M-PRO — apresentação visual web e mobile](output/pdf/mpro-apresentacao-cliente-2026-08-03.pdf).
+Ela reúne 18 páginas com narrativa de produto, telas desktop e mobile, jornada integrada e aviso
+explícito de que se trata de um protótipo navegável com dados demonstrativos. A conta de exemplo
+usa o nome José; as capturas mobile preservam a proporção 390×844, são recortadas dentro da área
+útil arredondada e permanecem atrás do chassi e do notch dos mockups de celular.
 
 O protótipo anterior (15 telas HTML, API serverless e schema PostgreSQL) foi removido em
 27/07/2026 e está preservado no commit `beffe4d`, também publicado em `ThyagoToledo/APP-MPRO`:

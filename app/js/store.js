@@ -128,9 +128,16 @@ MPRO.store = (function () {
 
     user: function () {
       var padrao = state.account === 'demo'
-        ? { nome: 'Thiago Toledo', email: 'thiago.toledo@mpro.agr.br', iniciais: 'TT', modo: 'CONTA DEMONSTRAÇÃO' }
+        ? { nome: 'José', email: 'jose@mpro.agr.br', iniciais: 'J', modo: 'CONTA DEMONSTRAÇÃO' }
         : { nome: 'Marina Alves', email: 'marina.alves@mpro.agr.br', iniciais: 'MA', modo: 'CONTA NOVA' };
-      return Object.assign(padrao, read(scoped('profile'), {}));
+      var salvo = read(scoped('profile'), {});
+
+      if (state.account === 'demo' && /^(thiago|thyago)( toledo)?$/i.test(salvo.nome || '')) {
+        salvo = Object.assign({}, salvo, { nome: 'José', email: 'jose@mpro.agr.br', iniciais: 'J' });
+        write(scoped('profile'), salvo);
+      }
+
+      return Object.assign(padrao, salvo);
     },
 
     updateUser: function (patch) {
