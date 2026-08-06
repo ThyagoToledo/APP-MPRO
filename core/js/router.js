@@ -28,7 +28,7 @@ MPRO.router = (function () {
     var s = MPRO.screens;
     var rotas = {
       '/login': s.login,
-      '/registro': s.registro,
+      '/bem-vindo': s.bemVindo,
       '/': s.dashboard,
       '/clientes': s.clientes,
       '/cliente': s.clienteDetalhe,
@@ -172,10 +172,19 @@ MPRO.router = (function () {
     view.appendChild(conteudo);
   }
 
+  /* Porta de entrada única: quem decide se existe login é a plataforma, não a tela. */
+  function portao(caminho) {
+    var entrada = MPRO.session.modo() === 'local' ? '/bem-vindo' : '/login';
+    if (!MPRO.session.pronta()) return caminho === entrada ? null : entrada;
+    if (caminho === '/login' || caminho === '/bem-vindo') return '/';
+    return null;
+  }
+
   function render() {
     var rota = parse();
-    if (!MPRO.store.isAuthenticated && rota.caminho !== '/login' && rota.caminho !== '/registro') {
-      location.hash = '#/login';
+    var destino = portao(rota.caminho);
+    if (destino) {
+      location.hash = '#' + destino;
       return;
     }
     var tela = resolve(rota.caminho);

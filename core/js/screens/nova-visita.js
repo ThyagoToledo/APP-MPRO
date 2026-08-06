@@ -191,7 +191,7 @@ MPRO.screens.novaVisita = (function () {
 
       h('div', { class: 'field' }, [
         h('span', { class: 'field__label', text: 'Cultura' }),
-        h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, MPRO.demo.culturas.map(function (nome) {
+        h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, MPRO.catalogo.culturas.map(function (nome) {
           var chave = nome.toLowerCase();
           return h('button', {
             class: 'chip chip--lg', type: 'button', 'aria-pressed': r.cultura === chave ? 'true' : 'false',
@@ -288,7 +288,7 @@ MPRO.screens.novaVisita = (function () {
         h('span', { class: 'mono', style: 'font-size:11px;color:var(--adequado)', text: r.salvoEm ? 'SALVO ' + ui.formatSavedAt(r.salvoEm) : 'NÃO SALVO' })
       ]),
 
-      h('div', { style: 'display:flex;flex-direction:column;gap:10px' }, MPRO.demo.blocosAvaliacao.map(function (bloco) {
+      h('div', { style: 'display:flex;flex-direction:column;gap:10px' }, MPRO.catalogo.blocosAvaliacao.map(function (bloco) {
         return h('div', { class: 'evalblock' }, [
           h('span', { class: 'evalblock__label', text: bloco.rotulo }),
           h('div', { class: 'segmented', role: 'group', 'aria-label': bloco.rotulo }, ['adequado', 'monitorar', 'corrigir'].map(function (chave) {
@@ -454,7 +454,7 @@ MPRO.screens.novaVisita = (function () {
         linha('Fotos', r.fotos.length + (r.fotos.length === 1 ? ' imagem' : ' imagens'))
       ]),
 
-      ui.section('Avaliação', null, MPRO.demo.blocosAvaliacao.map(function (bloco) {
+      ui.section('Avaliação', null, MPRO.catalogo.blocosAvaliacao.map(function (bloco) {
         var valor = r.avaliacoes[bloco.chave];
         return h('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--outline-variant);padding:10px 0' }, [
           h('span', { style: 'font-size:15px;font-weight:600', text: bloco.rotulo }),

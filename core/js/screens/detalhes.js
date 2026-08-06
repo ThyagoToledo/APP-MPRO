@@ -144,7 +144,7 @@ MPRO.screens = MPRO.screens || {};
           dado('Fotografias', String(fotos.length), true)
         ]),
         ui.section('Avaliação técnica', null,
-          h('div', { class: 'card-list' }, MPRO.demo.blocosAvaliacao.map(function (bloco) {
+          h('div', { class: 'card-list' }, MPRO.catalogo.blocosAvaliacao.map(function (bloco) {
             return h('div', { class: 'listtile' }, [
               h('span', { class: 'listtile__body' }, [h('strong', { text: bloco.rotulo }), h('span', { text: (visita.observacoes && visita.observacoes[bloco.chave]) || 'Sem observação adicional.' })]),
               avaliacoes[bloco.chave] ? ui.statusTag(avaliacoes[bloco.chave]) : h('span', { class: 'dim', text: 'Não avaliado' })

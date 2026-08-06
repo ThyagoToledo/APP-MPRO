@@ -265,7 +265,7 @@ MPRO.ui = (function () {
     { rota: '#/transcricao', icone: 'graphic_eq', rotulo: 'Transcrição' },
     { rota: '#/revisao', icone: 'fact_check', rotulo: 'Revisão e finalização' },
     { rota: '#/equipamentos', icone: 'precision_manufacturing', rotulo: 'Equipamentos' },
-    { rota: '#/assistente', icone: 'smart_toy', rotulo: 'Assistente IA' },
+    { rota: '#/assistente', icone: 'travel_explore', rotulo: 'Consulta assistida' },
     { separador: true },
     { rota: '#/perfil', icone: 'person', rotulo: 'Perfil' },
     { rota: '#/perfil/editar', icone: 'manage_accounts', rotulo: 'Editar perfil' },
@@ -275,7 +275,7 @@ MPRO.ui = (function () {
   var RAIL_ITENS = DESTINOS.concat([
     { separador: true },
     { rota: '#/equipamentos', icone: 'precision_manufacturing', rotulo: 'Equip.', chave: 'equipamentos' },
-    { rota: '#/assistente', icone: 'smart_toy', rotulo: 'IA', chave: 'assistente' }
+    { rota: '#/assistente', icone: 'travel_explore', rotulo: 'Consulta', chave: 'assistente' }
   ]);
 
   var drawerPreviousFocus = null;
@@ -335,8 +335,8 @@ MPRO.ui = (function () {
       h('div', { class: 'drawer__id' }, [
         h('div', { class: 'avatar', text: user.iniciais }),
         h('div', { class: 'drawer__name' }, [
-          h('strong', { text: user.nome }),
-          h('span', { text: user.email })
+          h('strong', { text: user.nome || 'Sem identificação' }),
+          h('span', { text: user.email || [user.cargo, user.empresa].filter(Boolean).join(' · ') || 'Perfil deste aparelho' })
         ])
       ]),
       h('span', { class: 'badge', text: user.modo })
@@ -362,22 +362,46 @@ MPRO.ui = (function () {
     ]));
 
     drawer.appendChild(lista);
-    drawer.appendChild(h('div', { class: 'drawer__foot' }, [
-      h('button', {
+
+    var rodape = [syncPill()];
+    if (MPRO.session.modo() === 'gated') {
+      rodape.push(h('button', {
         class: 'drawer__item', type: 'button', style: 'color:var(--error);font-weight:700',
         onclick: function () { closeDrawer(); sairSheet(); }
-      }, [icon('logout'), h('span', { text: 'Sair' })])
-    ]));
+      }, [icon('logout'), h('span', { text: 'Sair' })]));
+    }
+    drawer.appendChild(h('div', { class: 'drawer__foot' }, rodape));
+  }
+
+  /* Estado do armazenamento sempre visível: o usuário precisa saber se o registro já saiu
+     do aparelho. Sem servidor configurado, o rótulo diz exatamente isso. */
+  function syncPill() {
+    var s = MPRO.sync.status();
+    var cor = s.estado === 'sincronizado' ? 'var(--adequado)'
+      : s.estado === 'erro' ? 'var(--corrigir)'
+        : s.estado === 'somente-local' ? 'var(--on-surface-variant)' : 'var(--monitorar)';
+    var icone = s.estado === 'sincronizado' ? 'cloud_done'
+      : s.estado === 'erro' ? 'cloud_off'
+        : s.estado === 'somente-local' ? 'save' : 'cloud_sync';
+    return h('div', { class: 'syncpill', style: 'color:' + cor }, [
+      icon(icone),
+      h('span', {}, [
+        h('strong', { text: MPRO.sync.rotulo() }),
+        h('small', { text: 'Banco local: ' + (s.driver === 'indexeddb' ? 'IndexedDB' : s.driver) })
+      ])
+    ]);
   }
 
   function sairSheet() {
     confirmSheet({
       titulo: 'Sair da conta',
-      texto: 'Seus rascunhos continuam salvos neste aparelho e estarão disponíveis no próximo acesso.',
+      texto: 'Os registros deste navegador continuam salvos e voltam no próximo acesso autorizado.',
       confirmar: 'Sair',
       onConfirm: function () {
-        MPRO.store.logout();
-        location.hash = '#/login';
+        MPRO.session.sair().then(function () {
+          location.hash = '#/login';
+          MPRO.router.render();
+        });
       }
     });
   }
@@ -433,6 +457,7 @@ MPRO.ui = (function () {
     openDrawer: openDrawer,
     closeDrawer: closeDrawer,
     renderDrawer: renderDrawer,
+    syncPill: syncPill,
     renderBottomNav: renderBottomNav,
     renderRail: renderRail,
     destinos: DESTINOS

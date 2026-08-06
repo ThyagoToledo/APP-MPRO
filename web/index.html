@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#002d1d">
+<meta name="description" content="M-PRO — acompanhamento agronômico com registro em campo pelo aplicativo Android e consulta do histórico técnico no navegador.">
+<title>M-PRO — acompanhamento agronômico de campo</title>
+<link rel="icon" href="../core/assets/mpro-app-icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="../core/css/tokens.css?v=0.4.1">
+<link rel="stylesheet" href="css/landing.css?v=0.4.1">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap site-head__row">
+    <a class="brandline" href="./" aria-label="M-PRO — início">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M182 102h250a6 6 0 0 1 6 6v194c0 11-4 20-12 28l-76 75c-7 7-15 10-25 10H76V211c0-12 4-21 12-29l75-73c5-5 11-7 19-7Zm-31 68v181h58V204l-58-34Zm75 0v85l59 34v-85l-59-34Zm77 0v181h20l38-38V204l-58-34Z"/></svg>
+      <strong>M-PRO</strong>
+    </a>
+    <nav>
+      <a href="#produto">Produto</a>
+      <a href="#aplicativo">Aplicativo</a>
+      <a href="#acesso">Acesso</a>
+      <a class="cta" href="sistema.html">Entrar no sistema</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <span class="eyebrow">Acompanhamento agronômico</span>
+        <h1>O que foi visto em campo vira histórico técnico, não anotação perdida.</h1>
+        <p>
+          A equipe registra a visita pelo aplicativo Android — com medições, avaliações, fotos e
+          recomendações — mesmo sem sinal. O escritório consulta o mesmo histórico pelo navegador,
+          com cada afirmação ligada à visita que a originou.
+        </p>
+        <div class="hero__actions">
+          <a class="cta" href="sistema.html"><span class="ms">login</span> Entrar no sistema</a>
+          <a class="cta cta--ghost" href="#aplicativo"><span class="ms">android</span> Conhecer o aplicativo</a>
+        </div>
+      </div>
+
+      <aside class="hero__panel">
+        <h2>Como o dado circula</h2>
+        <div class="flowline">
+          <span class="ms">edit_note</span>
+          <span><strong>1. Registro em campo</strong>A visita é gravada no banco do próprio aparelho, com ou sem internet.</span>
+        </div>
+        <div class="flowline">
+          <span class="ms">cloud_upload</span>
+          <span><strong>2. Envio quando houver sinal</strong>A fila sobe sozinha para a nuvem M-PRO, sem duplicar nem perder registro.</span>
+        </div>
+        <div class="flowline">
+          <span class="ms">desktop_windows</span>
+          <span><strong>3. Consulta no navegador</strong>O escritório abre o mesmo histórico, com filtros, mapa e relatório.</span>
+        </div>
+        <div class="flowline">
+          <span class="ms">travel_explore</span>
+          <span><strong>4. Consulta assistida</strong>Perguntas sobre o histórico respondem citando a visita de origem.</span>
+        </div>
+      </aside>
+    </section>
+
+    <section id="produto">
+      <h2 class="section-title">Três coisas que o sistema resolve</h2>
+      <p class="section-lead">
+        O escopo é estreito de propósito: registrar a visita direito, preservar a evidência e
+        permitir comparar o que mudou entre uma visita e outra.
+      </p>
+      <div class="cards">
+        <article class="card">
+          <div class="card__icon"><span class="ms">assignment</span></div>
+          <h3>Visita padronizada</h3>
+          <p>Quatro etapas, avaliação por bloco, medições com unidade e recomendação escrita. O rascunho é salvo a cada passo e sobrevive à perda de conexão.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon"><span class="ms">photo_library</span></div>
+          <h3>Evidência vinculada</h3>
+          <p>Fotos, coordenadas e observações ficam presas à visita que as gerou. Nada de imagem solta sem contexto no fim do mês.</p>
+        </article>
+        <article class="card">
+          <div class="card__icon"><span class="ms">history</span></div>
+          <h3>Histórico por cliente</h3>
+          <p>Cada cliente tem linha do tempo, situação atual e pendências em aberto — no mapa, na lista e no relatório.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="aplicativo">
+      <div class="app-strip">
+        <div>
+          <span class="eyebrow">Aplicativo Android</span>
+          <h2>Feito para trabalhar longe do escritório</h2>
+          <p>
+            O M-PRO Campo grava tudo no aparelho primeiro. A internet é bem-vinda, não obrigatória:
+            quando o sinal volta, os registros sobem para a nuvem em segundo plano.
+          </p>
+          <a class="storebadge" href="#acesso" aria-disabled="true">
+            <span class="ms">shop</span>
+            <span><small>Em breve no</small><strong>Google Play</strong></span>
+          </a>
+        </div>
+        <ul class="applist">
+          <li><span class="ms">wifi_off</span> Funciona sem internet, inclusive no cadastro e na captura de fotos.</li>
+          <li><span class="ms">smartphone</span> Layout responsivo do celular pequeno ao tablet, com alvos de toque grandes.</li>
+          <li><span class="ms">map</span> Mapa com os clientes por situação e rota pelo aplicativo de navegação do aparelho.</li>
+          <li><span class="ms">sync</span> Fila de envio visível: o técnico sempre sabe o que já saiu do aparelho.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="acesso">
+      <div class="access">
+        <div>
+          <h2>O acesso é liberado pela administração</h2>
+          <p>
+            O sistema web não tem autocadastro. Entram apenas usuários já criados e aprovados no
+            banco da M-PRO — a mesma regra vale para o vínculo do aplicativo com a nuvem. Para
+            solicitar um acesso, envie nome completo, e-mail profissional e a função em campo.
+          </p>
+        </div>
+        <a class="cta" href="mailto:contato@mpro.agr.br"><span class="ms">mail</span> Solicitar acesso</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap site-foot__row">
+    <small>M-PRO · acompanhamento agronômico</small>
+    <small>Registro local primeiro, nuvem depois.</small>
+  </div>
+</footer>
+
+</body>
+</html>

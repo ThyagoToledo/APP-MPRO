@@ -32,8 +32,8 @@ MPRO.screens.dashboard = (function () {
 
   function saudacao(compacta) {
     var user = MPRO.store.user();
-    var praca = MPRO.store.isDemo ? ' · Cristalina/GO' : ' · conta nova';
-    var primeiroNome = user.nome.split(' ')[0];
+    var praca = user.empresa ? ' · ' + user.empresa : '';
+    var primeiroNome = (user.nome || 'técnico').split(' ')[0];
     if (compacta) {
       return h('div', { class: 'deskhead__id' }, [
         h('span', { class: 'mono', text: (ui.todayLabel() + praca).toUpperCase() }),
@@ -120,10 +120,27 @@ MPRO.screens.dashboard = (function () {
     ].concat(linhas));
   }
 
+  /* Manutenção vencida sai dos equipamentos cadastrados, não de um texto fixo. */
+  function manutencaoVencida() {
+    var hoje = new Date().toISOString().slice(0, 10);
+    var vencidos = MPRO.store.equipments()
+      .filter(function (eq) { return eq.proxima && eq.proxima < hoje; })
+      .sort(function (a, b) { return String(a.proxima).localeCompare(String(b.proxima)); });
+    if (!vencidos.length) return null;
+    var equipamento = vencidos[0];
+    var cliente = equipamento.clienteId ? MPRO.store.client(equipamento.clienteId) : null;
+    var dias = Math.round((Date.now() - new Date(equipamento.proxima).getTime()) / 86400000);
+    return {
+      equipamento: equipamento.nome,
+      cliente: cliente ? cliente.nome : 'sem cliente vinculado',
+      diasAtraso: dias
+    };
+  }
+
   function painelCarteira() {
     var contagem = porStatus();
     var total = Math.max(1, contagem.adequado + contagem.monitorar + contagem.corrigir);
-    var manutencao = MPRO.store.isDemo ? MPRO.demo.manutencao : null;
+    var manutencao = manutencaoVencida();
 
     return h('div', { class: 'panel' }, [
       h('h2', { class: 'section__title', text: 'Status da carteira' }),
@@ -153,7 +170,7 @@ MPRO.screens.dashboard = (function () {
     return ui.emptyState({
       icone: 'eco',
       titulo: 'Nada registrado ainda',
-      texto: 'Esta conta começa vazia. Cadastre o primeiro cliente e a primeira visita — o histórico técnico se monta a partir daí.',
+      texto: 'Cadastre o primeiro cliente e registre a primeira visita — o histórico técnico se monta a partir daí, direto no aparelho.',
       acao: {
         rotulo: 'Cadastrar cliente',
         icone: 'person_add',
@@ -162,11 +179,54 @@ MPRO.screens.dashboard = (function () {
     });
   }
 
+  /* Pendências reais do banco local: rascunho aberto, manutenção vencida e fila de envio. */
+  function pendencias() {
+    var itens = [];
+
+    MPRO.store.drafts().forEach(function (rascunho) {
+      var cliente = MPRO.store.client(rascunho.clienteId);
+      itens.push({
+        icone: 'pending_actions',
+        titulo: 'Rascunho sem finalizar',
+        texto: (cliente ? cliente.nome : 'Cliente removido') + ' — etapa ' + (rascunho.etapa || 1) + ' de 4',
+        momento: ui.formatSavedAt(rascunho.salvoEm),
+        onClick: function () { location.hash = '#/visitas/nova?rascunho=' + rascunho.id; }
+      });
+    });
+
+    var manutencao = manutencaoVencida();
+    if (manutencao) {
+      itens.push({
+        icone: 'build',
+        titulo: 'Manutenção vencida',
+        texto: manutencao.equipamento + ' — ' + manutencao.cliente,
+        momento: manutencao.diasAtraso + ' dias',
+        onClick: function () { location.hash = '#/equipamentos'; }
+      });
+    }
+
+    var sync = MPRO.sync.status();
+    if (sync.pendentes) {
+      itens.push({
+        icone: sync.configurado ? 'cloud_upload' : 'save',
+        titulo: sync.configurado ? 'Registros aguardando envio' : 'Registros salvos só neste aparelho',
+        texto: MPRO.sync.rotulo(),
+        momento: String(sync.pendentes)
+      });
+    }
+
+    return itens;
+  }
+
   function abrirNotificacoes() {
+    var itens = pendencias();
     ui.openSheet({
-      titulo: 'Notificações',
-      body: MPRO.demo.notifications.map(function (item) {
-        return h('div', { class: 'listtile' }, [
+      titulo: 'Pendências',
+      body: itens.length ? itens.map(function (item) {
+        return h(item.onClick ? 'button' : 'div', {
+          class: 'listtile', type: item.onClick ? 'button' : null,
+          onclick: item.onClick ? function () { ui.closeSheet(); item.onClick(); } : null
+        }, [
           h('span', { class: 'listtile__icon' }, [ui.icon(item.icone)]),
           h('span', { class: 'listtile__body' }, [
             h('strong', { text: item.titulo }),
@@ -174,7 +234,7 @@ MPRO.screens.dashboard = (function () {
           ]),
           h('span', { class: 'mono dim', style: 'font-size:11px', text: item.momento })
         ]);
-      }),
+      }) : [h('p', { class: 'dim', style: 'margin:0', text: 'Nenhuma pendência agora: nenhum rascunho aberto, nenhuma manutenção vencida e nada na fila de envio.' })],
       footer: [h('button', { class: 'btn btn--filled btn--grow', type: 'button', onclick: ui.closeSheet }, 'Entendi')]
     });
   }
@@ -185,11 +245,13 @@ MPRO.screens.dashboard = (function () {
     titulo: 'M-PRO',
     marca: true,
     carrega: true,
-    acao: {
-      icone: 'notifications',
-      rotulo: 'Notificações',
-      badge: true,
-      onClick: abrirNotificacoes
+    get acao() {
+      return {
+        icone: 'notifications',
+        rotulo: 'Pendências',
+        badge: pendencias().length > 0,
+        onClick: abrirNotificacoes
+      };
     },
 
     deskHead: function () {

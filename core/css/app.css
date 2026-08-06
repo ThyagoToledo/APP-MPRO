@@ -1154,3 +1154,23 @@ button.listtile:hover { background: var(--surface-container); }
   .map-page > .map-frame { flex: none; }
   .map-page > .chiprow { min-height: calc(var(--touch) + 2px); }
 }
+
+/* Estado do armazenamento: onde o registro está e se já saiu do aparelho. */
+.syncpill {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border: 1px solid var(--outline-variant); border-radius: 12px;
+  background: var(--surface-container); margin-bottom: 8px;
+}
+.syncpill .ms { font-size: 20px; }
+.syncpill span { display: flex; flex-direction: column; min-width: 0; }
+.syncpill strong { font-size: 13px; font-weight: 700; line-height: 1.25; }
+.syncpill small { font-family: var(--font-mono); font-size: 10px; letter-spacing: .04em; color: var(--on-surface-variant); }
+
+/* Convite de instalação e faixa institucional do site. */
+.install-banner {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border: 1px solid var(--outline-variant); border-radius: 14px; background: var(--surface-container);
+}
+.install-banner__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.install-banner strong { font-size: 14px; }
+.install-banner span { font-size: 13px; color: var(--on-surface-variant); }

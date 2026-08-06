@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#002d1d">
+<meta name="description" content="M-PRO Campo — clientes, visitas, evidências e decisões técnicas, gravados no aparelho e disponíveis sem internet.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>M-PRO Campo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../core/assets/mpro-app-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block" rel="stylesheet">
+<link rel="stylesheet" href="../core/vendor/leaflet/leaflet.css?v=0.4.1">
+<link rel="stylesheet" href="../core/css/tokens.css?v=0.4.1">
+<link rel="stylesheet" href="../core/css/app.css?v=0.4.1">
+<link rel="stylesheet" href="../core/css/polish.css?v=0.4.1">
+</head>
+<body>
+
+<div class="app">
+  <aside class="rail" id="rail" hidden></aside>
+
+  <div class="viewport">
+    <header class="appbar" id="appbar"></header>
+    <header class="deskhead" id="deskhead" hidden></header>
+    <main class="view" id="view" tabindex="-1"></main>
+    <footer class="actionbar" id="actionbar" hidden></footer>
+    <nav class="bottomnav" id="bottomnav" hidden></nav>
+    <button class="fab" id="fab" type="button" hidden></button>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Menu"></aside>
+<div class="sheet-host" id="sheet-host" hidden></div>
+<div class="snackbar" id="snackbar" hidden></div>
+
+<script charset="utf-8" src="../core/vendor/leaflet/leaflet.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/platform.js?v=0.4.1"></script>
+<script charset="utf-8" src="js/platform.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/catalogo.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/db.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/sync.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/session.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/ia.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/store.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/ui.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/dashboard.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/clientes.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/mapa.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/visitas.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/nova-visita.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/detalhes.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/recursos-visita.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/equipamentos.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/assistente.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/conta.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/auth.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/screens/placeholder.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/router.js?v=0.4.1"></script>
+<script charset="utf-8" src="../core/js/app.js?v=0.4.1"></script>
+</body>
+</html>

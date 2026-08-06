@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/assets/mpro-app-icon.svg" width="112" alt="Símbolo da marca M-PRO">
+  <img src="core/assets/mpro-app-icon.svg" width="112" alt="Símbolo da marca M-PRO">
 </p>
 
 <h1 align="center">M-PRO</h1>
@@ -7,88 +7,101 @@
 <p align="center">
   Plataforma de acompanhamento agronômico que transforma anotações de campo em relatórios
   padronizados, preserva o histórico técnico de cada cliente e permite consultas assistidas
-  por IA com rastreabilidade até a visita de origem.
+  com rastreabilidade até a visita de origem.
 </p>
 
 ---
 
-## Estado deste repositório
+## Os módulos
 
-| Pasta | O que é |
-| --- | --- |
-| `doc/` | Especificação do produto — a fonte de verdade. |
-| `app/` | Front-end de campo, em HTML/CSS/JS sem build. |
-| `app/vendor/` | Leaflet 1.9.4 local (mapa) — única dependência, sem CDN em runtime. |
-| `design/` | Canvas "M-PRO Campo" importado do Claude Design, com o runtime que ele usa. |
-| `output/pdf/` | Pranchas de auditoria e apresentação visual do produto. |
+| Pasta | O que é | Onde vai parar |
+| --- | --- | --- |
+| `core/` | Todo o comportamento do produto: telas, roteador, banco local, fila de envio, consulta assistida e design system. Não tem página própria. | — |
+| `mobile/` | Aplicativo de campo Android. Sem login, banco no aparelho, funciona offline. | Google Play |
+| `web/` | Site público (`index.html`) e sistema restrito (`sistema.html`). | Host com domínio próprio |
+| `doc/` | Especificação do produto — a fonte de verdade. | — |
+| `design/` | Canvas "M-PRO Campo" importado do Claude Design. | — |
+| `tools/` | Utilitários de build sem dependências (geração de ícones). | — |
+| `output/pdf/` | Pranchas de auditoria e a apresentação comercial. Foram geradas antes da remoção do seed e ainda mostram a carteira de exemplo. | — |
 
-O `app/` implementa a interface navegável completa em HTML/CSS/JS: Login, Registro, Dashboard,
-Clientes e detalhe, Mapa, Visitas e detalhe, Nova visita em 4 etapas, Registro fotográfico,
-Evidências, Transcrição, Revisão/PDF, Equipamentos, Assistente IA, Perfil, Editar perfil e
-Configurações. A marca fornecida foi vetorizada em `app/assets/` e aplicada ao favicon, cabeçalhos,
-rail e telas de sessão.
+`mobile/` e `web/` não duplicam código: cada um carrega o `core/` por caminho relativo e o
+configura antes do boot, num único arquivo de plataforma. A separação inteira, o contrato de
+plataforma e o funcionamento da fila estão em
+[Módulos, banco local e sincronização](doc/08-modulos-e-sincronizacao.md).
 
-Busca, filtros, cadastros em sheet, rascunhos, observações, medições, recomendações, fotos,
-finalização de visita, manutenção de equipamentos, conversa com referências, perfil e preferências
-funcionam localmente, com edição e exclusão de clientes, visitas (incluindo duplicar como rascunho)
-e equipamentos. O mapa é um Leaflet real com OpenStreetMap e camada de satélite Esri (sem chave):
-marcadores por status sincronizados com o cadastro, busca e filtro no próprio mapa, "Minha
-localização" com tratamento de permissão negada, rota externa via app de mapas e card de cliente
-com ações. Há tema claro/escuro, shell responsivo e estados de carregamento, vazio, erro e offline.
-Os dados ficam no `localStorage`, escopados por conta de demonstração ou conta nova — não há
-back-end, autenticação real, upload remoto nem IA remota; os blocos do mapa dependem de rede.
+## O que já funciona
 
-O passe de acabamento de 03/08/2026 consolidou foco visível, hierarquia de superfícies, estados de
-interação, busca com contagem sincronizada, filtros mais claros, confirmação destrutiva destacada,
-contenção de foco em sheets/drawer e instruções explícitas nos fluxos demonstrativos. A camada de
-acabamento está isolada em `app/css/polish.css`, sobre os tokens e componentes existentes.
+Dashboard, Clientes, Mapa, Visitas, Nova visita em 4 etapas, Registro fotográfico, Evidências,
+Transcrição, Revisão, Equipamentos, Consulta assistida, Perfil e Configurações — com busca,
+filtros, rascunhos, medições, recomendações, fotos, finalização de visita e ciclo completo de
+criar/editar/excluir em clientes, visitas e equipamentos.
 
-### Rodar
+O mapa é um Leaflet real com OpenStreetMap e satélite Esri (sem chave), marcadores por status
+sincronizados com o cadastro, geolocalização com tratamento de permissão negada e rota externa pelo
+app de navegação do aparelho.
 
-```bash
-python -m http.server 4173 --directory app
-```
+**Os dados são gravados primeiro no aparelho**, em IndexedDB, escopados por espaço de trabalho.
+Cada escrita entra numa fila de sincronização idempotente. Enquanto não houver servidor
+configurado, o app diz textualmente que está em modo somente-local — nada é perdido e nada é
+simulado. Não há dados de demonstração: o aplicativo abre vazio e o primeiro registro é real.
 
-Depois abra `http://localhost:4173`. Não há dependências nem passo de build.
+A consulta assistida recupera trechos do banco local, filtrando por cliente **antes** da busca, e
+cita a visita de origem. No modo local ela declara que não há modelo de linguagem envolvido; o
+caminho remoto está pronto e só espera a URL do servidor intermediário. Nenhuma chave, token ou
+segredo existe no front-end.
 
-### Deploy (Vercel)
-
-O `vercel.json` na raiz aponta `outputDirectory` para `app/` — sem framework, sem build. Basta
-importar o repositório no Vercel (ou `vercel --prod` com a CLI) que a Home vira `app/index.html` e
-os caminhos relativos (`css/`, `js/`, `vendor/`) resolvem a partir dali. A navegação é toda por
-hash (`#/rota`), então não é preciso configurar rewrite/fallback de SPA no servidor.
-
-### Verificação local
+## Rodar
 
 ```bash
-Get-ChildItem app/js -Recurse -Filter *.js | ForEach-Object { node --check $_.FullName }
+python -m http.server 4173
 ```
 
-Em 03/08/2026, as 18 superfícies de rota foram abertas nos breakpoints mobile e desktop; os fluxos
-de conta nova, cadastro, mapa, visita completa, equipamentos, assistente e tema foram exercitados
-sem erro de console ou overflow horizontal. O roteiro e as limitações estão em
-[Roadmap e estado](doc/07-roadmap-e-estado.md).
+- Site: `http://localhost:4173/web/`
+- Sistema web: `http://localhost:4173/web/sistema.html`
+- Aplicativo: `http://localhost:4173/mobile/`
 
-Uma prancha de 12 páginas com dez telas representativas e o resumo da auditoria está disponível em
-[Interfaces de exemplo — 03/08/2026](output/pdf/mpro-interfaces-2026-08-03.pdf).
+O servidor precisa subir na **raiz do repositório**, porque `mobile/` e `web/` referenciam `core/`.
+Não há dependências nem passo de build.
 
-A apresentação destinada a clientes está em
-[M-PRO — apresentação visual web e mobile](output/pdf/mpro-apresentacao-cliente-2026-08-03.pdf).
-Ela reúne 18 páginas com narrativa de produto, telas desktop e mobile, jornada integrada e aviso
-explícito de que se trata de um protótipo navegável com dados demonstrativos. A conta de exemplo
-usa o nome José; as capturas mobile preservam a proporção 390×844, são recortadas dentro da área
-útil arredondada e permanecem atrás do chassi e do notch dos mockups de celular.
+## Acesso
 
-O protótipo anterior (15 telas HTML, API serverless e schema PostgreSQL) foi removido em
-27/07/2026 e está preservado no commit `beffe4d`, também publicado em `ThyagoToledo/APP-MPRO`:
+O aplicativo Android não tem tela de login nesta fase: o primeiro acesso pede como o técnico assina
+os relatórios e libera o uso, com tudo gravado localmente. Quando o vínculo com a nuvem for ligado,
+o espaço de trabalho já existente é preservado.
+
+O sistema web só entra com cadastro **já criado e aprovado** no banco da M-PRO. Não existe
+autocadastro. Sem servidor de autenticação configurado, nenhum acesso é liberado — e a tela diz
+isso em vez de fingir uma sessão.
+
+## Publicar
+
+### Vercel (hoje)
+
+O `vercel.json` serve a raiz do repositório: `/` redireciona para o site, `/mobile/` é o aplicativo
+instalável e `/core/` é servido como estático. O `.vercelignore` mantém documentação e design fora
+do deploy. Não há framework nem build.
+
+### Play Store
 
 ```bash
-git show beffe4d --stat
-git checkout beffe4d -- <caminho>
+node tools/gerar-icones.js
 ```
 
-O que aquele código provou na prática está registrado em
-[Roadmap e estado](doc/07-roadmap-e-estado.md) — leia antes de reimplementar.
+Depois publique `mobile/` em HTTPS e gere o pacote com Bubblewrap ou PWABuilder apontando para
+`https://<domínio>/mobile/manifest.webmanifest`. O roteiro completo está em
+[Módulos, banco local e sincronização](doc/08-modulos-e-sincronizacao.md), seção 8.5.
+
+## Verificação local
+
+```bash
+node --check core/js/app.js
+```
+
+Em 05/08/2026 foram validados: `node --check` em todos os arquivos JavaScript; primeiro acesso do
+aplicativo; cadastro persistindo em IndexedDB entre recargas e entrando na fila; mapa com marcador
+real; consulta assistida citando a visita de origem; recusa de login no sistema web por falta de
+cadastro aprovado; 14 rotas em 375×812 sem overflow horizontal; e service worker com o shell em
+cache. O roteiro e as limitações estão em [Roadmap e estado](doc/07-roadmap-e-estado.md).
 
 ---
 
@@ -100,9 +113,10 @@ O que aquele código provou na prática está registrado em
 | [2. Requisitos](doc/02-requisitos.md) | Requisitos funcionais e não funcionais, regras de negócio, critérios de aceite. |
 | [3. Sistema de telas](doc/03-sistema-de-telas.md) | Mapa de navegação, contrato de navegação e o detalhamento de cada tela. |
 | [4. Modelo de dados](doc/04-modelo-de-dados.md) | Entidades, relações e enums que sustentam o produto. |
-| [5. Contrato da API](doc/05-contrato-api.md) | Endpoints, filtros e regras de autorização esperados do back-end. |
+| [5. Contrato da API](doc/05-contrato-api.md) | Endpoints, filtros, autorização e as rotas de login, sincronização e consulta. |
 | [6. Design system](doc/06-design-system.md) | Tokens de cor, tipografia, espaçamento e ergonomia de campo. |
-| [7. Roadmap e estado](doc/07-roadmap-e-estado.md) | Fases, backlog priorizado e o que já foi validado no protótipo. |
+| [7. Roadmap e estado](doc/07-roadmap-e-estado.md) | Fases, backlog priorizado e o que já foi validado. |
+| [8. Módulos e sincronização](doc/08-modulos-e-sincronizacao.md) | Separação em módulos, banco local, fila híbrida, molde de IA e publicação. |
 
 Comece por [Visão do produto](doc/01-visao-produto.md) e depois
 [Sistema de telas](doc/03-sistema-de-telas.md) — juntos eles descrevem o produto inteiro.
@@ -118,7 +132,7 @@ A fonte de verdade de produto vive no vault do time, em
 - `01_plan/mpro-app-planejamento-mvp.md` — fases, backlog e riscos;
 - `02_design/mpro-app-experiencia-relatorio-fotografico.md` — experiência de visita e PDF;
 - `02_design/mpro-prompt-claude-design-v2.md` — sistema visual e contrato de navegação;
-- `03_context/` — auditorias de relatório real, bugs e visitas de referência.
+- `03_context/` — auditorias de relatório real, bugs e decisões de arquitetura.
 
 Esta documentação é a **projeção técnica** daquele material: o vault define o que o produto
 precisa ser; o `doc/` deste repositório define como isso vira telas, dados e API.

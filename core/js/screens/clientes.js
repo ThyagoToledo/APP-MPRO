@@ -115,8 +115,8 @@ MPRO.screens.clientes = (function () {
     var uf = campo('UF', { name: 'uf', placeholder: 'GO', value: existente && existente.uf });
     var coords = campo('Coordenadas', { name: 'coordenadas', mono: true, placeholder: '-16.2523, -47.9503', value: existente && existente.coordenadas });
 
-    var cultura = (existente && existente.cultura) || MPRO.demo.culturas[0].toLowerCase();
-    var chipsCultura = h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, MPRO.demo.culturas.map(function (nomeCultura) {
+    var cultura = (existente && existente.cultura) || MPRO.catalogo.culturas[0].toLowerCase();
+    var chipsCultura = h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, MPRO.catalogo.culturas.map(function (nomeCultura) {
       var chave = nomeCultura.toLowerCase();
       return h('button', {
         class: 'chip chip--lg', type: 'button', 'aria-pressed': chave === cultura ? 'true' : 'false',

@@ -30,7 +30,7 @@ MPRO.screens = MPRO.screens || {};
         ]),
         h('div', { class: 'card-list' }, [
           h('button', { class: 'listtile', type: 'button', onclick: function () { location.hash = '#/configuracoes'; } }, [h('span', { class: 'listtile__icon' }, [ui.icon('settings')]), h('span', { class: 'listtile__body' }, [h('strong', { text: 'Configurações' }), h('span', { text: 'Tema, sincronização e unidades' })]), ui.icon('chevron_right')]),
-          h('button', { class: 'listtile', type: 'button', onclick: function () { MPRO.ui.confirmSheet({ titulo: 'Sair da conta', texto: 'Os rascunhos permanecem salvos neste aparelho.', confirmar: 'Sair', onConfirm: function () { MPRO.store.logout(); location.hash = '#/login'; } }); } }, [h('span', { class: 'listtile__icon' }, [ui.icon('logout')]), h('span', { class: 'listtile__body' }, [h('strong', { text: 'Sair' }), h('span', { text: 'Encerrar a sessão neste aparelho' })]), ui.icon('chevron_right')])
+          MPRO.session.modo() === 'gated' ? h('button', { class: 'listtile', type: 'button', onclick: function () { MPRO.ui.confirmSheet({ titulo: 'Sair da conta', texto: 'Os registros deste navegador permanecem salvos.', confirmar: 'Sair', onConfirm: function () { MPRO.session.sair().then(function () { location.hash = '#/login'; MPRO.router.render(); }); } }); } }, [h('span', { class: 'listtile__icon' }, [ui.icon('logout')]), h('span', { class: 'listtile__body' }, [h('strong', { text: 'Sair' }), h('span', { text: 'Encerrar a sessão neste navegador' })]), ui.icon('chevron_right')]) : null
         ])
       ]);
     }
@@ -84,6 +84,69 @@ MPRO.screens = MPRO.screens || {};
     return h('label', { class: 'settings-row' }, [h('span', { class: 'listtile__icon' }, [ui.icon(icone)]), h('span', { class: 'listtile__body' }, [h('strong', { text: rotulo }), h('span', { text: texto })]), h('span', { class: 'switch' }, [input, h('i')])]);
   }
 
+  /* O usuário precisa enxergar onde o dado está e o que ainda não saiu do aparelho. */
+  function blocoDados(ctx) {
+    var s = MPRO.sync.status();
+    var registros = ['clients', 'visits', 'drafts', 'equipments'].reduce(function (total, colecao) {
+      return total + MPRO.db.todos(colecao).length;
+    }, 0);
+
+    var enviar = h('button', {
+      class: 'btn btn--outline', type: 'button', disabled: !s.configurado,
+      onclick: function () {
+        ui.snack('Enviando registros pendentes…');
+        MPRO.sync.drenar().then(function (novo) {
+          ui.snack(novo.estado === 'sincronizado' ? 'Tudo sincronizado.' : MPRO.sync.rotulo());
+          ctx.rerender();
+        });
+      }
+    }, [ui.icon('cloud_upload'), 'Sincronizar agora']);
+
+    return h('div', { class: 'settings-card' }, [
+      h('div', { class: 'settings-row settings-row--stack' }, [
+        h('span', { class: 'listtile__icon' }, [ui.icon('database')]),
+        h('span', { class: 'listtile__body' }, [
+          h('strong', { text: 'Armazenamento local' }),
+          h('span', { text: registros + ' registro(s) neste aparelho · ' + (s.driver === 'indexeddb' ? 'IndexedDB' : s.driver) })
+        ]),
+        ui.syncPill()
+      ]),
+      h('div', { class: 'settings-row settings-row--stack' }, [
+        h('span', { class: 'listtile__icon' }, [ui.icon('cloud_sync')]),
+        h('span', { class: 'listtile__body' }, [
+          h('strong', { text: 'Envio para a nuvem M-PRO' }),
+          h('span', { text: s.configurado
+            ? 'A fila sobe automaticamente quando há internet.'
+            : 'Ainda não configurado nesta instalação. Tudo é gravado localmente e nada é perdido: a fila sobe assim que o servidor for ligado.' })
+        ]),
+        enviar
+      ]),
+      h('div', { class: 'settings-row settings-row--stack' }, [
+        h('span', { class: 'listtile__icon' }, [ui.icon('delete_forever')]),
+        h('span', { class: 'listtile__body' }, [
+          h('strong', { text: 'Apagar dados deste aparelho' }),
+          h('span', { text: 'Remove clientes, visitas, rascunhos e equipamentos gravados localmente. Não há como desfazer.' })
+        ]),
+        h('button', {
+          class: 'btn btn--outline', type: 'button',
+          onclick: function () {
+            ui.confirmSheet({
+              titulo: 'Apagar dados locais',
+              texto: 'Todos os registros gravados neste aparelho serão removidos, inclusive os que ainda não foram enviados.',
+              confirmar: 'Excluir',
+              onConfirm: function () {
+                MPRO.store.apagarTudo();
+                ui.snack('Dados locais apagados.');
+                location.hash = '#/';
+                MPRO.router.render();
+              }
+            });
+          }
+        }, [ui.icon('delete'), 'Apagar'])
+      ])
+    ]);
+  }
+
   MPRO.screens.configuracoes = {
     grupo: 'B', titulo: 'Configurações',
     render: function (ctx) {
@@ -99,7 +162,8 @@ MPRO.screens = MPRO.screens || {};
           linhaToggle('Sincronização automática', 'Enviar rascunhos quando a conexão voltar.', 'sync', settings.sincronizacao, function (valor) { salvar({ sincronizacao: valor }, 'Preferência de sincronização atualizada.'); }),
           h('label', { class: 'settings-row' }, [h('span', { class: 'listtile__icon' }, [ui.icon('square_foot')]), h('span', { class: 'listtile__body' }, [h('strong', { text: 'Unidade de área' }), h('span', { text: 'Usada em clientes e relatórios.' })]), h('select', { class: 'select-compact', 'aria-label': 'Unidade de área', onchange: function (event) { salvar({ unidadeArea: event.target.value }, 'Unidade de área atualizada.'); } }, [h('option', { value: 'ha', selected: settings.unidadeArea === 'ha', text: 'Hectares (ha)' }), h('option', { value: 'm2', selected: settings.unidadeArea === 'm2', text: 'Metros²' })])])
         ])),
-        ui.section('Sobre', null, h('div', { class: 'settings-card' }, [h('div', { class: 'settings-row' }, [h('span', { class: 'listtile__icon' }, [ui.icon('info')]), h('span', { class: 'listtile__body' }, [h('strong', { text: 'M-PRO Campo' }), h('span', { text: 'Interface local · versão de validação 0.2' })]), ui.brand({ markOnly: true })])]))
+        ui.section('Dados e sincronização', null, blocoDados(ctx)),
+        ui.section('Sobre', null, h('div', { class: 'settings-card' }, [h('div', { class: 'settings-row' }, [h('span', { class: 'listtile__icon' }, [ui.icon('info')]), h('span', { class: 'listtile__body' }, [h('strong', { text: MPRO.platform.nome }), h('span', { text: 'Módulo ' + MPRO.platform.alvo + ' · versão ' + MPRO.platform.versao })]), ui.brand({ markOnly: true })])]))
       ]);
     }
   };
