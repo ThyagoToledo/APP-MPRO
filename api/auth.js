@@ -1,5 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { sql, send, readJson, query } from './_db.js';
+import { signToken } from './_auth.js';
 
 function hashSenha(senha) {
   const salt = randomBytes(16).toString('hex');
@@ -72,7 +73,12 @@ export default async function handler(req, res) {
       return send(res, 403, { error: 'Este acesso foi desativado pela administração.' });
     }
 
-    const token = 'tok_' + Date.now().toString(36) + '_' + randomBytes(8).toString('hex');
+    const token = signToken({
+      id: user.id,
+      email: user.email,
+      papel: user.papel || 'tecnico'
+    });
+
     const usuarioPayload = {
       id: user.id,
       nome: user.nome,

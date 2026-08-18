@@ -1,5 +1,6 @@
 // Backend Serverless para Consulta Assistida com IA (NVIDIA NIM - Nemotron 3 Ultra)
 import { sql, send, readJson } from './_db.js';
+import { requireAuth } from './_auth.js';
 
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
@@ -10,6 +11,14 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return send(res, 204, {});
     if (req.method !== 'POST') return send(res, 405, { error: 'Método não permitido. Use POST.' });
 
+    // Validação de autenticação para evitar abuso de cotas
+    const user = requireAuth(req, res);
+    if (!user) return;
+
+    if (!NVIDIA_API_KEY) {
+      return send(res, 503, { error: 'Chave NVIDIA_API_KEY não configurada no servidor.' });
+    }
+
     const body = await readJson(req);
     const pergunta = (body.pergunta || body.prompt || '').trim();
     const clienteId = body.clienteId || null;
@@ -17,6 +26,10 @@ export default async function handler(req, res) {
 
     if (!pergunta) {
       return send(res, 400, { error: 'A pergunta é obrigatória.' });
+    }
+
+    if (pergunta.length > 3000) {
+      return send(res, 400, { error: 'A pergunta excede o tamanho máximo de 3000 caracteres.' });
     }
 
     // 1. Coleta contexto do banco de dados caso haja cliente selecionado

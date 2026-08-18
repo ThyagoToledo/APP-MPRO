@@ -15,6 +15,9 @@ export function send(res, status, body) {
   res.setHeader('access-control-allow-origin', '*');
   res.setHeader('access-control-allow-methods', 'GET,POST,PATCH,DELETE,OPTIONS');
   res.setHeader('access-control-allow-headers', 'content-type,authorization');
+  res.setHeader('x-content-type-options', 'nosniff');
+  res.setHeader('x-frame-options', 'SAMEORIGIN');
+  res.setHeader('referrer-policy', 'strict-origin-when-cross-origin');
   res.end(status === 204 ? '' : JSON.stringify(body));
 }
 
