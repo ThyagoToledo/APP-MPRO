@@ -28,6 +28,7 @@ MPRO.router = (function () {
     var s = MPRO.screens;
     var rotas = {
       '/login': s.login,
+      '/solicitar-acesso': s.solicitarAcesso,
       '/bem-vindo': s.bemVindo,
       '/': s.dashboard,
       '/clientes': s.clientes,
@@ -44,7 +45,8 @@ MPRO.router = (function () {
       '/assistente': s.assistente,
       '/perfil': s.perfil,
       '/perfil/editar': s.editarPerfil,
-      '/configuracoes': s.configuracoes
+      '/configuracoes': s.configuracoes,
+      '/admin': s.painelAdmin
     };
     return rotas[caminho] || s.placeholder(caminho);
   }
@@ -175,8 +177,12 @@ MPRO.router = (function () {
   /* Porta de entrada única: quem decide se existe login é a plataforma, não a tela. */
   function portao(caminho) {
     var entrada = MPRO.session.modo() === 'local' ? '/bem-vindo' : '/login';
-    if (!MPRO.session.pronta()) return caminho === entrada ? null : entrada;
-    if (caminho === '/login' || caminho === '/bem-vindo') return '/';
+    if (!MPRO.session.pronta()) {
+      if (caminho === entrada || caminho === '/solicitar-acesso') return null;
+      return entrada;
+    }
+    if (caminho === '/login' || caminho === '/bem-vindo' || caminho === '/solicitar-acesso') return '/';
+    if (caminho === '/admin' && !MPRO.session.isAdmin()) return '/';
     return null;
   }
 

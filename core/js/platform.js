@@ -16,10 +16,8 @@ MPRO.platform = {
     /* 'local'  → sem tela de login; a identidade é um perfil escolhido no aparelho.
        'gated'  → só entra quem já está cadastrado e aprovado no banco do servidor. */
     modo: 'gated',
-    /* Endpoint do servidor de autenticação. Sem ele, o modo 'gated' nega qualquer acesso. */
-    endpoint: null,
-    /* Texto exibido a quem não tem cadastro aprovado. */
-    contatoAcesso: 'contato@mpro.agr.br'
+    /* Endpoint do servidor de autenticação. */
+    endpoint: null
   },
 
   db: {

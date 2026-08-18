@@ -58,27 +58,104 @@ MPRO.screens = MPRO.screens || {};
     ]);
   }
 
-  function sheetAcesso() {
-    var contato = MPRO.platform.auth.contatoAcesso;
-    ui.openSheet({
-      titulo: 'Solicitar acesso',
-      body: [
-        h('p', { style: 'margin:0 0 12px;font-size:15px;line-height:1.5;color:var(--on-surface-variant)',
-          text: 'O acesso ao sistema web é concedido pela administração da M-PRO. Não existe autocadastro: ' +
-                'o seu registro precisa estar criado e aprovado no banco antes do primeiro login.' }),
-        h('p', { style: 'margin:0;font-size:15px;line-height:1.5;color:var(--on-surface-variant)' }, [
-          'Peça a liberação informando nome completo, e-mail profissional e a função em campo para ',
-          h('a', { href: 'mailto:' + contato, text: contato })
+  MPRO.screens.solicitarAcesso = {
+    grupo: 'A', titulo: 'Solicitar acesso',
+    render: function () {
+      var nome = h('input', { class: 'input', autocomplete: 'name', placeholder: 'Seu nome completo', 'aria-label': 'Nome completo' });
+      var email = h('input', { class: 'input', type: 'email', autocomplete: 'email', placeholder: 'seu.email@gmail.com', 'aria-label': 'E-mail ou Gmail' });
+      var senha = campoSenha('Senha desejada');
+      var empresa = h('input', { class: 'input', autocomplete: 'organization', placeholder: 'M-PRO ou Empresa / Fazenda', 'aria-label': 'Empresa' });
+      var cargo = h('input', { class: 'input', placeholder: 'Ex: Engenheiro agrônomo, Consultor', 'aria-label': 'Cargo' });
+      var erro = h('p', { class: 'form-error', hidden: true, role: 'alert' });
+      var enviar = h('button', { class: 'btn btn--filled btn--grow', type: 'submit' }, [ui.icon('how_to_reg'), 'Enviar solicitação']);
+      var containerForm = h('div');
+
+      function falha(mensagem) {
+        erro.hidden = false;
+        erro.textContent = mensagem;
+        enviar.disabled = false;
+        enviar.innerHTML = '';
+        enviar.appendChild(ui.icon('how_to_reg'));
+        enviar.appendChild(document.createTextNode('Enviar solicitação'));
+      }
+
+      function sucesso() {
+        containerForm.innerHTML = '';
+        containerForm.appendChild(h('div', { class: 'auth-success-card', style: 'text-align:center;padding:24px 16px' }, [
+          h('div', { style: 'width:56px;height:56px;border-radius:50%;background:var(--surface-tint);color:var(--secondary);display:grid;place-items:center;margin:0 auto 16px' }, [
+            ui.icon('mark_email_read', 'ms--lg')
+          ]),
+          h('h3', { style: 'font-size:20px;margin:0 0 8px', text: 'Solicitação enviada!' }),
+          h('p', { style: 'font-size:15px;line-height:1.5;color:var(--on-surface-variant);margin:0 0 24px',
+            text: 'Seus dados foram registrados com sucesso. O administrador analisará sua solicitação no painel e liberará o seu acesso.' }),
+          h('button', {
+            class: 'btn btn--filled btn--grow',
+            type: 'button',
+            onclick: function () { location.hash = '#/login'; }
+          }, [ui.icon('login'), 'Ir para a tela de login'])
+        ]));
+      }
+
+      var form = h('form', { class: 'auth-form', onsubmit: function (evento) {
+        evento.preventDefault();
+        erro.hidden = true;
+        if (!nome.value.trim()) { falha('Informe seu nome completo.'); return; }
+        if (!email.value.trim()) { falha('Informe seu e-mail ou Gmail.'); return; }
+        if (!senha.input.value || senha.input.value.length < 4) { falha('A senha deve ter pelo menos 4 caracteres.'); return; }
+
+        enviar.disabled = true;
+        enviar.textContent = 'Enviando solicitação…';
+
+        MPRO.session.solicitarAcesso({
+          nome: nome.value.trim(),
+          email: email.value.trim().toLowerCase(),
+          senha: senha.input.value,
+          empresa: empresa.value.trim(),
+          cargo: cargo.value.trim()
+        }).then(function () {
+          sucesso();
+        }).catch(function (e) {
+          falha(e.message);
+        });
+      } }, [
+        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'Nome completo *' }), nome]),
+        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'E-mail / Gmail *' }), email]),
+        senha.node,
+        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'Empresa / Propriedade' }), empresa]),
+        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'Função / Cargo' }), cargo]),
+        erro,
+        enviar,
+        h('div', { class: 'notice', style: 'margin-top:4px' }, [
+          ui.icon('info'),
+          h('div', { class: 'notice__body' }, [
+            h('strong', { text: 'Aprovação necessária' }),
+            h('p', { text: 'Após o envio, o administrador liberará seu login no painel administrativo.' })
+          ])
+        ]),
+        h('p', { class: 'auth-switch' }, [
+          'Já possui acesso liberado? ',
+          h('button', { class: 'btn btn--text', type: 'button', style: 'padding:0;height:auto', onclick: function () { location.hash = '#/login'; } }, 'Entrar na conta')
         ])
-      ],
-      footer: [h('button', { class: 'btn btn--filled btn--grow', type: 'button', onclick: ui.closeSheet }, 'Entendi')]
-    });
-  }
+      ]);
+
+      containerForm.appendChild(form);
+
+      return shell(
+        'Solicitar acesso',
+        'Informe seus dados para que a administração aprove sua conta.',
+        containerForm,
+        {
+          titulo: 'Acompanhamento agronômico de precisão.',
+          texto: 'Com o acesso liberado, você consulta históricos de campo, clientes e relatórios técnicos em tempo real.'
+        }
+      );
+    }
+  };
 
   MPRO.screens.login = {
     grupo: 'A', titulo: 'Entrar',
     render: function () {
-      var email = h('input', { class: 'input', type: 'email', autocomplete: 'email', placeholder: 'voce@empresa.com.br', 'aria-label': 'E-mail' });
+      var email = h('input', { class: 'input', type: 'email', autocomplete: 'email', placeholder: 'voce@gmail.com', 'aria-label': 'E-mail ou Gmail' });
       var senha = campoSenha('Senha');
       var erro = h('p', { class: 'form-error', hidden: true, role: 'alert' });
       var enviar = h('button', { class: 'btn btn--filled btn--grow', type: 'submit' }, [ui.icon('login'), 'Entrar']);
@@ -105,7 +182,7 @@ MPRO.screens = MPRO.screens || {};
           .then(function () { location.hash = '#/'; MPRO.router.render(); })
           .catch(function (e) { falha(e.message); });
       } }, [
-        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'E-mail' }), email]),
+        h('label', { class: 'field' }, [h('span', { class: 'field__label', text: 'E-mail / Gmail' }), email]),
         senha.node,
         erro,
         enviar,
@@ -113,18 +190,18 @@ MPRO.screens = MPRO.screens || {};
           ui.icon('verified_user'),
           h('div', { class: 'notice__body' }, [
             h('strong', { text: 'Acesso restrito' }),
-            h('p', { text: 'Entram apenas cadastros já criados e aprovados no banco da M-PRO. Este site não cria contas.' })
+            h('p', { text: 'Entram apenas cadastros aprovados pelo administrador no painel.' })
           ])
         ]),
         h('p', { class: 'auth-switch' }, [
           'Ainda não tem acesso? ',
-          h('button', { class: 'btn btn--text', type: 'button', style: 'padding:0;height:auto', onclick: sheetAcesso }, 'Solicitar ao administrador')
+          h('button', { class: 'btn btn--text', type: 'button', style: 'padding:0;height:auto', onclick: function () { location.hash = '#/solicitar-acesso'; } }, 'Solicitar ao administrador')
         ])
       ]);
 
       return shell(
         'Entrar no sistema',
-        'Use a credencial liberada pela administração da M-PRO.',
+        'Use sua credencial aprovada pela administração.',
         form,
         {
           titulo: 'Decisões melhores começam com registros confiáveis.',
