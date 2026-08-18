@@ -7,7 +7,9 @@ MPRO.screens = MPRO.screens || {};
 MPRO.screens.assistente = (function () {
   var ui = MPRO.ui;
   var h = ui.h;
+  var modoEscopo = 'unico'; // 'unico' | 'multiplo' | 'todos'
   var clienteId = null;
+  var clientesSelecionados = [];
   var mensagens = [];
   var pensando = false;
 
@@ -28,7 +30,16 @@ MPRO.screens.assistente = (function () {
     pensando = true;
     ctx.rerender();
 
-    MPRO.ia.perguntar({ pergunta: texto, clienteId: clienteId })
+    var payload = { pergunta: texto };
+    if (modoEscopo === 'todos') {
+      payload.todos = true;
+    } else if (modoEscopo === 'multiplo') {
+      payload.clienteIds = clientesSelecionados.length ? clientesSelecionados : (clienteId ? [clienteId] : []);
+    } else {
+      payload.clienteId = clienteId;
+    }
+
+    MPRO.ia.perguntar(payload)
       .then(function (resposta) {
         mensagens.push({
           autor: 'ia',
@@ -116,11 +127,16 @@ MPRO.screens.assistente = (function () {
         });
       }
       if (!clienteId || !MPRO.store.client(clienteId)) clienteId = clientes[0].id;
+      if (!clientesSelecionados.length) clientesSelecionados = [clienteId];
       var cliente = MPRO.store.client(clienteId);
 
       var input = h('textarea', {
         class: 'chat-composer__input', rows: '1',
-        placeholder: 'Pergunte sobre o histórico, manejo de solo, irrigação ou sanidade…',
+        placeholder: modoEscopo === 'todos'
+          ? 'Pergunte sobre tendências, diagnósticos ou resumo geral de todos os produtores…'
+          : (modoEscopo === 'multiplo'
+            ? 'Compare ou pergunte sobre os ' + clientesSelecionados.length + ' produtores selecionados…'
+            : 'Pergunte sobre histórico, manejo de solo ou nutrição deste produtor…'),
         'aria-label': 'Pergunta sobre o histórico'
       });
 
@@ -137,25 +153,50 @@ MPRO.screens.assistente = (function () {
       });
 
       var remoto = MPRO.ia.modo() === 'remoto';
-      var sugestoes = [
-        'Quais recomendações de manejo estão em aberto?',
-        'O que foi observado sobre irrigação e solo na última visita?',
-        'Como identificar e corrigir deficiência de potássio nesta cultura?'
-      ];
 
-      return h('div', { class: 'assistant-page' }, [
-        h('section', { class: 'assistant-scope' }, [
-          h('div', { class: 'assistant-scope__title' }, [
-            ui.icon('filter_alt'),
-            h('span', {}, [h('small', { text: 'ESCOPO ATIVO' }), h('strong', { text: 'Produtor e registros selecionados' })])
-          ]),
-          h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
-            ui.icon(remoto ? 'psychology' : 'search'),
-            h('span', {}, [
-              h('strong', { text: remoto ? 'IA Agronômica (NVIDIA Nemotron 3 Ultra)' : 'Busca local, sem IA' }),
-              h('small', { text: remoto ? 'Análise avançada com base nos históricos de campo' : 'Consulta direta no banco deste aparelho' })
-            ])
-          ]),
+      var sugestoes = [];
+      if (modoEscopo === 'todos') {
+        sugestoes = [
+          'Quais são os principais problemas ou alertas em aberto no portfólio?',
+          'Fazer um resumo comparativo das últimas visitas de todos os produtores',
+          'Quais culturas apresentam mais desafios nutricionais ou de irrigação?'
+        ];
+      } else if (modoEscopo === 'multiplo') {
+        sugestoes = [
+          'Comparar o histórico de manejo e adubação entre os produtores selecionados',
+          'Quais recomendações estão pendentes entre estas fazendas?',
+          'Como estão os indicadores de solo e sanidade nestes clientes?'
+        ];
+      } else {
+        sugestoes = [
+          'Quais recomendações de manejo estão em aberto?',
+          'O que foi observado sobre irrigação e solo na última visita?',
+          'Como identificar e corrigir deficiência de potássio nesta cultura?'
+        ];
+      }
+
+      // Seletor de modo de escopo
+      var abasEscopo = h('div', { class: 'tabs', style: 'margin-bottom:12px' }, [
+        h('button', {
+          class: 'tab' + (modoEscopo === 'unico' ? ' tab--active' : ''),
+          type: 'button',
+          onclick: function () { modoEscopo = 'unico'; mensagens = []; ctx.rerender(); }
+        }, [ui.icon('person'), 'Único']),
+        h('button', {
+          class: 'tab' + (modoEscopo === 'multiplo' ? ' tab--active' : ''),
+          type: 'button',
+          onclick: function () { modoEscopo = 'multiplo'; mensagens = []; ctx.rerender(); }
+        }, [ui.icon('group'), 'Múltiplos (' + clientesSelecionados.length + ')']),
+        h('button', {
+          class: 'tab' + (modoEscopo === 'todos' ? ' tab--active' : ''),
+          type: 'button',
+          onclick: function () { modoEscopo = 'todos'; mensagens = []; ctx.rerender(); }
+        }, [ui.icon('public'), 'Todos (' + clientes.length + ')'])
+      ]);
+
+      var corpoSeletor;
+      if (modoEscopo === 'unico') {
+        corpoSeletor = [
           h('label', { class: 'field' }, [
             h('span', { class: 'field__label', text: 'Produtor / Fazenda' }),
             h('select', {
@@ -168,8 +209,70 @@ MPRO.screens.assistente = (function () {
           h('div', { class: 'scope-summary' }, [
             ui.statusTag(cliente.status),
             h('span', { class: 'mono', text: ((cliente.unidades || [])[0] || 'sem unidade') + ' · ' + (cliente.cultura || 'sem cultura') })
+          ])
+        ];
+      } else if (modoEscopo === 'multiplo') {
+        corpoSeletor = [
+          h('div', { style: 'margin-bottom:8px;font-size:13px;font-weight:600;color:var(--on-surface-variant)', text: 'Selecione os produtores para comparar:' }),
+          h('div', { style: 'display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;padding-right:4px' }, clientes.map(function (c) {
+            var selecionado = clientesSelecionados.indexOf(c.id) !== -1;
+            return h('label', {
+              style: 'display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r-md);background:' + (selecionado ? 'var(--surface-tint)' : 'var(--surface-raised)') + ';cursor:pointer;border:1px solid ' + (selecionado ? 'var(--primary)' : 'var(--outline-variant)')
+            }, [
+              h('input', {
+                type: 'checkbox',
+                checked: selecionado,
+                onchange: function (e) {
+                  if (e.target.checked) {
+                    if (clientesSelecionados.indexOf(c.id) === -1) clientesSelecionados.push(c.id);
+                  } else {
+                    clientesSelecionados = clientesSelecionados.filter(function (id) { return id !== c.id; });
+                  }
+                  mensagens = [];
+                  ctx.rerender();
+                }
+              }),
+              h('span', { style: 'font-size:13px;font-weight:600;flex:1', text: c.nome }),
+              h('small', { class: 'dim mono', text: c.cultura || '' })
+            ]);
+          }))
+        ];
+      } else {
+        corpoSeletor = [
+          h('div', { class: 'scope-summary', style: 'background:var(--surface-tint);padding:10px 12px;border-radius:var(--r-md)' }, [
+            ui.icon('travel_explore', 'dim'),
+            h('span', { style: 'font-size:13px;font-weight:600', text: 'Todos os ' + clientes.length + ' produtores ativos em análise' })
+          ])
+        ];
+      }
+
+      var rotuloEscopo = modoEscopo === 'todos'
+        ? 'Todo o Portfólio (' + clientes.length + ' produtores)'
+        : (modoEscopo === 'multiplo' ? clientesSelecionados.length + ' produtores selecionados' : cliente.nome);
+
+      return h('div', { class: 'assistant-page' }, [
+        h('section', { class: 'assistant-scope' }, [
+          h('div', { class: 'assistant-scope__title' }, [
+            ui.icon('filter_alt'),
+            h('span', {}, [h('small', { text: 'ESCOPO ATIVO' }), h('strong', { text: rotuloEscopo })])
           ]),
-          h('p', { text: 'A IA analisa os dados deste produtor e sugere recomendações práticas baseadas no histórico de campo.' })
+          h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
+            ui.icon(remoto ? 'psychology' : 'search'),
+            h('span', {}, [
+              h('strong', { text: remoto ? 'IA Agronômica (NVIDIA Nemotron 3 Ultra)' : 'Busca local, sem IA' }),
+              h('small', { text: remoto ? 'Análise avançada com base nos históricos de campo' : 'Consulta direta no banco deste aparelho' })
+            ])
+          ]),
+          abasEscopo,
+          corpoSeletor,
+          h('p', {
+            style: 'margin-top:12px;font-size:12px;line-height:1.4;color:var(--on-surface-variant)',
+            text: modoEscopo === 'todos'
+              ? 'A IA realiza diagnósticos macros cruzando dados e visitas de todos os produtores.'
+              : (modoEscopo === 'multiplo'
+                ? 'A IA compara o histórico técnico entre as fazendas selecionadas.'
+                : 'A IA analisa os dados deste produtor e sugere recomendações práticas.')
+          })
         ]),
         h('section', { class: 'chat-panel' }, [
           h('div', { class: 'chat-log', 'aria-live': 'polite' }, mensagens.length
@@ -179,8 +282,8 @@ MPRO.screens.assistente = (function () {
             ])] : [])
             : h('div', { class: 'chat-empty' }, [
               ui.icon('psychology'),
-              h('h2', { text: 'Assistente Agronômico Inteligente' }),
-              h('p', { text: 'Faça perguntas técnicas sobre histórico de visitas, controle de pragas, calagem, irrigação ou medições.' }),
+              h('h2', { text: modoEscopo === 'todos' ? 'Análise Global do Portfólio' : (modoEscopo === 'multiplo' ? 'Análise Comparativa de Produtores' : 'Assistente Agronômico Inteligente') }),
+              h('p', { text: 'Faça perguntas técnicas sobre histórico de visitas, controle de pragas, calagem, irrigação ou comparações de desempenho.' }),
               h('div', { class: 'quick-prompts' }, sugestoes.map(function (sugestao) {
                 return h('button', { class: 'chip chip--lg', type: 'button', onclick: function () { perguntar(sugestao, ctx); } }, sugestao);
               }))

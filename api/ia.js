@@ -26,6 +26,8 @@ export default async function handler(req, res) {
     const body = await readJson(req);
     const pergunta = (body.pergunta || body.prompt || '').trim();
     const clienteId = body.clienteId || null;
+    const clienteIds = Array.isArray(body.clienteIds) && body.clienteIds.length ? body.clienteIds : (clienteId ? [clienteId] : []);
+    const todos = !!body.todos;
     const contextoFront = Array.isArray(body.contexto) ? body.contexto : [];
 
     if (!pergunta) {
@@ -36,50 +38,53 @@ export default async function handler(req, res) {
       return send(res, 400, { error: 'A pergunta excede o tamanho máximo de 3000 caracteres.' });
     }
 
-    // 1. Coleta contexto do banco de dados caso haja cliente selecionado
+    // 1. Coleta contexto do banco de dados para os clientes no escopo
     let contextoDb = [];
-    let nomeCliente = '';
 
-    if (clienteId) {
-      try {
-        const clienteRows = await sql`SELECT nome, municipio, uf, area_total_ha FROM mpro.clientes WHERE id = ${clienteId};`;
-        if (clienteRows.length) {
-          nomeCliente = clienteRows[0].nome;
-          contextoDb.push(`Cliente/Produtor: ${clienteRows[0].nome} (${clienteRows[0].municipio || ''}/${clienteRows[0].uf || ''}, Área: ${clienteRows[0].area_total_ha || 'N/I'} ha)`);
-        }
-
-        const visitas = await sql`
-          SELECT data_visita, cultura, condicao_geral, irrigacao, nutricao, sanidade, solo_raiz, recomendacoes, conclusao, situacao
-          FROM mpro.visitas
-          WHERE cliente_id = ${clienteId}
-          ORDER BY data_visita DESC
-          LIMIT 5;
+    try {
+      let clientesAlvo = [];
+      if (todos) {
+        clientesAlvo = await sql`
+          SELECT id, nome, municipio, uf, area_total_ha, cultura_principal
+          FROM mpro.clientes
+          ORDER BY nome ASC
+          LIMIT 15;
         `;
-
-        visitas.forEach(v => {
-          contextoDb.push(
-            `Visita em ${v.data_visita} (${v.cultura || 'Cultura geral'} - Situação: ${v.situacao || 'adequado'}):\n` +
-            `- Condição geral: ${v.condicao_geral || 'Sem nota'}\n` +
-            `- Irrigação: ${v.irrigacao || 'N/A'} | Nutrição: ${v.nutricao || 'N/A'} | Sanidade: ${v.sanidade || 'N/A'}\n` +
-            `- Solo e Raiz: ${v.solo_raiz || 'N/A'}\n` +
-            `- Recomendações: ${v.recomendacoes || 'N/A'}\n` +
-            `- Conclusão: ${v.conclusao || 'N/A'}`
-          );
-        });
-
-        const equipamentos = await sql`
-          SELECT nome, tipo, status, ultima_manutencao, proxima_manutencao
-          FROM mpro.equipamentos
-          WHERE cliente_id = ${clienteId}
-          LIMIT 5;
+      } else if (clienteIds.length > 0) {
+        // Busca os clientes informados
+        clientesAlvo = await sql`
+          SELECT id, nome, municipio, uf, area_total_ha, cultura_principal
+          FROM mpro.clientes
+          WHERE id = ANY(${clienteIds}::uuid[])
+          LIMIT 15;
         `;
-
-        equipamentos.forEach(e => {
-          contextoDb.push(`Equipamento: ${e.nome} (${e.tipo || 'Geral'} - Status: ${e.status})`);
-        });
-      } catch (errDb) {
-        console.warn('Aviso: busca no banco falhou, usando contexto do front-end:', errDb.message);
       }
+
+      if (clientesAlvo.length > 0) {
+        for (const c of clientesAlvo) {
+          let blocoProdutor = `PRODUTOR / FAZENDA: ${c.nome} (${c.municipio || ''}/${c.uf || ''}, Cultura: ${c.cultura_principal || 'Geral'}, Área: ${c.area_total_ha || 'N/I'} ha)`;
+
+          const visitas = await sql`
+            SELECT data_visita, cultura, condicao_geral, irrigacao, nutricao, sanidade, solo_raiz, recomendacoes, conclusao, situacao
+            FROM mpro.visitas
+            WHERE cliente_id = ${c.id}
+            ORDER BY data_visita DESC
+            LIMIT 3;
+          `;
+
+          if (visitas.length) {
+            blocoProdutor += '\nÚltimas Visitas:\n' + visitas.map(v =>
+              `  • [${v.data_visita}] ${v.cultura || 'Cultura'} (Situação: ${v.situacao || 'adequado'})\n` +
+              `    - Irrigação/Solo: ${v.irrigacao || 'OK'} | Nutrição: ${v.nutricao || 'OK'} | Sanidade: ${v.sanidade || 'OK'}\n` +
+              `    - Recomendações: ${v.recomendacoes || 'Sem recomendações pendentes'}`
+            ).join('\n');
+          }
+
+          contextoDb.push(blocoProdutor);
+        }
+      }
+    } catch (errDb) {
+      console.warn('Aviso: busca no banco falhou, usando contexto do front-end:', errDb.message);
     }
 
     // 2. Mescla contexto do front-end com o do banco
@@ -88,24 +93,29 @@ export default async function handler(req, res) {
       ...contextoFront.map(t => `${t.rotulo || 'Registro'} (${t.data || 'Histórico'}): ${t.texto || ''}`)
     ].filter(Boolean);
 
+    const escopoDescricao = todos
+      ? 'Portfólio Global (Todos os Produtores Cadastrados)'
+      : (clienteIds.length > 1 ? `Múltiplos Produtores (${clienteIds.length} selecionados)` : 'Produtor Específico');
+
     const contextoGeral = trechosFormatados.length > 0
       ? trechosFormatados.join('\n\n---\n\n')
-      : 'Nenhum histórico anterior específico encontrado para este produtor no momento.';
+      : 'Nenhum histórico anterior específico encontrado no momento.';
 
     // 3. Monta prompt agronômico do sistema
     const systemPrompt = `Você é o Assistente Agronômico Inteligente da M-PRO (especialista técnico em agricultura de precisão, fisiologia vegetal, manejo de solos, irrigação, nutrição e fitossanidade).
 
-OBJETIVO:
-Responder com precisão e clareza às dúvidas técnicas do consultor ou produtor, priorizando os dados reais coletados em campo fornecidos no contexto abaixo.
+ESCOPO DA CONSULTA:
+${escopoDescricao}
 
 HISTÓRICO E REGISTROS DE CAMPO DISPONÍVEIS:
 ${contextoGeral}
 
 DIRETRIZES DE RESPOSTA:
 1. Responda em Português do Brasil de forma profissional, direta e técnica.
-2. Quando houver registros específicos no histórico de campo (visitas, medições, adubações ou problemas sanados), cite-os para embasar sua resposta.
-3. Se a pergunta for geral ou teórica sobre agronomia, responda com as melhores práticas agronômicas consolidadas.
-4. Estruture a resposta com tópicos ou parágrafos concisos quando houver recomendações de manejo.`;
+2. Quando houver múltiplos produtores no escopo e o usuário fizer perguntas comparativas ou gerais, cruze as informações de cada produtor com clareza.
+3. Quando houver registros específicos no histórico de campo (visitas, medições, adubações ou problemas sanados), cite os nomes das fazendas/produtores e as datas para embasar sua resposta.
+4. Se a pergunta for geral ou teórica sobre agronomia, responda com as melhores práticas agronômicas consolidadas.
+5. Estruture a resposta com tópicos, diagnósticos ou planos de ação quando aplicável.`;
 
     // 4. Chamada à API da NVIDIA (Nemotron)
     const nvidiaRes = await fetch(`${NVIDIA_BASE_URL}/chat/completions`, {

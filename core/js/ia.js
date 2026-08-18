@@ -38,12 +38,15 @@ MPRO.ia = (function () {
     var cliente = MPRO.store.client(clienteId);
     if (!cliente) return [];
     var trechos = [];
+    var prefixo = '[' + cliente.nome + '] ';
 
     if (cliente.recomendacao) {
       trechos.push({
         tipo: 'recomendacao',
-        texto: cliente.recomendacao,
-        rotulo: 'Recomendação em aberto',
+        texto: prefixo + cliente.recomendacao,
+        rotulo: 'Recomendação (' + cliente.nome + ')',
+        clienteId: cliente.id,
+        clienteNome: cliente.nome,
         data: cliente.ultimaVisita,
         origem: { rota: '#/cliente?id=' + cliente.id, titulo: cliente.nome }
       });
@@ -69,10 +72,12 @@ MPRO.ia = (function () {
       partes.forEach(function (parte) {
         trechos.push({
           tipo: 'visita',
-          texto: parte.texto,
-          rotulo: parte.rotulo,
+          texto: prefixo + parte.texto,
+          rotulo: parte.rotulo + ' (' + cliente.nome + ')',
+          clienteId: cliente.id,
+          clienteNome: cliente.nome,
           data: visita.data,
-          origem: { rota: '#/visita?id=' + visita.id, titulo: 'Visita de ' + MPRO.ui.formatDate(visita.data) + ' · ' + (visita.unidade || '') }
+          origem: { rota: '#/visita?id=' + visita.id, titulo: cliente.nome + ' · Visita ' + MPRO.ui.formatDate(visita.data) + ' · ' + (visita.unidade || '') }
         });
       });
     });
@@ -80,21 +85,44 @@ MPRO.ia = (function () {
     MPRO.store.equipments().filter(function (e) { return e.clienteId === clienteId; }).forEach(function (equipamento) {
       trechos.push({
         tipo: 'equipamento',
-        texto: equipamento.nome + ' — situação ' + equipamento.status +
+        texto: prefixo + equipamento.nome + ' — situação ' + equipamento.status +
           (equipamento.proxima ? ', próxima manutenção em ' + MPRO.ui.formatDate(equipamento.proxima) : '') +
           (equipamento.observacao ? '. ' + equipamento.observacao : ''),
-        rotulo: 'Equipamento',
+        rotulo: 'Equipamento (' + cliente.nome + ')',
+        clienteId: cliente.id,
+        clienteNome: cliente.nome,
         data: equipamento.ultima,
-        origem: { rota: '#/equipamentos', titulo: equipamento.nome }
+        origem: { rota: '#/equipamentos', titulo: cliente.nome + ' · ' + equipamento.nome }
       });
     });
 
     return trechos;
   }
 
-  function recuperar(pergunta, clienteId, limite) {
+  function obterListaIds(opts) {
+    if (opts.todos) {
+      return MPRO.store.clients().map(function (c) { return c.id; });
+    }
+    if (Array.isArray(opts.clienteIds) && opts.clienteIds.length) {
+      return opts.clienteIds;
+    }
+    if (opts.clienteId) {
+      return [opts.clienteId];
+    }
+    var todos = MPRO.store.clients();
+    return todos.length ? [todos[0].id] : [];
+  }
+
+  function recuperar(pergunta, escopo, limite) {
     var chaves = termos(pergunta);
-    return trechosDoCliente(clienteId)
+    var ids = Array.isArray(escopo) ? escopo : (escopo === 'todos' ? MPRO.store.clients().map(function (c) { return c.id; }) : [escopo]);
+    var todosTrechos = [];
+
+    ids.forEach(function (id) {
+      todosTrechos = todosTrechos.concat(trechosDoCliente(id));
+    });
+
+    return todosTrechos
       .map(function (trecho) {
         var alvo = normaliza(trecho.rotulo + ' ' + trecho.texto);
         var pontos = chaves.reduce(function (soma, chave) {
@@ -106,18 +134,19 @@ MPRO.ia = (function () {
         if (b.pontos !== a.pontos) return b.pontos - a.pontos;
         return String(b.data || '').localeCompare(String(a.data || ''));
       })
-      .slice(0, limite || 4);
+      .slice(0, limite || 8);
   }
 
-  function respostaLocal(pergunta, clienteId) {
-    var achados = recuperar(pergunta, clienteId, 4).filter(function (t) { return t.pontos > 0; });
-    var recentes = recuperar('', clienteId, 3);
+  function respostaLocal(pergunta, opts) {
+    var ids = obterListaIds(opts);
+    var achados = recuperar(pergunta, ids, 6).filter(function (t) { return t.pontos > 0; });
+    var recentes = recuperar('', ids, 4);
 
     if (!achados.length && !recentes.length) {
       return {
         origem: 'local',
         semEvidencia: true,
-        texto: 'Não há registro finalizado para este cliente no banco deste aparelho. ' +
+        texto: 'Não há registros finalizados para o escopo selecionado no banco deste aparelho. ' +
           'Registre uma visita para que a consulta tenha o que citar.',
         referencias: []
       };
@@ -130,10 +159,9 @@ MPRO.ia = (function () {
       origem: 'local',
       semEvidencia: false,
       texto: (achados.length
-        ? 'Encontrei ' + achados.length + ' registro(s) relacionados no histórico deste cliente:'
-        : 'Nada corresponde exatamente à pergunta. Estes são os registros mais recentes do cliente:') +
+        ? 'Encontrei ' + achados.length + ' registro(s) relacionados no escopo selecionado:'
+        : 'Nada corresponde exatamente à pergunta. Estes são os registros mais recentes:') +
         '\n' + corpo,
-      /* Uma visita citada três vezes continua sendo uma fonte só. */
       referencias: usados.reduce(function (lista, trecho) {
         var repetida = lista.some(function (ref) { return ref.rota === trecho.origem.rota; });
         if (!repetida) lista.push({ titulo: trecho.origem.titulo, rota: trecho.origem.rota, data: trecho.data });
@@ -142,15 +170,18 @@ MPRO.ia = (function () {
     };
   }
 
-  function respostaRemota(pergunta, clienteId) {
-    var contexto = recuperar(pergunta, clienteId, 8);
+  function respostaRemota(pergunta, opts) {
+    var ids = obterListaIds(opts);
+    var contexto = recuperar(pergunta, ids, 12);
     var url = MPRO.platform.ia.endpoint || '/api/ia';
     return fetch(url, {
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos()),
       body: JSON.stringify({
         pergunta: pergunta,
-        clienteId: clienteId,
+        clienteId: opts.clienteId || (ids.length === 1 ? ids[0] : null),
+        clienteIds: ids,
+        todos: !!opts.todos,
         contexto: contexto.map(function (t) {
           return { rotulo: t.rotulo, texto: t.texto, data: t.data, origem: t.origem };
         })
@@ -172,19 +203,16 @@ MPRO.ia = (function () {
 
   function perguntar(opts) {
     var pergunta = String(opts.pergunta || '').trim();
-    var clienteId = opts.clienteId;
     if (!pergunta) return Promise.reject(new Error('Pergunta vazia.'));
 
     if (modo() === 'remoto') {
-      return respostaRemota(pergunta, clienteId).catch(function () {
-        /* A falha do servidor não pode virar silêncio: volta para a consulta local
-           dizendo qual caminho respondeu. */
-        var local = respostaLocal(pergunta, clienteId);
+      return respostaRemota(pergunta, opts).catch(function () {
+        var local = respostaLocal(pergunta, opts);
         local.degradado = true;
         return local;
       });
     }
-    return Promise.resolve(respostaLocal(pergunta, clienteId));
+    return Promise.resolve(respostaLocal(pergunta, opts));
   }
 
   return {
