@@ -1,6 +1,9 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { sql, send, readJson, query } from './_db.js';
 import { signToken } from './_auth.js';
+import { checkRateLimit } from './_rate_limit.js';
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function hashSenha(senha) {
   const salt = randomBytes(16).toString('hex');
@@ -11,7 +14,6 @@ function hashSenha(senha) {
 function verificaSenha(senha, armazenado) {
   if (!armazenado) return false;
   if (!armazenado.includes(':')) {
-    // Compatibilidade com senhas em texto puro de desenvolvimento
     return senha === armazenado;
   }
   const [salt, dk] = armazenado.split(':');
@@ -32,9 +34,19 @@ export default async function handler(req, res) {
 
     // 1. Solicitar acesso
     if (acao === 'solicitar-acesso' || acao === 'register') {
+      if (!checkRateLimit(req, res, { chave: 'auth_register', limite: 5, janelaMs: 300000 })) return;
+
       const nome = (body.nome || '').trim();
       if (!nome || !email || !senha) {
         return send(res, 400, { error: 'Nome, e-mail e senha são obrigatórios.' });
+      }
+
+      if (!EMAIL_REGEX.test(email)) {
+        return send(res, 400, { error: 'Formato de e-mail inválido.' });
+      }
+
+      if (senha.length < 6) {
+        return send(res, 400, { error: 'A senha deve ter pelo menos 6 caracteres.' });
       }
 
       const existe = await sql`SELECT id, status FROM mpro.usuarios WHERE email = ${email};`;
@@ -54,6 +66,8 @@ export default async function handler(req, res) {
     }
 
     // 2. Login
+    if (!checkRateLimit(req, res, { chave: 'auth_login', limite: 10, janelaMs: 60000 })) return;
+
     if (!email || !senha) {
       return send(res, 400, { error: 'E-mail e senha são obrigatórios.' });
     }

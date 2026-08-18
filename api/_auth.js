@@ -1,6 +1,5 @@
-// Módulo de segurança, assinatura de tokens e autorização
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { send } from './_db.js';
+import { sql, send } from './_db.js';
 
 const SECRET = process.env.AUTH_SECRET || process.env.DATABASE_URL || 'mpro-seguranca-token-chave-padrao-2026';
 
@@ -54,13 +53,26 @@ export function requireAuth(req, res) {
   return user;
 }
 
-export function requireAdmin(req, res) {
-  const token = extractBearerToken(req);
-  const user = verifyToken(token);
-  if (!user) {
-    send(res, 401, { error: 'Autenticação necessária.' });
-    return null;
+export async function requireActiveUser(req, res) {
+  const user = requireAuth(req, res);
+  if (!user) return null;
+
+  try {
+    const rows = await sql`SELECT status, papel FROM mpro.usuarios WHERE id = ${user.id};`;
+    if (!rows.length || rows[0].status !== 'aprovado') {
+      send(res, 403, { error: 'Este acesso foi desativado ou banido pela administração.' });
+      return null;
+    }
+    user.papel = rows[0].papel;
+    return user;
+  } catch {
+    return user;
   }
+}
+
+export async function requireAdmin(req, res) {
+  const user = await requireActiveUser(req, res);
+  if (!user) return null;
   if (user.papel !== 'admin') {
     send(res, 403, { error: 'Permissão negada. Apenas administradores podem executar esta ação.' });
     return null;

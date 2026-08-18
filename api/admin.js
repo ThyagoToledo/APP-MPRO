@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return send(res, 204, {});
 
     // Validação estrita de autorização de administrador
-    const admin = requireAdmin(req, res);
+    const admin = await requireAdmin(req, res);
     if (!admin) return;
 
     const acao = query(req, 'action') || 'usuarios';

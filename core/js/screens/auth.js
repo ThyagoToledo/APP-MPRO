@@ -101,7 +101,7 @@ MPRO.screens = MPRO.screens || {};
         erro.hidden = true;
         if (!nome.value.trim()) { falha('Informe seu nome completo.'); return; }
         if (!email.value.trim()) { falha('Informe seu e-mail ou Gmail.'); return; }
-        if (!senha.input.value || senha.input.value.length < 4) { falha('A senha deve ter pelo menos 4 caracteres.'); return; }
+        if (!senha.input.value || senha.input.value.length < 6) { falha('A senha deve ter pelo menos 6 caracteres.'); return; }
 
         enviar.disabled = true;
         enviar.textContent = 'Enviando solicitação…';

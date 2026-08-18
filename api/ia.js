@@ -1,6 +1,7 @@
 // Backend Serverless para Consulta Assistida com IA (NVIDIA NIM - Nemotron 3 Ultra)
 import { sql, send, readJson } from './_db.js';
 import { requireAuth } from './_auth.js';
+import { checkRateLimit } from './_rate_limit.js';
 
 const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
 const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
@@ -11,7 +12,10 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return send(res, 204, {});
     if (req.method !== 'POST') return send(res, 405, { error: 'Método não permitido. Use POST.' });
 
-    // Validação de autenticação para evitar abuso de cotas
+    // 1. Rate Limiting por IP/usuário (máximo 15 consultas por minuto)
+    if (!checkRateLimit(req, res, { chave: 'ia_query', limite: 15, janelaMs: 60000 })) return;
+
+    // 2. Validação de autenticação para evitar abuso de cotas
     const user = requireAuth(req, res);
     if (!user) return;
 
