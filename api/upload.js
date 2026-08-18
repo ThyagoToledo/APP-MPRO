@@ -25,6 +25,23 @@ function validaMagicBytes(buffer, mimeType) {
   if (mimeType === 'image/gif') {
     return buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
   }
+  // WebM (áudio/vídeo): 1A 45 DF A3 (EBML)
+  if (mimeType === 'audio/webm' || mimeType === 'video/webm') {
+    return buffer[0] === 0x1A && buffer[1] === 0x45 && buffer[2] === 0xDF && buffer[3] === 0xA3;
+  }
+  // OGG (áudio): 4F 67 67 53 (OggS)
+  if (mimeType === 'audio/ogg') {
+    return buffer[0] === 0x4F && buffer[1] === 0x67 && buffer[2] === 0x67 && buffer[3] === 0x53;
+  }
+  // MP4 / M4A: ftyp no offset 4
+  if (mimeType === 'audio/mp4' || mimeType === 'audio/m4a' || mimeType === 'video/mp4') {
+    return buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70;
+  }
+  // WAV: RIFF ... WAVE
+  if (mimeType === 'audio/wav' || mimeType === 'audio/x-wav') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+           buffer[8] === 0x57 && buffer[9] === 0x41 && buffer[10] === 0x56 && buffer[11] === 0x45;
+  }
   return true;
 }
 
@@ -34,19 +51,19 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return send(res, 405, { error: 'Método não permitido. Use POST.' });
 
     // 1. Rate Limiting por IP/usuário (máximo 30 uploads por minuto)
-    if (!checkRateLimit(req, res, { chave: 'upload_image', limite: 30, janelaMs: 60000 })) return;
+    if (!checkRateLimit(req, res, { chave: 'upload_media', limite: 30, janelaMs: 60000 })) return;
 
     // 2. Validação de autenticação
     const user = requireAuth(req, res);
     if (!user) return;
 
     const body = await readJson(req);
-    const imagemBase64 = body.imagem || body.base64 || body.dataUrl || '';
+    const imagemBase64 = body.imagem || body.arquivo || body.base64 || body.dataUrl || '';
     const pasta = (body.pasta || 'visitas').replace(/[^a-z0-9_-]/gi, '');
-    const nomeOriginal = (body.nome || 'imagem').replace(/[^a-z0-9_.-]/gi, '_');
+    const nomeOriginal = (body.nome || 'evidencia').replace(/[^a-z0-9_.-]/gi, '_');
 
     if (!imagemBase64) {
-      return send(res, 400, { error: 'O conteúdo da imagem em base64 é obrigatório.' });
+      return send(res, 400, { error: 'O conteúdo do arquivo em base64 é obrigatório.' });
     }
 
     // 3. Extrai mimeType e buffer
@@ -62,7 +79,10 @@ export default async function handler(req, res) {
     }
 
     // Validação de tipo de arquivo
-    const tiposValidos = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/gif'];
+    const tiposValidos = [
+      'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/gif',
+      'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/mpeg', 'audio/wav'
+    ];
     if (!tiposValidos.includes(mimeType.toLowerCase())) {
       return send(res, 400, { error: 'Tipo de imagem inválido. Formatos aceitos: JPEG, PNG, WebP.' });
     }
