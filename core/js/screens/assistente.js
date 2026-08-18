@@ -12,6 +12,132 @@ MPRO.screens.assistente = (function () {
   var clientesSelecionados = [];
   var mensagens = [];
   var pensando = false;
+  var sessaoAtualId = null;
+  var painelHistoricoAberto = false;
+  var STORAGE_KEY = 'mpro.assistente.historico';
+
+  function carregarHistorico() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function salvarHistorico(lista) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify((lista || []).slice(0, 30)));
+    } catch (e) {
+      console.warn('Falha ao salvar historico de consultas:', e);
+    }
+  }
+
+  function obterRotuloEscopoAtual() {
+    var clientes = MPRO.store.clients();
+    if (modoEscopo === 'todos') {
+      return 'Todo o Portfólio (' + clientes.length + ' produtores)';
+    }
+    if (modoEscopo === 'multiplo') {
+      return clientesSelecionados.length + ' produtores selecionados';
+    }
+    var c = MPRO.store.client(clienteId);
+    return c ? c.nome : 'Produtor';
+  }
+
+  function salvarSessaoAtual() {
+    if (!mensagens.length) return;
+    var historico = carregarHistorico();
+    var agora = new Date().toISOString();
+    var primeiraPergunta = '';
+    for (var i = 0; i < mensagens.length; i++) {
+      if (mensagens[i].autor === 'usuario') {
+        primeiraPergunta = mensagens[i].texto;
+        break;
+      }
+    }
+    var titulo = primeiraPergunta ? (primeiraPergunta.length > 55 ? primeiraPergunta.slice(0, 52) + '…' : primeiraPergunta) : 'Consulta assistida';
+
+    var sessao = {
+      id: sessaoAtualId || ('sess_' + Date.now()),
+      titulo: titulo,
+      modoEscopo: modoEscopo,
+      clienteId: clienteId,
+      clientesSelecionados: (clientesSelecionados || []).slice(),
+      rotuloEscopo: obterRotuloEscopoAtual(),
+      criadoEm: agora,
+      atualizadoEm: agora,
+      totalMensagens: mensagens.length,
+      mensagens: mensagens
+    };
+
+    sessaoAtualId = sessao.id;
+
+    var idx = -1;
+    for (var j = 0; j < historico.length; j++) {
+      if (historico[j].id === sessao.id) {
+        idx = j;
+        break;
+      }
+    }
+
+    if (idx !== -1) {
+      sessao.criadoEm = historico[idx].criadoEm;
+      historico[idx] = sessao;
+    } else {
+      historico.unshift(sessao);
+    }
+
+    salvarHistorico(historico);
+  }
+
+  function carregarSessao(sessao, ctx) {
+    sessaoAtualId = sessao.id;
+    modoEscopo = sessao.modoEscopo || 'unico';
+    if (sessao.clienteId) clienteId = sessao.clienteId;
+    if (Array.isArray(sessao.clientesSelecionados)) clientesSelecionados = sessao.clientesSelecionados;
+    mensagens = Array.isArray(sessao.mensagens) ? sessao.mensagens.slice() : [];
+    painelHistoricoAberto = false;
+    ctx.rerender();
+  }
+
+  function excluirSessao(id, evento, ctx) {
+    if (evento) evento.stopPropagation();
+    var historico = carregarHistorico().filter(function (s) { return s.id !== id; });
+    salvarHistorico(historico);
+    if (sessaoAtualId === id) {
+      sessaoAtualId = null;
+      mensagens = [];
+    }
+    ctx.rerender();
+  }
+
+  function limparTodoHistorico(ctx) {
+    if (confirm('Deseja realmente apagar todo o histórico de conversas gravado neste aparelho?')) {
+      salvarHistorico([]);
+      sessaoAtualId = null;
+      mensagens = [];
+      painelHistoricoAberto = false;
+      ctx.rerender();
+    }
+  }
+
+  function formataDataRelativa(isoString) {
+    if (!isoString) return '';
+    try {
+      var d = new Date(isoString);
+      var agora = new Date();
+      var hoje = d.toDateString() === agora.toDateString();
+      var hora = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      if (hoje) return 'Hoje às ' + hora;
+      var ontem = new Date(agora);
+      ontem.setDate(ontem.getDate() - 1);
+      if (d.toDateString() === ontem.toDateString()) return 'Ontem às ' + hora;
+      return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' às ' + hora;
+    } catch (e) {
+      return '';
+    }
+  }
 
   function referencia(ref) {
     return h('button', { class: 'source-card', type: 'button', onclick: function () { location.hash = ref.rota; } }, [
@@ -54,6 +180,7 @@ MPRO.screens.assistente = (function () {
       })
       .then(function () {
         pensando = false;
+        salvarSessaoAtual();
         ctx.rerender();
       });
   }
@@ -387,12 +514,137 @@ MPRO.screens.assistente = (function () {
         ? 'Todo o Portfólio (' + clientes.length + ' produtores)'
         : (modoEscopo === 'multiplo' ? clientesSelecionados.length + ' produtores selecionados' : cliente.nome);
 
+      var historico = carregarHistorico();
+
+      // Painel de Histórico aberto
+      if (painelHistoricoAberto) {
+        return h('div', { class: 'assistant-page' }, [
+          h('section', { class: 'assistant-scope' }, [
+            h('div', { class: 'assistant-scope__title' }, [
+              ui.icon('history'),
+              h('span', {}, [h('small', { text: 'MEMÓRIA LOCAL' }), h('strong', { text: 'Histórico de Consultas' })])
+            ]),
+            h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
+              ui.icon('inventory_2'),
+              h('span', {}, [
+                h('strong', { text: historico.length + ' consulta(s) salva(s)' }),
+                h('small', { text: 'Armazenamento leve gravado no aparelho' })
+              ])
+            ]),
+            h('button', {
+              class: 'btn btn--primary',
+              style: 'width:100%;justify-content:center;margin-top:12px',
+              type: 'button',
+              onclick: function () {
+                sessaoAtualId = null;
+                mensagens = [];
+                painelHistoricoAberto = false;
+                ctx.rerender();
+              }
+            }, [ui.icon('add'), 'Iniciar Nova Consulta']),
+            h('button', {
+              class: 'btn btn--secondary',
+              style: 'width:100%;justify-content:center;margin-top:8px',
+              type: 'button',
+              onclick: function () {
+                painelHistoricoAberto = false;
+                ctx.rerender();
+              }
+            }, [ui.icon('arrow_back'), 'Voltar à Consulta Atual']),
+            historico.length ? h('button', {
+              class: 'btn btn--ghost',
+              style: 'width:100%;justify-content:center;margin-top:16px;color:var(--corrigir)',
+              type: 'button',
+              onclick: function () { limparTodoHistorico(ctx); }
+            }, [ui.icon('delete_sweep'), 'Limpar Todo o Histórico']) : null
+          ]),
+          h('section', { class: 'chat-panel' }, [
+            h('div', { style: 'padding:20px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;height:100%' }, [
+              h('div', { style: 'display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid var(--outline-variant)' }, [
+                h('h2', { style: 'margin:0;font-size:20px;font-weight:800;color:var(--on-surface)', text: 'Histórico de Conversas com a IA' }),
+                h('button', {
+                  class: 'btn btn--secondary btn--sm',
+                  type: 'button',
+                  onclick: function () { painelHistoricoAberto = false; ctx.rerender(); }
+                }, [ui.icon('close'), 'Fechar'])
+              ]),
+              historico.length ? h('div', { style: 'display:flex;flex-direction:column;gap:10px' }, historico.map(function (sessao) {
+                var ativa = sessao.id === sessaoAtualId;
+                return h('div', {
+                  style: 'border:1px solid ' + (ativa ? 'var(--primary)' : 'var(--outline-variant)') + ';border-radius:var(--r-lg);background:' + (ativa ? 'var(--surface-tint)' : 'var(--surface-raised)') + ';padding:14px 16px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-sm);transition:all 140ms ease'
+                }, [
+                  h('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px' }, [
+                    h('span', {
+                      style: 'font-size:11px;font-weight:700;text-transform:uppercase;background:var(--surface-container);color:var(--primary);padding:3px 8px;border-radius:4px',
+                      text: sessao.rotuloEscopo || 'Escopo'
+                    }),
+                    h('small', { class: 'dim mono', text: formataDataRelativa(sessao.criadoEm || sessao.atualizadoEm) })
+                  ]),
+                  h('strong', { style: 'font-size:15px;color:var(--on-surface);line-height:1.4', text: sessao.titulo }),
+                  h('div', { style: 'display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:8px;border-top:1px dashed var(--outline-variant)' }, [
+                    h('small', { class: 'dim', text: (sessao.mensagens ? sessao.mensagens.length : sessao.totalMensagens || 0) + ' mensagem(ns)' }),
+                    h('div', { style: 'display:flex;gap:6px' }, [
+                      h('button', {
+                        class: 'btn btn--primary btn--sm',
+                        type: 'button',
+                        onclick: function () { carregarSessao(sessao, ctx); }
+                      }, [ui.icon('visibility'), 'Visualizar Conversa']),
+                      h('button', {
+                        class: 'btn btn--ghost btn--sm',
+                        style: 'color:var(--corrigir)',
+                        type: 'button',
+                        'aria-label': 'Excluir conversa do histórico',
+                        onclick: function (e) { excluirSessao(sessao.id, e, ctx); }
+                      }, [ui.icon('delete')])
+                    ])
+                  ])
+                ]);
+              })) : ui.emptyState({
+                icone: 'history_toggle_off',
+                titulo: 'Nenhuma consulta gravada',
+                texto: 'Quando você faz perguntas técnicas à IA, as respostas são armazenadas localmente no seu aparelho para você consultar quando quiser.',
+                acao: {
+                  rotulo: 'Fazer uma pergunta agora',
+                  icone: 'chat',
+                  onClick: function () { painelHistoricoAberto = false; ctx.rerender(); }
+                }
+              })
+            ])
+          ])
+        ]);
+      }
+
+      // Toolbar superior de histórico e nova conversa
+      var barraHistorico = h('div', { style: 'display:flex;gap:8px;margin-bottom:12px' }, [
+        h('button', {
+          class: 'btn btn--secondary btn--sm',
+          style: 'flex:1;justify-content:center;font-size:13px;font-weight:700',
+          type: 'button',
+          onclick: function () {
+            salvarSessaoAtual();
+            sessaoAtualId = null;
+            mensagens = [];
+            ctx.rerender();
+          }
+        }, [ui.icon('add'), 'Nova consulta']),
+        h('button', {
+          class: 'btn btn--secondary btn--sm',
+          style: 'flex:1;justify-content:center;font-size:13px;font-weight:700',
+          type: 'button',
+          onclick: function () {
+            painelHistoricoAberto = true;
+            ctx.rerender();
+          }
+        }, [ui.icon('history'), 'Histórico (' + historico.length + ')'])
+      ]);
+
       return h('div', { class: 'assistant-page' }, [
         h('section', { class: 'assistant-scope' }, [
           h('div', { class: 'assistant-scope__title' }, [
             ui.icon('filter_alt'),
             h('span', {}, [h('small', { text: 'ESCOPO ATIVO' }), h('strong', { text: rotuloEscopo })])
           ]),
+          barraHistorico,
           h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
             ui.icon(remoto ? 'psychology' : 'search'),
             h('span', {}, [
