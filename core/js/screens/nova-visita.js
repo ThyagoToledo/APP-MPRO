@@ -43,7 +43,9 @@ MPRO.screens.novaVisita = (function () {
       observacoes: {},
       medicoes: [],
       recomendacao: '',
-      fotos: []
+      fotos: [],
+      audios: [],
+      transcricao: ''
     };
   }
 
@@ -61,8 +63,10 @@ MPRO.screens.novaVisita = (function () {
         ? JSON.parse(JSON.stringify(salvo))
         : novoRascunho(ctx.query.cliente);
       if (!estado.rascunho.fotos) estado.rascunho.fotos = [];
+      if (!estado.rascunho.audios) estado.rascunho.audios = [];
       if (!estado.rascunho.observacoes) estado.rascunho.observacoes = {};
       if (!estado.rascunho.recomendacao) estado.rascunho.recomendacao = '';
+      if (!estado.rascunho.transcricao) estado.rascunho.transcricao = '';
     } else {
       estado.rascunho = novoRascunho(ctx.query.cliente);
     }
@@ -288,9 +292,78 @@ MPRO.screens.novaVisita = (function () {
         h('span', { class: 'mono', style: 'font-size:11px;color:var(--adequado)', text: r.salvoEm ? 'SALVO ' + ui.formatSavedAt(r.salvoEm) : 'NÃO SALVO' })
       ]),
 
+      h('div', {
+        style: 'background:var(--surface-container-high);border-radius:var(--r-lg);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1px solid ' + (MPRO.audio && MPRO.audio.estaGravando() ? '#d32f2f' : 'var(--outline-variant)')
+      }, [
+        h('div', { style: 'display:flex;align-items:center;gap:8px' }, [
+          h('button', {
+            class: 'btn ' + (MPRO.audio && MPRO.audio.estaGravando() ? 'btn--danger btn--sm' : 'btn--filled btn--sm'),
+            type: 'button',
+            style: 'font-weight:700',
+            onclick: function () {
+              if (MPRO.audio && MPRO.audio.estaGravando()) {
+                MPRO.audio.pararGravacao().then(function (res) {
+                  if (res) {
+                    r.audios.push(res);
+                    if (res.transcricao) {
+                      r.transcricao = (r.transcricao ? r.transcricao + ' ' : '') + res.transcricao;
+                      r.recomendacao = (r.recomendacao ? r.recomendacao + '\n' : '') + res.transcricao;
+                    }
+                    estado.sujo = true;
+                    ui.snack('Áudio salvo e transcrito no laudo!');
+                  }
+                  ctx.rerender();
+                });
+              } else if (MPRO.audio) {
+                MPRO.audio.iniciarGravacao(function (p) {
+                  if (p.transcricao) {
+                    r.transcricao = p.transcricao;
+                  }
+                  ctx.rerender();
+                }, function () {
+                  ui.snack('Microfone indisponível.');
+                });
+                ctx.rerender();
+              }
+            }
+          }, [
+            ui.icon(MPRO.audio && MPRO.audio.estaGravando() ? 'stop' : 'mic'),
+            MPRO.audio && MPRO.audio.estaGravando() ? 'Parar gravação' : 'Gravar áudio da visita'
+          ]),
+          h('span', {
+            class: 'dim',
+            style: 'font-size:12px',
+            text: MPRO.audio && MPRO.audio.estaGravando() ? 'Gravando e transcrevendo…' : (r.audios.length ? r.audios.length + ' áudio(s) gravado(s)' : 'Prefere falar? Grave uma nota de voz.')
+          })
+        ]),
+        r.transcricao ? h('span', { class: 'pillcount', text: 'Voz Transcrita' }) : null
+      ]),
+
       h('div', { style: 'display:flex;flex-direction:column;gap:10px' }, MPRO.catalogo.blocosAvaliacao.map(function (bloco) {
+        var textarea = h('textarea', {
+          class: 'textarea', placeholder: 'Observação técnica sobre ' + bloco.rotulo.toLowerCase(),
+          'aria-label': 'Observação de ' + bloco.rotulo,
+          oninput: function (event) { r.observacoes[bloco.chave] = event.target.value; estado.sujo = true; }
+        }, r.observacoes[bloco.chave] || '');
+
         return h('div', { class: 'evalblock' }, [
-          h('span', { class: 'evalblock__label', text: bloco.rotulo }),
+          h('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, [
+            h('span', { class: 'evalblock__label', text: bloco.rotulo }),
+            h('button', {
+              class: 'iconbtn iconbtn--ghost',
+              type: 'button',
+              style: 'width:32px;height:32px',
+              'aria-label': 'Ditar observação de ' + bloco.rotulo,
+              onclick: function () {
+                if (MPRO.audio) {
+                  MPRO.audio.ditarParaCampo(textarea, function (val) {
+                    r.observacoes[bloco.chave] = val;
+                    estado.sujo = true;
+                  });
+                }
+              }
+            }, [ui.icon('mic')])
+          ]),
           h('div', { class: 'segmented', role: 'group', 'aria-label': bloco.rotulo }, ['adequado', 'monitorar', 'corrigir'].map(function (chave) {
             var meta = ui.status(chave);
             var ativo = r.avaliacoes[bloco.chave] === chave;
@@ -305,11 +378,7 @@ MPRO.screens.novaVisita = (function () {
               }
             }, [ativo ? ui.icon(meta.icone) : null, meta.rotulo[0] + meta.rotulo.slice(1).toLowerCase()]);
           })),
-          h('textarea', {
-            class: 'textarea', placeholder: 'Observação técnica sobre ' + bloco.rotulo.toLowerCase(),
-            'aria-label': 'Observação de ' + bloco.rotulo,
-            oninput: function (event) { r.observacoes[bloco.chave] = event.target.value; estado.sujo = true; }
-          }, r.observacoes[bloco.chave] || '')
+          textarea
         ]);
       })),
 
@@ -338,8 +407,24 @@ MPRO.screens.novaVisita = (function () {
       ]),
 
       h('div', { class: 'section' }, [
-        h('h2', { class: 'section__title', text: 'Recomendação acompanhável' }),
+        h('div', { style: 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px' }, [
+          h('h2', { class: 'section__title', style: 'margin:0', text: 'Recomendação acompanhável' }),
+          h('button', {
+            class: 'btn btn--secondary btn--sm',
+            type: 'button',
+            onclick: function () {
+              var recInput = document.getElementById('campo-recomendacao-visita');
+              if (recInput && MPRO.audio) {
+                MPRO.audio.ditarParaCampo(recInput, function (val) {
+                  r.recomendacao = val;
+                  estado.sujo = true;
+                });
+              }
+            }
+          }, [ui.icon('mic'), 'Ditar por voz'])
+        ]),
         h('textarea', {
+          id: 'campo-recomendacao-visita',
           class: 'textarea', placeholder: 'Descreva a ação, o prazo e o responsável',
           'aria-label': 'Recomendação da visita',
           oninput: function (event) { r.recomendacao = event.target.value; estado.sujo = true; }
