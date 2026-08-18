@@ -259,7 +259,7 @@ MPRO.screens.assistente = (function () {
           h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
             ui.icon(remoto ? 'psychology' : 'search'),
             h('span', {}, [
-              h('strong', { text: remoto ? 'IA Agronômica (NVIDIA Nemotron 3 Ultra)' : 'Busca local, sem IA' }),
+              h('strong', { text: remoto ? 'IA Agronômica M-PRO' : 'Busca local, sem IA' }),
               h('small', { text: remoto ? 'Análise avançada com base nos históricos de campo' : 'Consulta direta no banco deste aparelho' })
             ])
           ]),
@@ -278,7 +278,7 @@ MPRO.screens.assistente = (function () {
           h('div', { class: 'chat-log', 'aria-live': 'polite' }, mensagens.length
             ? mensagens.map(balao).concat(pensando ? [h('div', { class: 'message message--ia' }, [
               h('span', { class: 'message__avatar' }, [ui.icon('psychology')]),
-              h('div', { class: 'message__bubble' }, [h('p', { class: 'dim', text: 'Analisando histórico de campo com a IA Nemotron…' })])
+              h('div', { class: 'message__bubble' }, [h('p', { class: 'dim', text: 'Analisando histórico de campo com a IA Agronômica…' })])
             ])] : [])
             : h('div', { class: 'chat-empty' }, [
               ui.icon('psychology'),
