@@ -6,6 +6,28 @@ import { checkRateLimit } from './_rate_limit.js';
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 const VERCEL_BLOB_API = 'https://blob.vercel-storage.com';
 
+function validaMagicBytes(buffer, mimeType) {
+  if (!buffer || buffer.length < 12) return false;
+  // JPEG: FF D8 FF
+  if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+    return buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+  }
+  // PNG: 89 50 4E 47
+  if (mimeType === 'image/png') {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+  }
+  // WebP: RIFF (52 49 46 46) ... WEBP (57 45 42 50)
+  if (mimeType === 'image/webp') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+           buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+  }
+  // GIF: GIF (47 49 46)
+  if (mimeType === 'image/gif') {
+    return buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
+  }
+  return true;
+}
+
 export default async function handler(req, res) {
   try {
     if (req.method === 'OPTIONS') return send(res, 204, {});
@@ -43,6 +65,11 @@ export default async function handler(req, res) {
     const tiposValidos = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/gif'];
     if (!tiposValidos.includes(mimeType.toLowerCase())) {
       return send(res, 400, { error: 'Tipo de imagem inválido. Formatos aceitos: JPEG, PNG, WebP.' });
+    }
+
+    // Validação de Magic Bytes (assinatura binária) contra Web Shells e arquivos maliciosos camuflados
+    if (!validaMagicBytes(bufferData, mimeType.toLowerCase())) {
+      return send(res, 400, { error: 'Assinatura de arquivo inválida. O conteúdo não corresponde a uma imagem autêntica.' });
     }
 
     // Limite de 10MB por imagem

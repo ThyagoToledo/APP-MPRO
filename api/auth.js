@@ -104,6 +104,7 @@ export default async function handler(req, res) {
 
     return send(res, 200, { token, usuario: usuarioPayload });
   } catch (e) {
-    return send(res, 500, { error: String(e && e.message || e) });
+    console.error('Erro na autenticação:', e);
+    return send(res, 500, { error: 'Erro interno ao processar autenticação.' });
   }
 }

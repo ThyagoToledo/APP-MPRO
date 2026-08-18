@@ -92,6 +92,7 @@ export default async function handler(req, res) {
 
     return send(res, 405, { error: 'Método não permitido.' });
   } catch (e) {
-    return send(res, 500, { error: String(e && e.message || e) });
+    console.error('Erro na rota administrativa:', e);
+    return send(res, 500, { error: 'Erro ao processar ação administrativa.' });
   }
 }

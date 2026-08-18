@@ -170,6 +170,6 @@ DIRETRIZES DE RESPOSTA:
     });
   } catch (e) {
     console.error('Erro no handler da IA:', e);
-    return send(res, 500, { error: String(e && e.message || e) });
+    return send(res, 500, { error: 'Falha ao processar consulta com o assistente inteligente.' });
   }
 }
