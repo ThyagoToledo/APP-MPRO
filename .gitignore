@@ -1,4 +1,4 @@
-# Dependências / build (não há build: site estático)
+# Dependências e Builds
 node_modules/
 .vercel/
 .DS_Store
@@ -7,11 +7,27 @@ Thumbs.db
 __pycache__/
 *.pyc
 
-# Ferramentas locais e artefatos temporários de QA
+# Configurações de IA, Skills e Agentes
+.agents/
+.agent/
+_agents/
+_agent/
 .claude/
+.gemini/
+
+# Pastas de Design, PDFs locais e Ferramentas internas
+design/
+output/
+tools/
+doc/
 tmp/
 
-# Segredos — NUNCA versionar
+# Ambientes e Configurações de IDE
+.vscode/
+.idea/
+
+# Segredos e Variáveis de Ambiente — NUNCA versionar
 Chaves.md
 .env
 .env.*
+.env.local
