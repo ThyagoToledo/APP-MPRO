@@ -51,13 +51,18 @@ MPRO.screens = MPRO.screens || {};
       inputFoto.addEventListener('change', function () {
         var arquivo = inputFoto.files && inputFoto.files[0];
         if (!arquivo) return;
-        var leitor = new FileReader();
-        leitor.onload = function () {
-          foto = leitor.result;
-          preview.innerHTML = '';
-          preview.appendChild(h('img', { class: 'profile-avatar profile-avatar--edit', src: foto, alt: 'Nova foto de perfil' }));
-        };
-        leitor.readAsDataURL(arquivo);
+        ui.snack('Otimizando foto de perfil…');
+        MPRO.upload.enviar(arquivo, { pasta: 'perfil', maxDimensao: 600, qualidade: 0.85 })
+          .then(function (res) {
+            foto = res.url;
+            preview.innerHTML = '';
+            preview.appendChild(h('img', { class: 'profile-avatar profile-avatar--edit', src: foto, alt: 'Nova foto de perfil' }));
+            ui.snack('Foto carregada!');
+          })
+          .catch(function (err) {
+            console.error('Erro ao enviar foto de perfil:', err);
+            ui.snack('Erro ao processar imagem.');
+          });
       });
 
       return h('form', { class: 'profile-form', onsubmit: function (event) {

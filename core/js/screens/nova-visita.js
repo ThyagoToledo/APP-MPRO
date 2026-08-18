@@ -352,25 +352,37 @@ MPRO.screens.novaVisita = (function () {
 
   function etapaFotos(ctx) {
     var r = estado.rascunho;
+    var enviandoFoto = false;
 
     var entrada = h('input', {
       type: 'file', accept: 'image/*', capture: 'environment', class: 'sr-only', id: 'foto-input',
       onchange: function (event) {
         var arquivo = event.target.files && event.target.files[0];
         if (!arquivo) return;
-        var leitor = new FileReader();
-        leitor.onload = function () {
-          r.fotos.push({ id: MPRO.store.newId('foto'), nome: arquivo.name, titulo: '', legenda: '', url: leitor.result });
-          estado.sujo = true;
-          ctx.rerender();
-        };
-        leitor.readAsDataURL(arquivo);
+        ui.snack('Otimizando e preparando imagem…');
+        MPRO.upload.enviar(arquivo, { pasta: 'visitas', nome: arquivo.name })
+          .then(function (res) {
+            r.fotos.push({
+              id: MPRO.store.newId('foto'),
+              nome: res.nome || arquivo.name,
+              titulo: '',
+              legenda: '',
+              url: res.url
+            });
+            estado.sujo = true;
+            ui.snack('Foto adicionada ao laudo!');
+            ctx.rerender();
+          })
+          .catch(function (err) {
+            console.error('Falha ao processar foto:', err);
+            ui.snack('Erro ao adicionar foto. Tente novamente.');
+          });
       }
     });
 
     return h('div', { style: 'display:flex;flex-direction:column;gap:14px' }, [
       h('p', { class: 'dim', style: 'margin:0;font-size:13px;line-height:1.4' },
-        'Cada foto entra no laudo com legenda própria. As imagens ficam na sessão do aparelho: o envio ao servidor acontece na sincronização, que ainda não faz parte deste lote.'),
+        'Cada foto entra no laudo com legenda técnica e localização. As imagens são otimizadas e salvas em nuvem de alta velocidade para máxima economia de armazenamento.'),
       entrada,
       h('button', {
         class: 'cta-primary', type: 'button',

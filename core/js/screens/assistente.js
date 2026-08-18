@@ -364,9 +364,23 @@ MPRO.screens.assistente = (function () {
     return nodes.length ? nodes : [h('p', { text: texto })];
   }
 
+  function avatarIa() {
+    return h('span', {
+      class: 'message__avatar',
+      style: 'background:#143820;color:#ffffff;border-radius:var(--r-md);box-shadow:0 2px 6px rgba(20,56,32,0.25);display:grid;place-items:center;padding:4px;flex-shrink:0'
+    }, [
+      h('svg', {
+        viewBox: '0 0 512 512',
+        style: 'width:20px;height:20px;display:block',
+        'aria-hidden': 'true',
+        html: '<path fill="currentColor" fill-rule="evenodd" d="M182 102h250a6 6 0 0 1 6 6v194c0 11-4 20-12 28l-76 75c-7 7-15 10-25 10H76V211c0-12 4-21 12-29l75-73c5-5 11-7 19-7Zm-31 68v181h58V204l-58-34Zm75 0v85l59 34v-85l-59-34Zm77 0v181h20l38-38V204l-58-34Z"/>'
+      })
+    ]);
+  }
+
   function balao(mensagem) {
     return h('div', { class: 'message message--' + mensagem.autor }, [
-      mensagem.autor === 'ia' ? h('span', { class: 'message__avatar' }, [ui.icon('psychology')]) : null,
+      mensagem.autor === 'ia' ? avatarIa() : null,
       h('div', { class: 'message__bubble' }, [
         mensagem.autor === 'ia'
           ? h('div', { class: 'message__content' }, formataMarkdown(mensagem.texto))
@@ -666,7 +680,7 @@ MPRO.screens.assistente = (function () {
         h('section', { class: 'chat-panel' }, [
           h('div', { class: 'chat-log', 'aria-live': 'polite' }, mensagens.length
             ? mensagens.map(balao).concat(pensando ? [h('div', { class: 'message message--ia' }, [
-              h('span', { class: 'message__avatar' }, [ui.icon('psychology')]),
+              avatarIa(),
               h('div', { class: 'message__bubble' }, [h('p', { class: 'dim', text: 'Analisando histórico de campo com a IA Agronômica…' })])
             ])] : [])
             : h('div', { class: 'chat-empty' }, [
