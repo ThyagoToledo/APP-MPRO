@@ -6,44 +6,47 @@
    Os blocos do mapa e as fontes vêm de outra origem e só existem offline depois de terem
    sido vistos ao menos uma vez com internet — é o único conteúdo que degrada sem sinal.
    Nenhuma resposta de API é cacheada: dado de trabalho vive no IndexedDB, não aqui. */
-var VERSAO = 'mpro-campo-v1';
+var VERSAO = 'mpro-campo-v2';
 var SHELL = VERSAO + '-shell';
 var RUNTIME = VERSAO + '-runtime';
 
 var PRE_CACHE = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './js/platform.js',
-  '../core/css/tokens.css',
-  '../core/css/app.css',
-  '../core/css/polish.css',
-  '../core/vendor/leaflet/leaflet.css',
-  '../core/vendor/leaflet/leaflet.js',
-  '../core/assets/mpro-app-icon.svg',
-  '../core/assets/mpro-mark.svg',
-  '../core/js/platform.js',
-  '../core/js/catalogo.js',
-  '../core/js/db.js',
-  '../core/js/sync.js',
-  '../core/js/session.js',
-  '../core/js/ia.js',
-  '../core/js/store.js',
-  '../core/js/ui.js',
-  '../core/js/router.js',
-  '../core/js/app.js',
-  '../core/js/screens/dashboard.js',
-  '../core/js/screens/clientes.js',
-  '../core/js/screens/mapa.js',
-  '../core/js/screens/visitas.js',
-  '../core/js/screens/nova-visita.js',
-  '../core/js/screens/detalhes.js',
-  '../core/js/screens/recursos-visita.js',
-  '../core/js/screens/equipamentos.js',
-  '../core/js/screens/assistente.js',
-  '../core/js/screens/conta.js',
-  '../core/js/screens/auth.js',
-  '../core/js/screens/placeholder.js'
+  '/mobile/',
+  '/mobile/index.html',
+  '/mobile/manifest.webmanifest',
+  '/mobile/js/platform.js',
+  '/mobile/icons/icon-192.png',
+  '/mobile/icons/icon-512.png',
+  '/mobile/icons/icon-maskable-512.png',
+  '/core/css/tokens.css',
+  '/core/css/app.css',
+  '/core/css/polish.css',
+  '/core/vendor/leaflet/leaflet.css',
+  '/core/vendor/leaflet/leaflet.js',
+  '/core/assets/mpro-app-icon.svg',
+  '/core/assets/mpro-mark.svg',
+  '/core/js/platform.js',
+  '/core/js/catalogo.js',
+  '/core/js/db.js',
+  '/core/js/sync.js',
+  '/core/js/session.js',
+  '/core/js/ia.js',
+  '/core/js/store.js',
+  '/core/js/ui.js',
+  '/core/js/router.js',
+  '/core/js/app.js',
+  '/core/js/screens/dashboard.js',
+  '/core/js/screens/clientes.js',
+  '/core/js/screens/mapa.js',
+  '/core/js/screens/visitas.js',
+  '/core/js/screens/nova-visita.js',
+  '/core/js/screens/detalhes.js',
+  '/core/js/screens/recursos-visita.js',
+  '/core/js/screens/equipamentos.js',
+  '/core/js/screens/assistente.js',
+  '/core/js/screens/conta.js',
+  '/core/js/screens/auth.js',
+  '/core/js/screens/placeholder.js'
 ];
 
 self.addEventListener('install', function (evento) {
@@ -90,7 +93,7 @@ self.addEventListener('fetch', function (evento) {
   if (req.mode === 'navigate') {
     evento.respondWith(
       fetch(req).catch(function () {
-        return caches.match('./index.html', { ignoreSearch: true });
+        return caches.match('/mobile/index.html', { ignoreSearch: true });
       })
     );
     return;

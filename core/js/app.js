@@ -25,7 +25,7 @@
 
   function registraServiceWorker() {
     if (!MPRO.platform.recursos.instalavel || !('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('sw.js').catch(function () {
+    navigator.serviceWorker.register('/mobile/sw.js', { scope: '/mobile/' }).catch(function () {
       /* sem service worker o app ainda funciona online; só perde o cache offline */
     });
   }

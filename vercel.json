@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
   "cleanUrls": false,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/", "destination": "/web", "permanent": false }
+  ],
   "headers": [
     {
       "source": "/mobile/sw.js",
@@ -17,6 +19,14 @@
     },
     {
       "source": "/core/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
+    },
+    {
+      "source": "/web/css/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
+    },
+    {
+      "source": "/web/js/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
     }
   ]
