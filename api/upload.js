@@ -58,25 +58,44 @@ export default async function handler(req, res) {
     // 4. Upload para o Vercel Blob Storage
     if (BLOB_READ_WRITE_TOKEN) {
       try {
-        const uploadRes = await fetch(`${VERCEL_BLOB_API}/${pathname}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
-            'x-content-type': mimeType,
-            'x-add-random-suffix': 'true'
-          },
-          body: bufferData
-        });
+        let blobUrl = '';
+        let blobPathname = pathname;
 
-        if (!uploadRes.ok) {
-          const erroBlob = await uploadRes.text();
-          throw new Error(`Falha no Vercel Blob: ${uploadRes.status} - ${erroBlob}`);
+        // Tenta usar SDK @vercel/blob se disponível
+        try {
+          const { put } = await import('@vercel/blob');
+          const blob = await put(pathname, bufferData, {
+            access: 'public',
+            contentType: mimeType,
+            token: BLOB_READ_WRITE_TOKEN
+          });
+          blobUrl = blob.url;
+          blobPathname = blob.pathname;
+        } catch (eSdk) {
+          // Fallback para REST API oficial do Vercel Blob
+          const uploadRes = await fetch(`${VERCEL_BLOB_API}/${pathname}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
+              'x-content-type': mimeType,
+              'x-add-random-suffix': 'true'
+            },
+            body: bufferData
+          });
+
+          if (!uploadRes.ok) {
+            const erroBlob = await uploadRes.text();
+            throw new Error(`Falha no Vercel Blob: ${uploadRes.status} - ${erroBlob}`);
+          }
+
+          const blobDados = await uploadRes.json();
+          blobUrl = blobDados.url;
+          blobPathname = blobDados.pathname;
         }
 
-        const blobDados = await uploadRes.json();
         return send(res, 200, {
-          url: blobDados.url,
-          pathname: blobDados.pathname,
+          url: blobUrl,
+          pathname: blobPathname,
           tamanho: bufferData.length,
           tipo: mimeType,
           provedor: 'Vercel Blob CDN'
@@ -92,8 +111,8 @@ export default async function handler(req, res) {
       url: imagemBase64.startsWith('data:') ? imagemBase64 : `data:${mimeType};base64,${bufferData.toString('base64')}`,
       tamanho: bufferData.length,
       tipo: mimeType,
-      provedor: 'Local Base64 Fallback (Configure BLOB_READ_WRITE_TOKEN na Vercel para CDN pública)',
-      aviso: 'Adicione a variável BLOB_READ_WRITE_TOKEN na Vercel (Storage -> Blob) para salvar em CDN.'
+      provedor: 'Local Base64 Fallback',
+      aviso: 'Configure BLOB_READ_WRITE_TOKEN na Vercel para salvar em CDN.'
     });
 
   } catch (err) {
