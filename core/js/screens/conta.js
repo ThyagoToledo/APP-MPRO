@@ -297,6 +297,8 @@ MPRO.screens = MPRO.screens || {};
 
         // Seção 2: Usuários cadastrados e gestão de cargos
         var corpoUsuarios = h('div', { class: 'settings-card', style: 'display:flex;flex-direction:column;gap:0' }, ativos.map(function (u) {
+          var ehBloqueado = u.status === 'bloqueado';
+
           var selectPapel = h('select', {
             class: 'input select-compact',
             style: 'width:auto',
@@ -317,14 +319,43 @@ MPRO.screens = MPRO.screens || {};
             h('option', { value: 'admin', selected: u.papel === 'admin', text: 'Administrador' })
           ]);
 
+          var btnBanir = h('button', {
+            class: 'iconbtn',
+            type: 'button',
+            title: ehBloqueado ? 'Reativar acesso' : 'Banir / Desativar acesso',
+            'aria-label': ehBloqueado ? 'Reativar acesso' : 'Banir usuário',
+            style: ehBloqueado ? 'color:var(--secondary)' : 'color:var(--corrigir)',
+            onclick: function () {
+              if (ehBloqueado) {
+                MPRO.session.reativarUsuario(u.id).then(function () {
+                  ui.snack('Acesso de ' + u.nome + ' reativado com sucesso.');
+                  ctx.rerender();
+                });
+              } else {
+                ui.confirmSheet({
+                  titulo: 'Banir usuário',
+                  texto: 'Deseja bloquear o acesso de ' + u.nome + ' (' + u.email + ')? O usuário não conseguirá mais fazer login.',
+                  confirmar: 'Banir acesso',
+                  onConfirm: function () {
+                    MPRO.session.banirUsuario(u.id).then(function () {
+                      ui.snack('Usuário ' + u.nome + ' foi bloqueado/banido.');
+                      ctx.rerender();
+                    });
+                  }
+                });
+              }
+            }
+          }, [ui.icon(ehBloqueado ? 'lock_open' : 'block')]);
+
           var btnExcluir = h('button', {
             class: 'iconbtn',
             type: 'button',
+            title: 'Excluir definitivamente',
             'aria-label': 'Excluir usuário',
             onclick: function () {
               ui.confirmSheet({
-                titulo: 'Remover usuário',
-                texto: 'Deseja remover o acesso de ' + u.nome + ' (' + u.email + ')?',
+                titulo: 'Remover usuário definitivamente',
+                texto: 'Deseja apagar o cadastro de ' + u.nome + ' (' + u.email + ')? Esta ação não pode ser desfeita.',
                 confirmar: 'Remover',
                 onConfirm: function () {
                   MPRO.session.recusarSolicitacao(u.id).then(function () {
@@ -336,19 +367,27 @@ MPRO.screens = MPRO.screens || {};
             }
           }, [ui.icon('delete')]);
 
-          return h('div', { class: 'settings-row settings-row--stack', style: 'padding:14px 16px;border-bottom:1px solid var(--outline-variant)' }, [
-            h('div', { class: 'profile-avatar', style: 'width:40px;height:40px;font-size:14px', text: MPRO.session.perfil().iniciais }, []),
+          var badgeStatus = null;
+          if (ehBloqueado) {
+            badgeStatus = h('span', { class: 'badge', style: 'background:color-mix(in srgb, var(--corrigir) 15%, transparent);color:var(--corrigir);border:1px solid var(--corrigir)', text: 'BANIDO' });
+          } else if (u.papel === 'admin') {
+            badgeStatus = h('span', { class: 'badge', style: 'background:color-mix(in srgb, var(--secondary) 15%, transparent);color:var(--secondary);border:1px solid var(--secondary)', text: 'ADMIN' });
+          } else if (u.papel === 'gestor') {
+            badgeStatus = h('span', { class: 'badge', style: 'background:color-mix(in srgb, var(--on-surface) 10%, transparent);color:var(--on-surface)', text: 'GESTOR' });
+          }
+
+          return h('div', { class: 'settings-row settings-row--stack', style: 'padding:14px 16px;border-bottom:1px solid var(--outline-variant);' + (ehBloqueado ? 'opacity:0.7;' : '') }, [
+            h('div', { class: 'profile-avatar', style: 'width:40px;height:40px;font-size:14px', text: (u.nome || 'M').slice(0, 2).toUpperCase() }, []),
             h('div', { class: 'listtile__body', style: 'flex:1' }, [
-              h('div', { style: 'display:flex;align-items:center;gap:8px' }, [
+              h('div', { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap' }, [
                 h('strong', { text: u.nome }),
-                u.papel === 'admin'
-                  ? h('span', { class: 'badge', style: 'background:color-mix(in srgb, var(--secondary) 15%, transparent);color:var(--secondary);border:1px solid var(--secondary)', text: 'ADMIN' })
-                  : null
+                badgeStatus
               ]),
-              h('span', { class: 'dim', style: 'font-size:13px', text: u.email + (u.empresa ? ' · ' + u.empresa : '') })
+              h('span', { class: 'dim', style: 'font-size:13px', text: u.email + (u.empresa ? ' · ' + u.empresa : '') + (u.cargo ? ' · ' + u.cargo : '') })
             ]),
-            h('div', { style: 'display:flex;align-items:center;gap:8px' }, [
+            h('div', { style: 'display:flex;align-items:center;gap:6px' }, [
               selectPapel,
+              btnBanir,
               btnExcluir
             ])
           ]);

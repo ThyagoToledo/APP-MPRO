@@ -144,7 +144,8 @@ MPRO.ia = (function () {
 
   function respostaRemota(pergunta, clienteId) {
     var contexto = recuperar(pergunta, clienteId, 8);
-    return fetch(MPRO.platform.ia.endpoint.replace(/\/$/, '') + '/consulta', {
+    var url = MPRO.platform.ia.endpoint || '/api/ia';
+    return fetch(url, {
       method: 'POST',
       headers: Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos()),
       body: JSON.stringify({
@@ -160,6 +161,8 @@ MPRO.ia = (function () {
     }).then(function (dados) {
       return {
         origem: 'remoto',
+        modelo: dados.modelo || 'NVIDIA Nemotron',
+        provedor: dados.provedor || 'NVIDIA NIM',
         semEvidencia: !dados.referencias || !dados.referencias.length,
         texto: dados.texto || '',
         referencias: dados.referencias || []

@@ -6,7 +6,7 @@
    Os blocos do mapa e as fontes vêm de outra origem e só existem offline depois de terem
    sido vistos ao menos uma vez com internet — é o único conteúdo que degrada sem sinal.
    Nenhuma resposta de API é cacheada: dado de trabalho vive no IndexedDB, não aqui. */
-var VERSAO = 'mpro-campo-v2';
+var VERSAO = 'mpro-campo-v3';
 var SHELL = VERSAO + '-shell';
 var RUNTIME = VERSAO + '-runtime';
 

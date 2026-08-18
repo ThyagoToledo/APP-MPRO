@@ -47,11 +47,55 @@ MPRO.screens.assistente = (function () {
       });
   }
 
+  function formataMarkdown(texto) {
+    if (!texto) return [];
+    var linhas = texto.split('\n');
+    var nodes = [];
+    var listaAtual = null;
+
+    linhas.forEach(function (linha) {
+      var l = linha.trim();
+      if (!l) {
+        listaAtual = null;
+        return;
+      }
+
+      if (l.startsWith('### ')) {
+        listaAtual = null;
+        nodes.push(h('h4', { style: 'margin:14px 0 6px;font-size:15px;font-weight:700;color:var(--on-surface)', text: l.slice(4) }));
+        return;
+      }
+      if (l.startsWith('## ')) {
+        listaAtual = null;
+        nodes.push(h('h3', { style: 'margin:16px 0 8px;font-size:16px;font-weight:700;color:var(--on-surface)', text: l.slice(3) }));
+        return;
+      }
+
+      if (l.startsWith('* ') || l.startsWith('- ')) {
+        if (!listaAtual) {
+          listaAtual = h('ul', { style: 'margin:6px 0;padding-left:20px;display:flex;flex-direction:column;gap:4px' });
+          nodes.push(listaAtual);
+        }
+        var itemTexto = l.slice(2).replace(/\*\*(.*?)\*\*/g, '$1');
+        listaAtual.appendChild(h('li', { style: 'font-size:14px;line-height:1.5', text: itemTexto }));
+        return;
+      }
+
+      listaAtual = null;
+      var p = h('p', { style: 'margin:6px 0;font-size:14px;line-height:1.6', text: l.replace(/\*\*(.*?)\*\*/g, '$1') });
+      nodes.push(p);
+    });
+
+    return nodes.length ? nodes : [h('p', { text: texto })];
+  }
+
   function balao(mensagem) {
     return h('div', { class: 'message message--' + mensagem.autor }, [
-      mensagem.autor === 'ia' ? h('span', { class: 'message__avatar' }, [ui.icon('travel_explore')]) : null,
+      mensagem.autor === 'ia' ? h('span', { class: 'message__avatar' }, [ui.icon('psychology')]) : null,
       h('div', { class: 'message__bubble' }, [
-        h('p', { style: 'white-space:pre-line', text: mensagem.texto }),
+        mensagem.autor === 'ia'
+          ? h('div', { class: 'message__content' }, formataMarkdown(mensagem.texto))
+          : h('p', { style: 'white-space:pre-line', text: mensagem.texto }),
         (mensagem.referencias || []).map(referencia),
         mensagem.degradado ? h('span', { class: 'source-warning' }, [ui.icon('cloud_off'), 'O servidor não respondeu; esta resposta veio da busca local']) : null,
         mensagem.semEvidencia ? h('span', { class: 'source-warning' }, [ui.icon('warning'), 'Sem registro correspondente no banco']) : null
@@ -65,7 +109,7 @@ MPRO.screens.assistente = (function () {
       var clientes = MPRO.store.clients();
       if (!clientes.length) {
         return ui.emptyState({
-          icone: 'travel_explore',
+          icone: 'psychology',
           titulo: 'Nada para consultar ainda',
           texto: 'Cadastre um cliente e registre uma visita. A consulta só responde com base no que estiver gravado neste aparelho.',
           acao: { rotulo: 'Cadastrar cliente', icone: 'person_add', onClick: function () { location.hash = '#/clientes?novo=1'; } }
@@ -76,7 +120,7 @@ MPRO.screens.assistente = (function () {
 
       var input = h('textarea', {
         class: 'chat-composer__input', rows: '1',
-        placeholder: 'Pergunte sobre o histórico deste cliente',
+        placeholder: 'Pergunte sobre o histórico, manejo de solo, irrigação ou sanidade…',
         'aria-label': 'Pergunta sobre o histórico'
       });
 
@@ -93,23 +137,27 @@ MPRO.screens.assistente = (function () {
       });
 
       var remoto = MPRO.ia.modo() === 'remoto';
-      var sugestoes = ['Quais recomendações estão em aberto?', 'O que foi medido na última visita?', 'Como está a irrigação?'];
+      var sugestoes = [
+        'Quais recomendações de manejo estão em aberto?',
+        'O que foi observado sobre irrigação e solo na última visita?',
+        'Como identificar e corrigir deficiência de potássio nesta cultura?'
+      ];
 
       return h('div', { class: 'assistant-page' }, [
         h('section', { class: 'assistant-scope' }, [
           h('div', { class: 'assistant-scope__title' }, [
             ui.icon('filter_alt'),
-            h('span', {}, [h('small', { text: 'ESCOPO ATIVO' }), h('strong', { text: 'Um cliente · registros deste aparelho' })])
+            h('span', {}, [h('small', { text: 'ESCOPO ATIVO' }), h('strong', { text: 'Produtor e registros selecionados' })])
           ]),
-          h('div', { class: 'demo-callout' }, [
-            ui.icon(remoto ? 'cloud' : 'search'),
+          h('div', { class: 'demo-callout', style: 'border-left: 3px solid var(--secondary)' }, [
+            ui.icon(remoto ? 'psychology' : 'search'),
             h('span', {}, [
-              h('strong', { text: remoto ? 'Consulta pelo servidor M-PRO' : 'Busca local, sem IA' }),
-              h('small', { text: MPRO.ia.rotuloModo() })
+              h('strong', { text: remoto ? 'IA Agronômica (NVIDIA Nemotron 3 Ultra)' : 'Busca local, sem IA' }),
+              h('small', { text: remoto ? 'Análise avançada com base nos históricos de campo' : 'Consulta direta no banco deste aparelho' })
             ])
           ]),
           h('label', { class: 'field' }, [
-            h('span', { class: 'field__label', text: 'Cliente' }),
+            h('span', { class: 'field__label', text: 'Produtor / Fazenda' }),
             h('select', {
               class: 'input', 'aria-label': 'Cliente no escopo',
               onchange: function (evento) { clienteId = evento.target.value; mensagens = []; ctx.rerender(); }
@@ -121,18 +169,18 @@ MPRO.screens.assistente = (function () {
             ui.statusTag(cliente.status),
             h('span', { class: 'mono', text: ((cliente.unidades || [])[0] || 'sem unidade') + ' · ' + (cliente.cultura || 'sem cultura') })
           ]),
-          h('p', { text: 'A consulta lê apenas registros deste cliente e indica a visita de origem de cada trecho citado.' })
+          h('p', { text: 'A IA analisa os dados deste produtor e sugere recomendações práticas baseadas no histórico de campo.' })
         ]),
         h('section', { class: 'chat-panel' }, [
           h('div', { class: 'chat-log', 'aria-live': 'polite' }, mensagens.length
             ? mensagens.map(balao).concat(pensando ? [h('div', { class: 'message message--ia' }, [
-              h('span', { class: 'message__avatar' }, [ui.icon('travel_explore')]),
-              h('div', { class: 'message__bubble' }, [h('p', { class: 'dim', text: 'Procurando nos registros…' })])
+              h('span', { class: 'message__avatar' }, [ui.icon('psychology')]),
+              h('div', { class: 'message__bubble' }, [h('p', { class: 'dim', text: 'Analisando histórico de campo com a IA Nemotron…' })])
             ])] : [])
             : h('div', { class: 'chat-empty' }, [
-              ui.icon('forum'),
-              h('h2', { text: 'Consulte o histórico técnico' }),
-              h('p', { text: 'Pergunte por medições, recomendações ou equipamentos. A resposta cita o registro de origem e nunca inventa conclusão.' }),
+              ui.icon('psychology'),
+              h('h2', { text: 'Assistente Agronômico Inteligente' }),
+              h('p', { text: 'Faça perguntas técnicas sobre histórico de visitas, controle de pragas, calagem, irrigação ou medições.' }),
               h('div', { class: 'quick-prompts' }, sugestoes.map(function (sugestao) {
                 return h('button', { class: 'chip chip--lg', type: 'button', onclick: function () { perguntar(sugestao, ctx); } }, sugestao);
               }))

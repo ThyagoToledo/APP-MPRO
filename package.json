@@ -1,0 +1,12 @@
+{
+  "name": "app-mpro",
+  "version": "0.4.1",
+  "description": "M-PRO — acompanhamento agronômico de campo",
+  "type": "module",
+  "scripts": {
+    "db:init": "node tools/init-db.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
