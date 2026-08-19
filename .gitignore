@@ -15,11 +15,12 @@ _agent/
 .claude/
 .gemini/
 
-# Pastas de Design, PDFs locais e Ferramentas internas
+# Pastas de Design, PDFs locais, Documentação e Ferramentas internas
 design/
 output/
 tools/
 tmp/
+doc/
 
 # Ambientes e Configurações de IDE
 .vscode/
