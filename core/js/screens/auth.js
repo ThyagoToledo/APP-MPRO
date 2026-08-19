@@ -32,11 +32,20 @@ MPRO.screens = MPRO.screens || {};
       disabled: obrigatorio,
       style: 'height:46px;font-weight:700;font-size:15px',
       onclick: function () {
+        var agoraIso = new Date().toISOString();
         localStorage.setItem('mpro.termos_aceitos', JSON.stringify({
           versao: '1.0',
-          aceitoEm: new Date().toISOString(),
+          aceitoEm: agoraIso,
           lgpd: true
         }));
+        var emailInput = document.querySelector('input[type="email"]');
+        if (emailInput && emailInput.value) {
+          localStorage.setItem('mpro.termos_aceitos_' + emailInput.value.trim().toLowerCase(), JSON.stringify({
+            versao: '1.0',
+            aceitoEm: agoraIso,
+            lgpd: true
+          }));
+        }
         ui.closeSheet();
         ui.snack('Termos de Serviço e Privacidade aceitos com sucesso!');
         if (onAceitar) onAceitar();
@@ -291,8 +300,12 @@ MPRO.screens = MPRO.screens || {};
       function realizarLogin() {
         enviar.disabled = true;
         enviar.textContent = 'Verificando…';
-        MPRO.session.entrar(email.value.trim().toLowerCase(), senha.input.value)
+        var emailNorm = email.value.trim().toLowerCase();
+        MPRO.session.entrar(emailNorm, senha.input.value)
           .then(function () {
+            var agoraIso = new Date().toISOString();
+            localStorage.setItem('mpro.termos_aceitos', JSON.stringify({ versao: '1.0', aceitoEm: agoraIso, lgpd: true }));
+            localStorage.setItem('mpro.termos_aceitos_' + emailNorm, JSON.stringify({ versao: '1.0', aceitoEm: agoraIso, lgpd: true }));
             location.hash = '#/';
             MPRO.router.render();
           })
@@ -302,14 +315,16 @@ MPRO.screens = MPRO.screens || {};
       var form = h('form', { class: 'auth-form', onsubmit: function (evento) {
         evento.preventDefault();
         erro.hidden = true;
-        if (!email.value.trim() || !senha.input.value) {
+        var emailNorm = email.value.trim().toLowerCase();
+        if (!emailNorm || !senha.input.value) {
           falha('Informe e-mail e senha para continuar.');
           return;
         }
 
-        // Verifica se os Termos LGPD já foram aceitos neste aparelho/sessão
+        // Verifica se os Termos LGPD já foram aceitos globalmente ou para esta conta
         var termosSalvos = localStorage.getItem('mpro.termos_aceitos');
-        if (!termosSalvos) {
+        var termosUsuario = localStorage.getItem('mpro.termos_aceitos_' + emailNorm);
+        if (!termosSalvos && !termosUsuario) {
           // Primeiro login: abre o Pop-up obrigatório de Termos de Serviço LGPD
           abrirTermosLgpd(function () {
             realizarLogin();

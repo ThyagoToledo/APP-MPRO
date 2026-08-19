@@ -57,17 +57,41 @@ MPRO.db = (function () {
   function lerTudoIDB(banco) {
     return new Promise(function (resolve, reject) {
       var dados = vazio();
+      var todosRegistros = [];
       var tx = banco.transaction(COLECOES, 'readonly');
       COLECOES.forEach(function (nome) {
         tx.objectStore(nome).openCursor().onsuccess = function (event) {
           var cursor = event.target.result;
           if (!cursor) return;
           var registro = cursor.value;
+          todosRegistros.push({ colecao: nome, registro: registro });
           if (registro._escopo === escopo) dados[nome][registro.id] = registro;
           cursor.continue();
         };
       });
-      tx.oncomplete = function () { resolve(dados); };
+      tx.oncomplete = function () {
+        var temDados = Object.keys(dados.clients).length > 0 || Object.keys(dados.visits).length > 0 || Object.keys(dados.drafts).length > 0;
+        // Se o escopo atual (ex: u-1) não tem dados, mas existem registros em 'local' ou 'anon', migra automaticamente para nunca perder trabalho
+        if (!temDados && escopo !== 'local' && escopo !== 'anon' && todosRegistros.length > 0) {
+          try {
+            var txWrite = banco.transaction(COLECOES, 'readwrite');
+            todosRegistros.forEach(function (item) {
+              var reg = item.registro;
+              if (reg._escopo === 'local' || reg._escopo === 'anon' || !reg._escopo) {
+                var migrado = Object.assign({}, reg, { _escopo: escopo, _pk: escopo + ':' + reg.id });
+                dados[item.colecao][migrado.id] = migrado;
+                txWrite.objectStore(item.colecao).put(migrado);
+              }
+            });
+            txWrite.oncomplete = function () { resolve(dados); };
+            txWrite.onerror = function () { resolve(dados); };
+          } catch (e) {
+            resolve(dados);
+          }
+        } else {
+          resolve(dados);
+        }
+      };
       tx.onerror = function () { reject(tx.error); };
     });
   }
@@ -102,6 +126,30 @@ MPRO.db = (function () {
         /* json corrompido: a coleção recomeça vazia em vez de derrubar o boot */
       }
     });
+
+    var temDados = Object.keys(dados.clients).length > 0 || Object.keys(dados.visits).length > 0 || Object.keys(dados.drafts).length > 0;
+    if (!temDados && escopo !== 'local' && escopo !== 'anon') {
+      ['local', 'anon'].forEach(function (esc) {
+        COLECOES.forEach(function (nome) {
+          try {
+            var b = localStorage.getItem('mpro.' + esc + '.' + nome);
+            if (b) {
+              var lista = JSON.parse(b);
+              (lista || []).forEach(function (reg) {
+                if (!dados[nome][reg.id]) dados[nome][reg.id] = reg;
+              });
+            }
+          } catch (e) {}
+        });
+      });
+      COLECOES.forEach(function (nome) {
+        try {
+          var lista = Object.keys(dados[nome]).map(function (id) { return dados[nome][id]; });
+          if (lista.length > 0) localStorage.setItem(chaveLocal(nome), JSON.stringify(lista));
+        } catch (e) {}
+      });
+    }
+
     return dados;
   }
 

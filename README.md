@@ -39,7 +39,7 @@
 ---
 
 <a name="visao-geral"></a>
-## Visão Geral
+## <img src="core/assets/icon-visao.svg" width="24" height="24" align="absmiddle" alt="Visão Geral" /> Visão Geral
 
 O **M-PRO** foi desenvolvido para solucionar a fragmentação das vistorias agronômicas em fazendas. A plataforma unifica todo o ciclo operacional em um fluxo coeso e seguro: desde a coleta de parâmetros de solo, água e sanidade na lavoura até a emissão de laudos técnicos completos em PDF.
 
@@ -72,7 +72,7 @@ Construído sob a filosofia **Local-First**, todo dado gerado em campo é armaze
 ---
 
 <a name="controle-de-acesso--governanca-por-cargo"></a>
-## Controle de Acesso & Governança por Cargo
+## <img src="core/assets/icon-rbac.svg" width="24" height="24" align="absmiddle" alt="Controle de Acesso" /> Controle de Acesso & Governança por Cargo
 
 A plataforma M-PRO implementa controle de acesso baseado em funções (*Role-Based Access Control - RBAC*), segregando permissões técnicas e administrativas para garantir integridade agronômica e conformidade:
 
@@ -89,7 +89,7 @@ A plataforma M-PRO implementa controle de acesso baseado em funções (*Role-Bas
 ---
 
 <a name="arquitetura--engenharia-local-first"></a>
-## Arquitetura & Engenharia Local-First
+## <img src="core/assets/icon-architecture.svg" width="24" height="24" align="absmiddle" alt="Arquitetura" /> Arquitetura & Engenharia Local-First
 
 O ecossistema é modularizado em três camadas limpas, garantindo zero duplicação de código:
 
@@ -114,7 +114,7 @@ O ecossistema é modularizado em três camadas limpas, garantindo zero duplicaç
 ---
 
 <a name="inteligencia-artificial--voz-em-campo"></a>
-## Inteligência Artificial & Voz em Campo
+## <img src="core/assets/icon-ai.svg" width="24" height="24" align="absmiddle" alt="Inteligência Artificial" /> Inteligência Artificial & Voz em Campo
 
 * **Motor IA:** Modelo de ponta **NVIDIA Nemotron-3 Super (550B Instruct)** hospedado via NVIDIA NIM.
 * **RAG Contextual Multi-Fazenda:** A IA responde dúvidas agronômicas processando exclusivamente os laudos e medições históricas das propriedades autorizadas pelo usuário, citando a data e a visita de origem.
@@ -123,7 +123,7 @@ O ecossistema é modularizado em três camadas limpas, garantindo zero duplicaç
 ---
 
 <a name="ciberseguranca--conformidade-lgpd"></a>
-## Cibersegurança & Conformidade LGPD
+## <img src="core/assets/icon-security.svg" width="24" height="24" align="absmiddle" alt="Cibersegurança" /> Cibersegurança & Conformidade LGPD
 
 O projeto adota padrões estritos de **Defesa em Profundidade** validados pela skill `cybersecurity-hardening`:
 
@@ -140,7 +140,7 @@ O projeto adota padrões estritos de **Defesa em Profundidade** validados pela s
 ---
 
 <a name="tecnologias-utilizadas"></a>
-## Tecnologias Utilizadas
+## <img src="core/assets/icon-tech.svg" width="24" height="24" align="absmiddle" alt="Tecnologias" /> Tecnologias Utilizadas
 
 | Camada | Tecnologias |
 |---|---|
@@ -157,7 +157,7 @@ O projeto adota padrões estritos de **Defesa em Profundidade** validados pela s
 ---
 
 <a name="execucao-local--deploy"></a>
-## Execução Local & Deploy
+## <img src="core/assets/icon-terminal.svg" width="24" height="24" align="absmiddle" alt="Execução Local" /> Execução Local & Deploy
 
 ### 1. Execução Local (Sem necessidade de build)
 
