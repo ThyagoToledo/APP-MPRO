@@ -27,7 +27,6 @@
 * [Inteligência Artificial & Voz em Campo](#inteligencia-artificial--voz-em-campo)
 * [Cibersegurança & Conformidade LGPD](#ciberseguranca--conformidade-lgpd)
 * [Tecnologias Utilizadas](#tecnologias-utilizadas)
-* [Hub de Documentação](#hub-de-documentacao)
 * [Execução Local & Deploy](#execucao-local--deploy)
 * [Autor](#autor)
 * [Licença](#licenca)
@@ -132,26 +131,6 @@ O projeto adota padrões estritos de **Defesa em Profundidade** validados pela s
 | **Inteligência Artificial** | NVIDIA NIM API (`nvidia/nemotron-3-super-550b-instruct`) |
 | **Mapeamento & Geoespacial** | Leaflet 1.9.4, OpenStreetMap, Esri World Imagery |
 | **Design & Ícones** | Material Symbols Outlined / Sharp, Marca Vetorial Oficial M-PRO SVG |
-
----
-
-<a name="hub-de-documentacao"></a>
-## Hub de Documentação
-
-Para aprofundamento em requisitos, arquitetura e segurança, consulte os documentos em [`doc/`](doc/) e no Knowledge Vault [`Brain/`](../Brain/):
-
-* [**1. Visão do Produto**](doc/01-visao-produto.md) — Proposta de valor, público-alvo e limites do sistema.
-* [**2. Requisitos & Regras de Negócio**](doc/02-requisitos.md) — Requisitos funcionais (RF), não funcionais (RNF) e critérios de aceite.
-* [**3. Sistema de Telas & Navegação**](doc/03-sistema-de-telas.md) — Catálogo das 18 superfícies de interface e fluxos.
-* [**4. Modelo de Dados**](doc/04-modelo-de-dados.md) — Entidades, relacionamentos e esquemas JSON.
-* [**5. Contrato da API Serverless**](doc/05-contrato-api.md) — Especificação dos endpoints `/auth`, `/ia`, `/admin` e `/upload`.
-* [**6. Design System**](doc/06-design-system.md) — Paleta de cores, tipografia, tokens e ergonomia de campo.
-* [**7. Roadmap e Estado do Projeto**](doc/07-roadmap-e-estado.md) — Fases, histórico de entregas e validações.
-* [**8. Módulos & Sincronização Local-First**](doc/08-modulos-e-sincronizacao.md) — Arquitetura de persistência e outbox.
-* [**9. Segurança & Blindagem**](doc/09-seguranca-e-blindagem.md) — Defesa em profundidade, Magic Bytes, Security Headers e LGPD.
-* [**10. Inteligência Artificial Nemotron**](doc/10-inteligencia-artificial-nemotron.md) — Integração RAG e auditoria de IA.
-* [**11. Banco de Dados Neon PostgreSQL**](doc/11-banco-de-dados-neon.md) — DDL das tabelas, índices e migrações.
-* [**12. Tecnologias & Skills Utilizadas**](doc/12-tecnologias-e-skills.md) — Master doc da stack e skills aplicadas.
 
 ---
 
