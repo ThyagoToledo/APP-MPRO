@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="core/assets/mpro-app-icon.svg" alt="M-PRO Icon" width="110px" height="110px" style="border-radius: 26px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);" />
+  <img src="core/assets/banner.jpg" alt="M-PRO Banner" width="650px" style="border-radius: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);" />
+</p>
+
+<p align="center">
+  <img src="core/assets/mpro-app-icon.svg" alt="M-PRO Icon" width="96px" height="96px" style="border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);" />
 </p>
 
 <h1 align="center">M-PRO · Manejo de Precisão em Recursos Operacionais</h1>
@@ -23,6 +27,7 @@
 
 * [Visão Geral](#visao-geral)
 * [Componentes Principais](#componentes-principais)
+* [Controle de Acesso & Governança por Cargo](#controle-de-acesso--governanca-por-cargo)
 * [Arquitetura & Engenharia Local-First](#arquitetura--engenharia-local-first)
 * [Inteligência Artificial & Voz em Campo](#inteligencia-artificial--voz-em-campo)
 * [Cibersegurança & Conformidade LGPD](#ciberseguranca--conformidade-lgpd)
@@ -63,6 +68,23 @@ Construído sob a filosofia **Local-First**, todo dado gerado em campo é armaze
 ### <img src="core/assets/icon-equipamento.svg" width="22" height="22" align="absmiddle" alt="Ícone Equipamentos" /> Metrologia & Parque de Equipamentos
 * **Inventário de Infraestrutura:** Cadastro e histórico operacional de pivôs centrais, manômetros, bombas centrífugas, aspersores e bicos de pulverização.
 * **Aferição & Calibração de Pressão:** Acompanhamento de manometria e desvios de pressão operacional em campo.
+
+---
+
+<a name="controle-de-acesso--governanca-por-cargo"></a>
+## Controle de Acesso & Governança por Cargo
+
+A plataforma M-PRO implementa controle de acesso baseado em funções (*Role-Based Access Control - RBAC*), segregando permissões técnicas e administrativas para garantir integridade agronômica e conformidade:
+
+<p align="center">
+  <img src="core/assets/mpro-cargos.jpg" alt="Controle de Acesso por Cargo M-PRO" width="700px" style="border-radius: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);" />
+</p>
+
+| Perfil / Cargo | Escopo de Acesso | Principais Responsabilidades |
+|---|---|---|
+| **Técnico de Campo** | Operação Mobile / Local-First | Coleta de dados de campo, medições de manômetros, registro fotográfico comprimido, notas de voz e emissão de minutas de vistoria. |
+| **Gestor Agronômico** | Visão Global & Inteligência | Homologação de laudos técnicos, acompanhamento multi-fazenda da equipe, análise de safras e diagnósticos assistidos por IA Nemotron 550B. |
+| **Administrador** | Governança & Segurança | Controle total do sistema, aprovação/rejeição de novos cadastros, gestão de perfis de acesso, revogação e auditoria de segurança. |
 
 ---
 
