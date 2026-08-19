@@ -45,22 +45,22 @@ Construído sob a filosofia **Local-First**, todo dado gerado em campo é armaze
 <a name="componentes-principais"></a>
 ## Componentes Principais
 
-### Gestão de Visitas Agronômicas em 4 Etapas
+### <img src="core/assets/icon-visita.svg" width="22" height="22" align="absmiddle" alt="Ícone Visitas" /> Gestão de Visitas Agronômicas em 4 Etapas
 * **Etapa 1 · Identificação & Dados de Entrada:** Seleção de produtor, fazenda/unidade, cultura, responsável técnico e captura automática de coordenadas GPS.
 * **Etapa 2 · Avaliação Técnica & Medições:** Classificação visual com status semânticos (*Adequado*, *Monitorar*, *Corrigir*) para Irrigação, Solo, Sanidade e Nutrição, além de medições numéricas com unidade (bar, PSI, mm, m³/h).
 * **Etapa 3 · Registro Fotográfico & Evidências:** Captura de fotos georreferenciadas com compressão automática em Canvas para formato WebP (~150KB), reordenação de imagens e envio em nuvem CDN.
 * **Etapa 4 · Revisão & Emissão do Laudo:** Checklist automatizado de publicação, compilação de síntese técnica e geração de PDF formatado para impressão ou compartilhamento direto.
 
-### Gravação de Áudio de Campo & Transcrição por Voz
+### <img src="core/assets/icon-audio.svg" width="22" height="22" align="absmiddle" alt="Ícone Áudio" /> Gravação de Áudio de Campo & Transcrição por Voz
 * **Captura de Áudio em Tempo Real:** Gravação contínua no campo (`MediaRecorder API`) com reprodução interativa, visualizador de ondas sonoras (*waveform*) e medição de duração.
 * **Transcrição de Voz (Speech-to-Text em pt-BR):** Ditado inteligente por voz para observações e recomendações técnicas.
 * **Estruturação Agronômica:** Separação automática do relato falado em blocos técnicos (*Irrigação*, *Sanidade*, *Solo*, *Recomendações*) com aplicação direta ao laudo com 1 toque.
 
-### Mapeamento Geoespacial de Fazendas & Talhões
+### <img src="core/assets/icon-mapa.svg" width="22" height="22" align="absmiddle" alt="Ícone Mapa" /> Mapeamento Geoespacial de Fazendas & Talhões
 * **Mapa Interativo Leaflet:** Renderização de marcadores sincronizados por status de vistoria, integração com OpenStreetMap e camada de Satélite de alta resolução (Esri).
 * **Roteamento de Campo:** Disparo de rotas geográficas para o app de navegação padrão do smartphone (Google Maps / Waze).
 
-### Metrologia & Parque de Equipamentos
+### <img src="core/assets/icon-equipamento.svg" width="22" height="22" align="absmiddle" alt="Ícone Equipamentos" /> Metrologia & Parque de Equipamentos
 * **Inventário de Infraestrutura:** Cadastro e histórico operacional de pivôs centrais, manômetros, bombas centrífugas, aspersores e bicos de pulverização.
 * **Aferição & Calibração de Pressão:** Acompanhamento de manometria e desvios de pressão operacional em campo.
 
