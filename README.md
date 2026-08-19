@@ -1,142 +1,252 @@
 <p align="center">
-  <img src="core/assets/mpro-app-icon.svg" width="112" alt="Símbolo da marca M-PRO">
+  <img src="core/assets/mpro-app-icon.svg" alt="M-PRO Icon" width="110px" height="110px" style="border-radius: 26px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);" />
 </p>
 
-<h1 align="center">M-PRO</h1>
+<h1 align="center">M-PRO · Manejo de Precisão em Recursos Operacionais</h1>
 
 <p align="center">
-  Plataforma de acompanhamento agronômico que transforma anotações de campo em relatórios
-  padronizados, preserva o histórico técnico de cada cliente e permite consultas assistidas
-  com rastreabilidade até a visita de origem.
+  <img src="https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/Neon-PostgreSQL_17-00E599?style=for-the-badge&logo=postgresql&logoColor=white" alt="Neon PostgreSQL" />
+  <img src="https://img.shields.io/badge/NVIDIA_NIM-Nemotron_550B-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="NVIDIA NIM" />
+  <img src="https://img.shields.io/badge/Vercel-Blob_Storage_CDN-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel Blob" />
+  <img src="https://img.shields.io/badge/PWA-Local_First_Offline-143820?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
+  <img src="https://img.shields.io/badge/LGPD-Lei_13.709-006439?style=for-the-badge" alt="LGPD" />
+</p>
+
+<p align="center">
+  <b>M-PRO</b> é uma plataforma profissional de inteligência e acompanhamento agronômico de precisão que transforma anotações de campo em relatórios técnicos estruturados. O software realiza auditoria de lavouras, calibração de pivôs centrais e equipamentos de irrigação, transcrição de notas de voz em tempo real via IA, processamento e compressão de evidências fotográficas em nuvem CDN, mapeamento geoespacial de propriedades e consultas técnicas assistidas por <b>NVIDIA Nemotron-3 Ultra (550B)</b>, com arquitetura <b>Local-First 100% offline</b> para o trabalho em campo.
 </p>
 
 ---
 
-## Os módulos
+## Índice
 
-| Pasta | O que é | Onde vai parar |
-| --- | --- | --- |
-| `core/` | Todo o comportamento do produto: telas, roteador, banco local, fila de envio, consulta assistida e design system. Não tem página própria. | — |
-| `mobile/` | Aplicativo de campo Android. Sem login, banco no aparelho, funciona offline. | Google Play |
-| `web/` | Site público (`index.html`) e sistema restrito (`sistema.html`). | Host com domínio próprio |
-| `doc/` | Especificação do produto — a fonte de verdade. | — |
-| `design/` | Canvas "M-PRO Campo" importado do Claude Design. | — |
-| `tools/` | Utilitários de build sem dependências (geração de ícones). | — |
-| `output/pdf/` | Pranchas de auditoria e a apresentação comercial. Foram geradas antes da remoção do seed e ainda mostram a carteira de exemplo. | — |
+* [Visão Geral](#visao-geral)
+* [Componentes Principais](#componentes-principais)
+* [Arquitetura & Engenharia Local-First](#arquitetura--engenharia-local-first)
+* [Inteligência Artificial & Voz em Campo](#inteligencia-artificial--voz-em-campo)
+* [Cibersegurança & Conformidade LGPD](#ciberseguranca--conformidade-lgpd)
+* [Tecnologias Utilizadas](#tecnologias-utilizadas)
+* [Hub de Documentação](#hub-de-documentacao)
+* [Execução Local & Deploy](#execucao-local--deploy)
+* [Equipe & Créditos](#equipe--creditos)
+* [Licença](#licenca)
 
-`mobile/` e `web/` não duplicam código: cada um carrega o `core/` por caminho relativo e o
-configura antes do boot, num único arquivo de plataforma. A separação inteira, o contrato de
-plataforma e o funcionamento da fila estão em
-[Módulos, banco local e sincronização](doc/08-modulos-e-sincronizacao.md).
+---
 
-## O que já funciona
+<a name="visao-geral"></a>
+## Visão Geral
 
-Dashboard, Clientes, Mapa, Visitas, Nova visita em 4 etapas, Registro fotográfico, Evidências,
-Transcrição, Revisão, Equipamentos, Consulta assistida, Perfil e Configurações — com busca,
-filtros, rascunhos, medições, recomendações, fotos, finalização de visita e ciclo completo de
-criar/editar/excluir em clientes, visitas e equipamentos.
+O **M-PRO** foi desenvolvido para solucionar a fragmentação das vistorias agronômicas em fazendas. A plataforma unifica todo o ciclo operacional em um fluxo coeso e seguro: desde a coleta de parâmetros de solo, água e sanidade na lavoura até a emissão de laudos técnicos completos em PDF.
 
-O mapa é um Leaflet real com OpenStreetMap e satélite Esri (sem chave), marcadores por status
-sincronizados com o cadastro, geolocalização com tratamento de permissão negada e rota externa pelo
-app de navegação do aparelho.
+Construído sob a filosofia **Local-First**, todo dado gerado em campo é armazenado instantaneamente no banco local do dispositivo (IndexedDB). Assim que a conectividade é restabelecida, uma fila de sincronização (*Outbox idempotente*) atualiza o banco de dados em nuvem (**Neon Serverless PostgreSQL**) e despacha as fotos e áudios para a CDN global do **Vercel Blob Storage**.
 
-**Os dados são gravados primeiro no aparelho**, em IndexedDB, escopados por espaço de trabalho.
-Cada escrita entra numa fila de sincronização idempotente. Enquanto não houver servidor
-configurado, o app diz textualmente que está em modo somente-local — nada é perdido e nada é
-simulado. Não há dados de demonstração: o aplicativo abre vazio e o primeiro registro é real.
+---
 
-A consulta assistida recupera trechos do banco local, filtrando por cliente **antes** da busca, e
-cita a visita de origem. No modo local ela declara que não há modelo de linguagem envolvido; o
-caminho remoto está pronto e só espera a URL do servidor intermediário. Nenhuma chave, token ou
-segredo existe no front-end.
+<a name="componentes-principais"></a>
+## Componentes Principais
 
-## Rodar
+### 🌾 Gestão de Visitas Agronômicas em 4 Etapas
+* **Etapa 1 · Identificação & Dados de Entrada:** Seleção de produtor, fazenda/unidade, cultura, responsável técnico e captura automática de coordenadas GPS.
+* **Etapa 2 · Avaliação Técnica & Medições:** Classificação visual com status semânticos (*Adequado*, *Monitorar*, *Corrigir*) para Irrigação, Solo, Sanidade e Nutrição, além de medições numéricas com unidade (bar, PSI, mm, m³/h).
+* **Etapa 3 · Registro Fotográfico & Evidências:** Captura de fotos georreferenciadas com compressão automática em Canvas para formato WebP (~150KB), reordenação de imagens e envio em nuvem CDN.
+* **Etapa 4 · Revisão & Emissão do Laudo:** Checklist automatizado de publicação, compilação de síntese técnica e geração de PDF formatado para impressão ou compartilhamento direto.
+
+### 🎙️ Gravação de Áudio de Campo & Transcrição por Voz
+* **Captura de Áudio em Tempo Real:** Gravação contínua no campo (`MediaRecorder API`) com reprodução interativa, visualizador de ondas sonoras (*waveform*) e medição de duração.
+* **Transcrição de Voz (Speech-to-Text em pt-BR):** Ditado inteligente por voz para observações e recomendações técnicas.
+* **Estruturação Agronômica:** Separação automática do relato falado em blocos técnicos (*Irrigação*, *Sanidade*, *Solo*, *Recomendações*) com aplicação direta ao laudo com 1 toque.
+
+### 🗺️ Mapeamento Geoespacial de Fazendas & Talhões
+* **Mapa Interativo Leaflet:** Renderização de marcadores sincronizados por status de vistoria, integração com OpenStreetMap e camada de Satélite de alta resolução (Esri).
+* **Roteamento de Campo:** Disparo de rotas geográficas para o app de navegação padrão do smartphone (Google Maps / Waze).
+
+### ⚙️ Metrologia & Parque de Equipamentos
+* **Inventário de Infraestrutura:** Cadastro e histórico operacional de pivôs centrais, manômetros, bombas centrífugas, aspersores e bicos de pulverização.
+* **Aferição & Calibração de Pressão:** Acompanhamento de manometria e desvios de pressão operacional em campo.
+
+---
+
+<a name="arquitetura--engenharia-local-first"></a>
+## Arquitetura & Engenharia Local-First
+
+O ecossistema é modularizado em três camadas limpas, garantindo zero duplicação de código:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                             CORE COMPILADO (core/)                          │
+│  Telas · Roteador · DB IndexedDB/LocalStorage · Sync Outbox · Design System │
+└──────────────────────────────────────┬──────────────────────────────────────┘
+                                       │
+            ┌──────────────────────────┴──────────────────────────┐
+            ▼                                                     ▼
+┌───────────────────────┐                             ┌───────────────────────┐
+│     MOBILE (mobile/)  │                             │       WEB (web/)      │
+│  PWA Android Offline  │                             │  Site Institucional & │
+│  Sem Login Obrigatório│                             │  Sistema Restrito Gated│
+└───────────────────────┘                             └───────────────────────┘
+```
+
+* **Escopo por Usuário:** No navegador, o banco local é isolado por chave de workspace (`u-<id>`), impedindo vazamento de dados em computadores compartilhados.
+* **Lápides de Exclusão (*Tombstones*):** A exclusão física só ocorre após a confirmação de recebimento pela nuvem, evitando que registros deletados offline ressuscitem após a sincronização.
+
+---
+
+<a name="inteligencia-artificial--voz-em-campo"></a>
+## Inteligência Artificial & Voz em Campo
+
+* **Motor IA:** Modelo de ponta **NVIDIA Nemotron-3 Super (550B Instruct)** hospedado via NVIDIA NIM.
+* **RAG Contextual Multi-Fazenda:** A IA responde dúvidas agronômicas processando exclusivamente os laudos e medições históricas das propriedades autorizadas pelo usuário, citando a data e a visita de origem.
+* **Histórico Leve:** Armazenamento local de até 30 sessões de conversa com restauração instantânea e limpeza a qualquer momento.
+
+---
+
+<a name="ciberseguranca--conformidade-lgpd"></a>
+## Cibersegurança & Conformidade LGPD
+
+O projeto adota padrões estritos de **Defesa em Profundidade** validados pela skill `cybersecurity-hardening`:
+
+* **Validação de Assinatura Binária (Magic Bytes):** O backend inspeciona o cabeçalho binário real dos arquivos recebidos (JPEG: `FF D8 FF`, PNG: `89 50 4E 47`, WebP: `52 49 46 46...WEBP`, WebM: `1A 45 DF A3`), bloqueando o upload de Web Shells ou arquivos maliciosos camuflados.
+* **Proteção contra SQL Injection (SQLi):** 100% das consultas ao Neon PostgreSQL utilizam *Tagged Template Queries* parametrizadas.
+* **Prevenção de Timing Attacks:** Autenticação por tokens assinados com HMAC-SHA256 e validação com `crypto.timingSafeEqual`.
+* **Rate Limiting em Janela Deslizante:** Proteção contra força bruta em logins (10/min), cadastros (5/5min), consultas de IA (15/min) e uploads (30/min).
+* **Permissions-Policy Estrita:** `camera=(self), microphone=(self), geolocation=(self)` restringe o uso de sensores exclusivamente à origem confiável do app.
+* **Conformidade com a LGPD (Lei nº 13.709/2018):**
+  * Pop-up de consentimento interativo no primeiro login com aceite obrigatório registrado com timestamp.
+  * Formalização das bases legais de Execução de Contrato (Art. 7º, V) e Legítimo Interesse (Art. 7º, IX).
+  * Garantia de sigilo: dados e imagens não são comercializados nem usados em retreinamento público de terceiros.
+
+---
+
+<a name="tecnologias-utilizadas"></a>
+## Tecnologias Utilizadas
+
+| Camada | Tecnologias |
+|---|---|
+| **Frontend** | Vanilla JavaScript (ES6+), HTML5 Semântico, CSS3 Custom Properties (Design Tokens) |
+| **Computação de Voz & Mídia** | Web Speech API (`pt-BR`), MediaRecorder API, HTML5 Canvas WebP Compressor |
+| **Banco Local & Cache** | IndexedDB, LocalStorage, Service Workers, Cache Storage API |
+| **Backend Serverless** | Node.js 20.x, Vercel Serverless Functions (`api/`) |
+| **Banco de Dados em Nuvem** | Neon Serverless PostgreSQL 17 (`@neondatabase/serverless`) |
+| **Armazenamento de Arquivos** | Vercel Blob Storage CDN (`@vercel/blob`) |
+| **Inteligência Artificial** | NVIDIA NIM API (`nvidia/nemotron-3-super-550b-instruct`) |
+| **Mapeamento & Geoespacial** | Leaflet 1.9.4, OpenStreetMap, Esri World Imagery |
+| **Design & Ícones** | Material Symbols Outlined / Sharp, Marca Vetorial Oficial M-PRO SVG |
+
+---
+
+<a name="hub-de-documentacao"></a>
+## Hub de Documentação
+
+Para aprofundamento em requisitos, arquitetura e segurança, consulte os documentos em [`doc/`](doc/) e no Knowledge Vault [`Brain/`](../Brain/):
+
+* [**1. Visão do Produto**](doc/01-visao-produto.md) — Proposta de valor, público-alvo e limites do sistema.
+* [**2. Requisitos & Regras de Negócio**](doc/02-requisitos.md) — Requisitos funcionais (RF), não funcionais (RNF) e critérios de aceite.
+* [**3. Sistema de Telas & Navegação**](doc/03-sistema-de-telas.md) — Catálogo das 18 superfícies de interface e fluxos.
+* [**4. Modelo de Dados**](doc/04-modelo-de-dados.md) — Entidades, relacionamentos e esquemas JSON.
+* [**5. Contrato da API Serverless**](doc/05-contrato-api.md) — Especificação dos endpoints `/auth`, `/ia`, `/admin` e `/upload`.
+* [**6. Design System**](doc/06-design-system.md) — Paleta de cores, tipografia, tokens e ergonomia de campo.
+* [**7. Roadmap e Estado do Projeto**](doc/07-roadmap-e-estado.md) — Fases, histórico de entregas e validações.
+* [**8. Módulos & Sincronização Local-First**](doc/08-modulos-e-sincronizacao.md) — Arquitetura de persistência e outbox.
+* [**9. Segurança & Blindagem**](doc/09-seguranca-e-blindagem.md) — Defesa em profundidade, Magic Bytes, Security Headers e LGPD.
+* [**10. Inteligência Artificial Nemotron**](doc/10-inteligencia-artificial-nemotron.md) — Integração RAG e auditoria de IA.
+* [**11. Banco de Dados Neon PostgreSQL**](doc/11-banco-de-dados-neon.md) — DDL das tabelas, índices e migrações.
+* [**12. Tecnologias & Skills Utilizadas**](doc/12-tecnologias-e-skills.md) — Master doc da stack e skills aplicadas.
+
+---
+
+<a name="execucao-local--deploy"></a>
+## Execução Local & Deploy
+
+### 1. Execução Local (Sem necessidade de build)
+
+Como o core do sistema é construído em JavaScript nativo moderno, não há necessidade de etapas de compilação pesadas:
 
 ```bash
+# Clone o repositório
+git clone https://github.com/ThyagoToledo/APP-MPRO.git
+cd APP-MPRO
+
+# Suba um servidor HTTP estático na raiz do projeto
 python -m http.server 4173
+# ou: npx serve . -p 4173
 ```
 
-- Site: `http://localhost:4173/web/`
-- Sistema web: `http://localhost:4173/web/sistema.html`
-- Aplicativo: `http://localhost:4173/mobile/`
+Acesse no navegador:
+* **Landing Page:** `http://localhost:4173/web/`
+* **Sistema Restrito Web:** `http://localhost:4173/web/sistema.html`
+* **Aplicativo Mobile PWA:** `http://localhost:4173/mobile/`
 
-O servidor precisa subir na **raiz do repositório**, porque `mobile/` e `web/` referenciam `core/`.
-Não há dependências nem passo de build.
+---
 
-## Acesso
+### 2. Variáveis de Ambiente (`.env` local ou Vercel)
 
-O aplicativo Android não tem tela de login nesta fase: o primeiro acesso pede como o técnico assina
-os relatórios e libera o uso, com tudo gravado localmente. Quando o vínculo com a nuvem for ligado,
-o espaço de trabalho já existente é preservado.
+Para habilitar a integração completa com o banco Neon, Vercel Blob e IA NVIDIA em desenvolvimento:
 
-O sistema web só entra com cadastro **já criado e aprovado** no banco da M-PRO. Não existe
-autocadastro. Sem servidor de autenticação configurado, nenhum acesso é liberado — e a tela diz
-isso em vez de fingir uma sessão.
+```env
+DATABASE_URL="postgresql://usuario:senha@ep-xyz.us-east-1.aws.neon.tech/neondb?sslmode=require"
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_token_..."
+NVIDIA_API_KEY="nvapi-..."
+AUTH_SECRET="segredo_para_assinatura_hmac_sha256"
+```
 
-## Publicar
+---
 
-### Vercel (hoje)
+### 3. Deploy na Vercel
 
-O `vercel.json` serve a raiz do repositório: `/` redireciona para o site, `/mobile/` é o aplicativo
-instalável e `/core/` é servido como estático. O `.vercelignore` mantém documentação e design fora
-do deploy. Não há framework nem build.
-
-### Play Store
+O projeto possui configuração nativa em `vercel.json` para roteamento estático e execução serverless automática:
 
 ```bash
-node tools/gerar-icones.js
+# Deploy direto via Vercel CLI
+vercel --prod
 ```
 
-Depois publique `mobile/` em HTTPS e gere o pacote com Bubblewrap ou PWABuilder apontando para
-`https://<domínio>/mobile/manifest.webmanifest`. O roteiro completo está em
-[Módulos, banco local e sincronização](doc/08-modulos-e-sincronizacao.md), seção 8.5.
+---
 
-## Verificação local
+<a name="equipe--creditos"></a>
+## Equipe & Créditos
 
-```bash
-node --check core/js/app.js
-```
-
-Em 05/08/2026 foram validados: `node --check` em todos os arquivos JavaScript; primeiro acesso do
-aplicativo; cadastro persistindo em IndexedDB entre recargas e entrando na fila; mapa com marcador
-real; consulta assistida citando a visita de origem; recusa de login no sistema web por falta de
-cadastro aprovado; 14 rotas em 375×812 sem overflow horizontal; e service worker com o shell em
-cache. O roteiro e as limitações estão em [Roadmap e estado](doc/07-roadmap-e-estado.md).
+<div align="center">
+  <table style="border: none; border-collapse: collapse; margin: auto;">
+    <tr>
+      <td align="center" style="padding: 16px;">
+        <a href="https://github.com/ThyagoToledo">
+          <img src="https://github.com/ThyagoToledo.png" width="100px" alt="Thyago Toledo" style="border-radius: 50%; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);" />
+        </a>
+        <br />
+        <b>Thyago Toledo</b>
+        <br />
+        <sub>Engenharia de Software & Arquitetura de Sistemas</sub>
+        <br />
+        <a href="https://github.com/ThyagoToledo">
+          <img src="https://img.shields.io/badge/GitHub-ThyagoToledo-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+        </a>
+      </td>
+      <td align="center" style="padding: 16px;">
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: #143820; color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin: auto; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+          CA
+        </div>
+        <br />
+        <b>Carlos Alberto</b>
+        <br />
+        <sub>Engenheiro Agrônomo · Consultoria de Campo & Metodologia</sub>
+      </td>
+      <td align="center" style="padding: 16px;">
+        <div style="width: 100px; height: 100px; border-radius: 50%; background: #0f2438; color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; margin: auto; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);">
+          MF
+        </div>
+        <br />
+        <b>Marco Antônio Moreira de Freitas</b>
+        <br />
+        <sub>Engenheiro Agrônomo · Validação Agronômica de Precisão</sub>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## Hub de documentação
+<a name="licenca"></a>
+## Licença
 
-| Documento | Para quê |
-| --- | --- |
-| [1. Visão do produto](doc/01-visao-produto.md) | O que o M-PRO é, para quem, o que está dentro e fora do escopo. |
-| [2. Requisitos](doc/02-requisitos.md) | Requisitos funcionais e não funcionais, regras de negócio, critérios de aceite. |
-| [3. Sistema de telas](doc/03-sistema-de-telas.md) | Mapa de navegação, contrato de navegação e o detalhamento de cada tela. |
-| [4. Modelo de dados](doc/04-modelo-de-dados.md) | Entidades, relações e enums que sustentam o produto. |
-| [5. Contrato da API](doc/05-contrato-api.md) | Endpoints, filtros, autorização e as rotas de login, sincronização e consulta. |
-| [6. Design system](doc/06-design-system.md) | Tokens de cor, tipografia, espaçamento e ergonomia de campo. |
-| [7. Roadmap e estado](doc/07-roadmap-e-estado.md) | Fases, backlog priorizado e o que já foi validado. |
-| [8. Módulos e sincronização](doc/08-modulos-e-sincronizacao.md) | Separação em módulos, banco local, fila híbrida, molde de IA e publicação. |
-
-Comece por [Visão do produto](doc/01-visao-produto.md) e depois
-[Sistema de telas](doc/03-sistema-de-telas.md) — juntos eles descrevem o produto inteiro.
-
----
-
-## Relação com o vault
-
-A fonte de verdade de produto vive no vault do time, em
-`Brain/doc/10_projects/Colaborador1/mpro-app`:
-
-- `00_spec/mpro-app-visao-requisitos.md` — visão e requisitos originais;
-- `01_plan/mpro-app-planejamento-mvp.md` — fases, backlog e riscos;
-- `02_design/mpro-app-experiencia-relatorio-fotografico.md` — experiência de visita e PDF;
-- `02_design/mpro-prompt-claude-design-v2.md` — sistema visual e contrato de navegação;
-- `03_context/` — auditorias de relatório real, bugs e decisões de arquitetura.
-
-Esta documentação é a **projeção técnica** daquele material: o vault define o que o produto
-precisa ser; o `doc/` deste repositório define como isso vira telas, dados e API.
-
----
-
-Sob licença MIT. Veja [LICENSE](LICENSE) para detalhes.
+Projeto desenvolvido com arquitetura proprietária e independente para a plataforma **M-PRO**. Todos os direitos reservados.
