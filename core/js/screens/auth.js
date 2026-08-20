@@ -222,9 +222,14 @@ MPRO.screens = MPRO.screens || {};
         enviar.disabled = true;
         enviar.textContent = 'Enviando solicitação…';
 
+        var emailNorm = email.value.trim().toLowerCase();
+        var agoraIso = new Date().toISOString();
+        localStorage.setItem('mpro.termos_aceitos', JSON.stringify({ versao: '1.0', aceitoEm: agoraIso, lgpd: true }));
+        localStorage.setItem('mpro.termos_aceitos_' + emailNorm, JSON.stringify({ versao: '1.0', aceitoEm: agoraIso, lgpd: true }));
+
         MPRO.session.solicitarAcesso({
           nome: nome.value.trim(),
-          email: email.value.trim().toLowerCase(),
+          email: emailNorm,
           senha: senha.input.value,
           empresa: empresa.value.trim(),
           cargo: cargo.value.trim()
