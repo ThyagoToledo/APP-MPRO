@@ -99,9 +99,9 @@ MPRO.screens = MPRO.screens || {};
     var enviar = h('button', {
       class: 'btn btn--outline', type: 'button', disabled: !s.configurado,
       onclick: function () {
-        ui.snack('Enviando registros pendentes…');
-        MPRO.sync.drenar().then(function (novo) {
-          ui.snack(novo.estado === 'sincronizado' ? 'Tudo sincronizado.' : MPRO.sync.rotulo());
+        ui.snack('Sincronizando registros com a nuvem Neon…');
+        MPRO.sync.sincronizarTudo().then(function (novo) {
+          ui.snack(novo && novo.estado === 'sincronizado' ? 'Tudo sincronizado com a nuvem Neon.' : MPRO.sync.rotulo());
           ctx.rerender();
         });
       }

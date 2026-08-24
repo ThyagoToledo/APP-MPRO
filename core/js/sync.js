@@ -160,8 +160,36 @@ MPRO.sync = (function () {
     });
   }
 
+  /* Varre todas as coleções locais e assegura que qualquer registro pré-existente seja enviado para a nuvem */
+  function enviarTudoLocal() {
+    if (!configurado()) return Promise.resolve(status());
+    if (!navigator.onLine) return Promise.resolve(status());
+    var cabecalhoAuth = MPRO.session.cabecalhos();
+    if (!cabecalhoAuth.Authorization && MPRO.platform.auth.modo === 'gated') {
+      return Promise.resolve(status());
+    }
+
+    var colecoes = ['clients', 'visits', 'drafts', 'equipments', 'photos', 'meta'];
+    var filaAtual = fila();
+    colecoes.forEach(function (col) {
+      var itens = MPRO.db.todos(col);
+      itens.forEach(function (item) {
+        if (item && item.id && !item._removido) {
+          var jaNaFila = filaAtual.some(function (op) { return op.alvoId === item.id; });
+          if (!jaNaFila) {
+            enfileirar(col, 'upsert', item);
+          }
+        }
+      });
+    });
+
+    return drenar();
+  }
+
   function sincronizarTudo() {
-    return drenar().then(function () {
+    // 1. Envia registros locais pré-existentes ou pendentes
+    return enviarTudoLocal().then(function () {
+      // 2. Puxa os dados atualizados da nuvem
       return puxar();
     });
   }
@@ -178,6 +206,7 @@ MPRO.sync = (function () {
   return {
     iniciar: iniciar,
     enfileirar: enfileirar,
+    enviarTudoLocal: enviarTudoLocal,
     drenar: drenar,
     puxar: puxar,
     sincronizarTudo: sincronizarTudo,
