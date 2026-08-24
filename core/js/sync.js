@@ -125,19 +125,62 @@ MPRO.sync = (function () {
       });
   }
 
+  /* Puxa todos os registros da nuvem (download / sync pull) para o aparelho local */
+  function puxar() {
+    if (!configurado()) return Promise.resolve(status());
+    if (!navigator.onLine) return Promise.resolve(status());
+    var cabecalhoAuth = MPRO.session.cabecalhos();
+    if (!cabecalhoAuth.Authorization && MPRO.platform.auth.modo === 'gated') {
+      return Promise.resolve(status());
+    }
+
+    var base = MPRO.platform.nuvem.baseUrl.replace(/\/$/, '');
+    return fetch(base + '/sync', {
+      method: 'GET',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhoAuth)
+    }).then(function (res) {
+      if (!res.ok) return null;
+      return res.json();
+    }).then(function (dados) {
+      if (!dados || !dados.registros) return status();
+      var colecoes = Object.keys(dados.registros);
+      colecoes.forEach(function (col) {
+        var lista = dados.registros[col] || [];
+        lista.forEach(function (item) {
+          if (item && item.id) {
+            MPRO.db.salvar(col, item, { semFila: true });
+          }
+        });
+      });
+      calcula();
+      return status();
+    }).catch(function (e) {
+      console.warn('Falha ao baixar dados da nuvem:', e);
+      return status();
+    });
+  }
+
+  function sincronizarTudo() {
+    return drenar().then(function () {
+      return puxar();
+    });
+  }
+
   function iniciar() {
     calcula();
-    window.addEventListener('online', drenar);
+    window.addEventListener('online', sincronizarTudo);
     window.addEventListener('offline', calcula);
     if (timer) clearInterval(timer);
-    if (configurado()) timer = setInterval(drenar, MPRO.platform.nuvem.intervaloMs);
-    if (configurado() && navigator.onLine) drenar();
+    if (configurado()) timer = setInterval(sincronizarTudo, MPRO.platform.nuvem.intervaloMs);
+    if (configurado() && navigator.onLine) sincronizarTudo();
   }
 
   return {
     iniciar: iniciar,
     enfileirar: enfileirar,
     drenar: drenar,
+    puxar: puxar,
+    sincronizarTudo: sincronizarTudo,
     status: status,
     rotulo: rotulo,
     configurado: configurado,

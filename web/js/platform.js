@@ -13,7 +13,7 @@ MPRO.configurarPlataforma({
   nome: 'M-PRO',
   auth: { modo: 'gated', endpoint: '/api/auth' },
   db: { driver: 'auto', nome: 'mpro-web' },
-  nuvem: { baseUrl: null, intervaloMs: 60000 },
+  nuvem: { baseUrl: '/api', intervaloMs: 30000 },
   ia: { modo: 'remoto', endpoint: '/api/ia' },
   recursos: { onboarding: false, instalavel: false, landing: true }
 });

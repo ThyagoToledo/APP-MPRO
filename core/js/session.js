@@ -183,7 +183,11 @@ MPRO.session = (function () {
       }).then(function (dados) {
         if (!dados || !dados.token || !dados.usuario) throw new Error('Resposta de login inválida.');
         grava({ token: dados.token, usuario: dados.usuario, criadaEm: new Date().toISOString() });
-        return MPRO.db.trocarEscopo(espaco());
+        return MPRO.db.trocarEscopo(espaco()).then(function () {
+          if (MPRO.sync && MPRO.sync.configurado()) {
+            return MPRO.sync.sincronizarTudo();
+          }
+        });
       });
     }
 
@@ -221,7 +225,11 @@ MPRO.session = (function () {
     };
 
     grava(sessaoData);
-    return MPRO.db.trocarEscopo(espaco());
+    return MPRO.db.trocarEscopo(espaco()).then(function () {
+      if (MPRO.sync && MPRO.sync.configurado()) {
+        return MPRO.sync.sincronizarTudo();
+      }
+    });
   }
 
   function sair() {

@@ -13,7 +13,7 @@ MPRO.configurarPlataforma({
   nome: 'M-PRO Campo',
   auth: { modo: 'local' },
   db: { driver: 'auto', nome: 'mpro-campo' },
-  nuvem: { baseUrl: null, intervaloMs: 60000 },
+  nuvem: { baseUrl: '/api', intervaloMs: 30000 },
   ia: { modo: 'local', endpoint: null },
   recursos: { onboarding: true, instalavel: true, landing: false }
 });
