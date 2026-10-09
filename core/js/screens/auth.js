@@ -53,6 +53,8 @@ MPRO.screens = MPRO.screens || {};
     }, [ui.icon('verified_user'), obrigatorio ? 'Concordar e Acessar o Sistema' : 'Entendido e Aceito']);
 
     var corpoTermos = [
+      h('a', { href: ((window.MPRO_RUNTIME || {}).backendUrl || '') + '/web/privacidade.html', target: '_blank', rel: 'noopener', text: 'Ler política completa e contato do responsável' }),
+      h('a', { href: '#/privacidade', onclick: function () { ui.closeSheet(); }, text: 'Privacidade e exclusão de conta' }),
       h('div', { class: 'termos-wrapper', style: 'display:flex;flex-direction:column;gap:16px;max-height:60vh;overflow-y:auto;padding-right:4px;font-size:14px;line-height:1.6;color:var(--on-surface)' }, [
         h('div', { class: 'notice', style: 'border-left:3px solid var(--secondary);background:var(--surface-container-high);padding:10px 14px' }, [
           ui.icon('gavel'),
@@ -70,7 +72,7 @@ MPRO.screens = MPRO.screens || {};
         h('section', {}, [
           h('h4', { style: 'margin:0 0 6px;color:var(--primary);font-size:15px;font-weight:700', text: '2. Dados Pessoais e Técnicos Coletados' }),
           h('ul', { style: 'margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px' }, [
-            h('li', { text: 'Dados Cadastrais do Usuário: Nome completo, e-mail profissional, cargo, empresa/propriedade vinculada e credenciais de acesso sob criptografia salgada.' }),
+            h('li', { text: 'Dados Cadastrais do Usuário: Nome completo, e-mail profissional, cargo, empresa/propriedade vinculada e senhas protegidas por hash com salt.' }),
             h('li', { text: 'Dados de Campo e Visitas: Registros agronômicos, medições físico-químicas de solo e água, histórico de manejo e recomendações técnicas.' }),
             h('li', { text: 'Evidências Multimídia: Fotografias de lavoura e notas de áudio/voz de campo para fins de registro e transcrição técnica.' }),
             h('li', { text: 'Coordenadas Geográficas (GPS): Coletadas estritamente durante o registro de visitas e fotos para localização territorial dos talhões e pivôs inspecionados.' })
@@ -84,12 +86,12 @@ MPRO.screens = MPRO.screens || {};
 
         h('section', {}, [
           h('h4', { style: 'margin:0 0 6px;color:var(--primary);font-size:15px;font-weight:700', text: '4. Armazenamento Seguro, Sigilo e Não Compartilhamento' }),
-          h('p', { text: 'Os dados são armazenados em nuvem sob conexões criptografadas (HTTPS/TLS 1.3), bancos de dados com isolamento estrito (PostgreSQL Neon) e CDN de objetos protegida (Vercel Blob). A M-PRO não comercializa nem compartilha dados cadastrais ou históricos técnicos com terceiros para fins publicitários.' })
+          h('p', { text: 'Os registros usam HTTPS e são processados por Vercel, Neon e Vercel Blob. Na configuração atual, arquivos Blob podem ser acessados por quem tem o link. Consulte a política completa para conhecer os provedores e seus direitos.' })
         ]),
 
         h('section', {}, [
           h('h4', { style: 'margin:0 0 6px;color:var(--primary);font-size:15px;font-weight:700', text: '5. Inteligência Artificial e Sigilo Contextual' }),
-          h('p', { text: 'A Consulta Assistida por IA processa unicamente os registros técnicos do escopo autorizado pelo agrônomo responsável. As consultas não são utilizadas para treinamento público ou vazamento de segredos agronômicos entre diferentes clientes.' })
+          h('p', { text: 'A Consulta Assistida por IA processa unicamente os registros técnicos do escopo autorizado pelo agrônomo responsável. A pergunta e o contexto selecionado são enviados à NVIDIA. As políticas e condições do provedor devem ser avaliadas pelo responsável. Revise as respostas com um profissional.' })
         ]),
 
         h('section', {}, [

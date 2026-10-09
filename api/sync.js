@@ -1,5 +1,5 @@
 import { sql, send, readJson, query } from './_db.js';
-import { requireAuth } from './_auth.js';
+import { requireActiveUser } from './_auth.js';
 import { checkRateLimit } from './_rate_limit.js';
 
 /**
@@ -7,9 +7,8 @@ import { checkRateLimit } from './_rate_limit.js';
  */
 async function assegurarTabela() {
   try {
-    await sql`
-      CREATE SCHEMA IF NOT EXISTS mpro;
-      CREATE TABLE IF NOT EXISTS mpro.registros (
+    await sql`CREATE SCHEMA IF NOT EXISTS mpro`;
+    await sql`CREATE TABLE IF NOT EXISTS mpro.registros (
         usuario_id    text NOT NULL,
         colecao       text NOT NULL,
         item_id       text NOT NULL,
@@ -17,11 +16,11 @@ async function assegurarTabela() {
         atualizado_em timestamptz NOT NULL DEFAULT now(),
         removido      boolean NOT NULL DEFAULT false,
         PRIMARY KEY (usuario_id, colecao, item_id)
-      );
-      CREATE INDEX IF NOT EXISTS idx_mpro_registros_user_col ON mpro.registros (usuario_id, colecao);
-    `;
+      )`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_mpro_registros_user_col ON mpro.registros (usuario_id, colecao)`;
   } catch (e) {
     console.error('Erro ao verificar tabela de sincronização:', e);
+    throw e;
   }
 }
 
@@ -32,7 +31,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return send(res, 204, {});
 
     // Autenticação obrigatória via Bearer Token
-    const user = requireAuth(req, res);
+    const user = await requireActiveUser(req, res);
     if (!user) return; // Resposta 401 já enviada por requireAuth
 
     if (!tabelaVerificada) {
@@ -90,6 +89,7 @@ export default async function handler(req, res) {
         usuarioId: usuarioId,
         total: rows.length,
         registros: registros,
+        removidos: (await sql`SELECT colecao, item_id FROM mpro.registros WHERE usuario_id = ${usuarioId} AND removido = true`).map(row => ({ colecao: row.colecao, id: row.item_id })),
         sincronizadoEm: new Date().toISOString()
       });
     }
@@ -105,6 +105,9 @@ export default async function handler(req, res) {
       const colecao = (body.colecao || '').trim();
       const itemId = String(body.id || body.alvoId || '').trim();
       const dados = body.dados || body.payload || {};
+
+      if (!['clients', 'visits', 'drafts', 'equipments', 'photos', 'meta'].includes(colecao) || !['upsert', 'delete'].includes(operacao) || typeof dados !== 'object' || dados === null || Array.isArray(dados) || (operacao === 'upsert' && dados.id !== itemId)) return send(res, 400, { error: 'Operação ou registro inválido.' });
+      delete dados._pk; delete dados._escopo;
 
       if (!colecao || !itemId) {
         return send(res, 400, { error: 'Coleção e ID do registro são obrigatórios.' });

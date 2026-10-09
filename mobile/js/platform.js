@@ -1,19 +1,13 @@
-/* Configuração do módulo Android (Play Store).
-
-   Decisões desta fase:
-   - sem tela de login: a identidade é o perfil escolhido no primeiro acesso;
-   - banco local obrigatório, com IndexedDB;
-   - nuvem desligada: tudo é gravado no aparelho e a fila fica pronta para subir
-     assim que `nuvem.baseUrl` apontar para o servidor M-PRO;
-   - consulta assistida em modo local, sobre os registros do próprio aparelho.
-
-   Ligar a nuvem depois é só preencher `nuvem.baseUrl` e `auth`. Nenhuma chave entra aqui. */
-MPRO.configurarPlataforma({
-  alvo: 'mobile',
-  nome: 'M-PRO Campo',
-  auth: { modo: 'local' },
-  db: { driver: 'auto', nome: 'mpro-campo' },
-  nuvem: { baseUrl: '/api', intervaloMs: 30000 },
-  ia: { modo: 'local', endpoint: null },
-  recursos: { onboarding: true, instalavel: true, landing: false }
-});
+/* Mesmas contas e APIs do site. Segredos ficam no servidor. */
+(function () {
+  var runtime = window.MPRO_RUNTIME || {};
+  var api = (runtime.backendUrl || '').replace(/\/$/, '') + '/api';
+  MPRO.configurarPlataforma({
+    alvo: 'mobile', nome: 'M-PRO Campo', versao: runtime.versionName || '0.5.0',
+    auth: { modo: 'gated', endpoint: api + '/auth' },
+    db: { driver: 'auto', nome: 'mpro-campo' },
+    nuvem: { baseUrl: api, intervaloMs: 30000 },
+    ia: { modo: 'remoto', endpoint: api + '/ia' },
+    recursos: { onboarding: false, instalavel: !window.MPRO_NATIVE, landing: false }
+  });
+})();

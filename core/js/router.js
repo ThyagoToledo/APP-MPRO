@@ -28,6 +28,7 @@ MPRO.router = (function () {
     var s = MPRO.screens;
     var rotas = {
       '/login': s.login,
+      '/privacidade': s.privacidade,
       '/solicitar-acesso': s.solicitarAcesso,
       '/bem-vindo': s.bemVindo,
       '/': s.dashboard,
@@ -178,7 +179,7 @@ MPRO.router = (function () {
   function portao(caminho) {
     var entrada = MPRO.session.modo() === 'local' ? '/bem-vindo' : '/login';
     if (!MPRO.session.pronta()) {
-      if (caminho === entrada || caminho === '/solicitar-acesso') return null;
+      if (caminho === entrada || caminho === '/solicitar-acesso' || caminho === '/privacidade') return null;
       return entrada;
     }
     if (caminho === '/login' || caminho === '/bem-vindo' || caminho === '/solicitar-acesso') return '/';

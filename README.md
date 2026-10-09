@@ -25,6 +25,8 @@
 
 ## Índice
 
+> **Android / Play Store (0.5.0):** preparação, compilação, configuração de produção e pendências em [mobile/PLAY-STORE.md](mobile/PLAY-STORE.md). Inventário de dados em [mobile/DATA-SAFETY.md](mobile/DATA-SAFETY.md). O mobile agora usa as contas aprovadas e o mesmo backend do site. As seções históricas abaixo descrevem versões anteriores; o roteiro Android é a referência para a versão atual.
+
 * [Visão Geral](#visao-geral)
 * [Componentes Principais](#componentes-principais)
 * [Controle de Acesso & Governança por Cargo](#controle-de-acesso--governanca-por-cargo)

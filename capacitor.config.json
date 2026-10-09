@@ -1,0 +1,8 @@
+{
+  "appId": "br.com.mpro.campo",
+  "appName": "M-PRO Campo",
+  "webDir": "mobile/dist",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false },
+  "plugins": { "CapacitorHttp": { "enabled": false } }
+}

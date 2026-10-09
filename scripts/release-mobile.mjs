@@ -1,0 +1,12 @@
+import { readFile, access } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
+const runtime = await readFile('mobile/dist/mobile/js/runtime-config.js', 'utf8');
+if (runtime.includes('"fixture":true')) throw new Error('Assets de teste não podem ser usados na publicação. Execute mobile:sync com configuração real.');
+const signing = await readFile('android/keystore.properties', 'utf8').catch(() => { throw new Error('Configure android/keystore.properties e a chave de upload antes de gerar release.'); });
+for (const field of ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']) if (!new RegExp('^' + field + '=.+$', 'm').test(signing)) throw new Error('Configuração de assinatura incompleta: ' + field);
+const storeFile = signing.match(/^storeFile=(.+)$/m)[1].trim();
+await access(resolve('android', storeFile));
+const result = spawnSync(process.platform === 'win32' ? 'cmd.exe' : './gradlew', process.platform === 'win32' ? ['/d', '/c', 'gradlew.bat bundleRelease'] : ['bundleRelease'], { cwd: 'android', stdio: 'inherit' });
+if (result.error) throw result.error;
+process.exitCode = result.status || 0;

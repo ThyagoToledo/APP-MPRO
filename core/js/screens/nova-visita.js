@@ -50,7 +50,7 @@ MPRO.screens.novaVisita = (function () {
   }
 
   function garanteEstado(ctx) {
-    var chave = JSON.stringify(ctx.query);
+    var chave = MPRO.db.info().escopo + ':' + JSON.stringify(ctx.query);
     if (estado.chave === chave && estado.rascunho) return;
 
     estado.chave = chave;
@@ -615,6 +615,7 @@ MPRO.screens.novaVisita = (function () {
           observacoes: r.observacoes,
           medicoes: r.medicoes,
           recomendacao: r.recomendacao,
+          audios: (r.audios || []).map(function (audio) { return { id: audio.id, url: audio.dataUrl || audio.url, transcricao: audio.transcricao, duracaoFormatada: audio.duracaoFormatada, duracaoSegundos: audio.duracaoSegundos, tipo: audio.tipo }; }),
           fotos: r.fotos.map(function (f) { return { nome: f.nome, titulo: f.titulo, legenda: f.legenda, url: f.url }; })
         });
         MPRO.store.setClientStatus(r.clienteId, status, r.data);

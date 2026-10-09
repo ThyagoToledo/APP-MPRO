@@ -188,6 +188,7 @@ MPRO.screens = MPRO.screens || {};
       ])));
 
       secoes.push(ui.section('Dados e sincronização', null, blocoDados(ctx)));
+      secoes.push(ui.section('Privacidade e conta', null, h('button', { class: 'btn btn--outline', type: 'button', onclick: function () { location.hash = '#/privacidade'; } }, [ui.icon('privacy_tip'), 'Política e exclusão de conta'])));
       secoes.push(ui.section('Sobre', null, h('div', { class: 'settings-card' }, [h('div', { class: 'settings-row' }, [h('span', { class: 'listtile__icon' }, [ui.icon('info')]), h('span', { class: 'listtile__body' }, [h('strong', { text: MPRO.platform.nome }), h('span', { text: 'Módulo ' + MPRO.platform.alvo + ' · versão ' + MPRO.platform.versao })]), ui.brand({ markOnly: true })])])));
 
       return h('div', { class: 'settings-page' }, secoes);

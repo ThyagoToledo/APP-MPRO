@@ -16,6 +16,36 @@ MPRO.sync = (function () {
   var ultimoErro = null;
   var drenando = false;
   var timer = null;
+  var ciclo = null;
+  var midiasEnviadas = new Map();
+
+  async function prepararMidias(valor, headers) {
+    if (!valor || typeof valor !== 'object') return valor;
+    if (Array.isArray(valor)) {
+      var lista = [];
+      for (var item of valor) lista.push(await prepararMidias(item, headers));
+      return lista;
+    }
+    var copia = Object.assign({}, valor);
+    var origem = typeof copia.dataUrl === 'string' && copia.dataUrl.startsWith('data:') ? copia.dataUrl : copia.url;
+    if (typeof origem === 'string' && /^data:(image|audio)\//.test(origem)) {
+      var url = midiasEnviadas.get(origem);
+      if (!url) {
+        var res = await fetch(MPRO.apiUrl('upload'), { method: 'POST', headers: headers, body: JSON.stringify({ arquivo: origem, pasta: 'evidencias', nome: copia.nome || copia.id || 'evidencia' }) });
+        var dados = await res.json();
+        if (!res.ok || !dados.url || !dados.url.startsWith('https://')) throw new Error(dados.error || 'Armazenamento de mídia indisponível. O arquivo continua salvo no aparelho.');
+        url = dados.url; midiasEnviadas.set(origem, url);
+      }
+      copia.url = url;
+      delete copia.dataUrl; delete copia.blob;
+    }
+    for (var chave of Object.keys(copia)) if (copia[chave] && typeof copia[chave] === 'object') copia[chave] = await prepararMidias(copia[chave], headers);
+    return copia;
+  }
+
+  function autorizado() {
+    return MPRO.session.modo() !== 'gated' || !!MPRO.session.cabecalhos().Authorization;
+  }
 
   function configurado() {
     return !!(MPRO.platform.nuvem && MPRO.platform.nuvem.baseUrl);
@@ -79,9 +109,15 @@ MPRO.sync = (function () {
 
   function envia(operacao) {
     var base = MPRO.platform.nuvem.baseUrl.replace(/\/$/, '');
-    return fetch(base + '/sync', {
+    var scope = MPRO.db.info().escopo;
+    var headers = Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos());
+    return prepararMidias(operacao.payload, headers).then(function (payload) {
+      if (MPRO.db.info().escopo !== scope) throw new Error('Sessão alterada durante a sincronização.');
+      operacao.payload = payload;
+      MPRO.db.salvar('outbox', operacao, { semFila: true });
+      return fetch(base + '/sync', {
       method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos()),
+      headers: headers,
       body: JSON.stringify({
         operacao: operacao.operacao,
         colecao: operacao.colecao,
@@ -89,6 +125,7 @@ MPRO.sync = (function () {
         rev: operacao.payload._rev || 0,
         dados: operacao.payload
       })
+      });
     }).then(function (resposta) {
       if (!resposta.ok) throw new Error('HTTP ' + resposta.status);
       return resposta.json().catch(function () { return {}; });
@@ -99,9 +136,11 @@ MPRO.sync = (function () {
   function drenar() {
     if (drenando) return Promise.resolve(status());
     if (!configurado()) { calcula(); return Promise.resolve(status()); }
+    if (!autorizado()) return Promise.resolve(status());
     if (!navigator.onLine) { calcula(); return Promise.resolve(status()); }
 
     var pendentes = fila();
+    var scope = MPRO.db.info().escopo;
     if (!pendentes.length) { ultimoErro = null; calcula(); return Promise.resolve(status()); }
 
     drenando = true;
@@ -110,9 +149,11 @@ MPRO.sync = (function () {
 
     return pendentes.reduce(function (corrente, operacao) {
       return corrente.then(function () {
+        if (MPRO.db.info().escopo !== scope) throw new Error('Sessão alterada durante a sincronização.');
         return envia(operacao).then(function () {
+          if (MPRO.db.info().escopo !== scope) return;
           MPRO.db.descartar('outbox', operacao.id);
-          MPRO.db.marcarSincronizado(operacao.colecao, operacao.alvoId);
+          if (!fila().some(function (op) { return op.colecao === operacao.colecao && op.alvoId === operacao.alvoId; })) MPRO.db.marcarSincronizado(operacao.colecao, operacao.alvoId);
         });
       });
     }, Promise.resolve())
@@ -130,6 +171,7 @@ MPRO.sync = (function () {
     if (!configurado()) return Promise.resolve(status());
     if (!navigator.onLine) return Promise.resolve(status());
     var cabecalhoAuth = MPRO.session.cabecalhos();
+    var scope = MPRO.db.info().escopo;
     if (!cabecalhoAuth.Authorization && MPRO.platform.auth.modo === 'gated') {
       return Promise.resolve(status());
     }
@@ -139,16 +181,20 @@ MPRO.sync = (function () {
       method: 'GET',
       headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhoAuth)
     }).then(function (res) {
-      if (!res.ok) return null;
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     }).then(function (dados) {
+      if (MPRO.db.info().escopo !== scope) return status();
       if (!dados || !dados.registros) return status();
+      (dados.removidos || []).forEach(function (item) {
+        if (!fila().some(function (op) { return op.colecao === item.colecao && op.alvoId === item.id; })) MPRO.db.descartar(item.colecao, item.id);
+      });
       var colecoes = Object.keys(dados.registros);
       colecoes.forEach(function (col) {
         var lista = dados.registros[col] || [];
         lista.forEach(function (item) {
-          if (item && item.id) {
-            MPRO.db.salvar(col, item, { semFila: true });
+          if (item && item.id && MPRO.db.colecoes.indexOf(col) !== -1 && !fila().some(function (op) { return op.colecao === col && op.alvoId === item.id; })) {
+            MPRO.db.receber(col, item);
           }
         });
       });
@@ -156,6 +202,7 @@ MPRO.sync = (function () {
       return status();
     }).catch(function (e) {
       console.warn('Falha ao baixar dados da nuvem:', e);
+      ultimoErro = e.message; calcula();
       return status();
     });
   }
@@ -174,8 +221,8 @@ MPRO.sync = (function () {
     colecoes.forEach(function (col) {
       var itens = MPRO.db.todos(col);
       itens.forEach(function (item) {
-        if (item && item.id && !item._removido) {
-          var jaNaFila = filaAtual.some(function (op) { return op.alvoId === item.id; });
+        if (item && item.id && item._pendente && !item._removido) {
+          var jaNaFila = filaAtual.some(function (op) { return op.colecao === col && op.alvoId === item.id; });
           if (!jaNaFila) {
             enfileirar(col, 'upsert', item);
           }
@@ -187,20 +234,25 @@ MPRO.sync = (function () {
   }
 
   function sincronizarTudo() {
-    // 1. Envia registros locais pré-existentes ou pendentes
-    return enviarTudoLocal().then(function () {
-      // 2. Puxa os dados atualizados da nuvem
-      return puxar();
-    });
+    if (ciclo) return ciclo;
+    ciclo = enviarTudoLocal().then(function () {
+      return ultimoErro ? status() : puxar();
+    }).finally(function () { ciclo = null; midiasEnviadas.clear(); });
+    return ciclo;
   }
 
   function iniciar() {
     calcula();
-    window.addEventListener('online', sincronizarTudo);
+    window.addEventListener('online', automaticamente);
     window.addEventListener('offline', calcula);
     if (timer) clearInterval(timer);
-    if (configurado()) timer = setInterval(sincronizarTudo, MPRO.platform.nuvem.intervaloMs);
-    if (configurado() && navigator.onLine) sincronizarTudo();
+    if (configurado()) timer = setInterval(automaticamente, MPRO.platform.nuvem.intervaloMs);
+    if (configurado() && navigator.onLine) automaticamente();
+  }
+
+  function automaticamente() {
+    if (MPRO.store && MPRO.store.settings().sincronizacao === false) return Promise.resolve(status());
+    return sincronizarTudo();
   }
 
   return {
@@ -210,6 +262,7 @@ MPRO.sync = (function () {
     drenar: drenar,
     puxar: puxar,
     sincronizarTudo: sincronizarTudo,
+    automaticamente: automaticamente,
     status: status,
     rotulo: rotulo,
     configurado: configurado,

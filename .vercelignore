@@ -7,3 +7,13 @@ tmp/
 Brain-main/
 README.md
 LICENSE
+
+android/
+node_modules/
+mobile/dist/
+mobile/config.local.json
+mobile/native/
+scripts/
+tests/
+capacitor.config.json
+private/

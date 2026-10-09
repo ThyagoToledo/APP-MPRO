@@ -5,6 +5,10 @@
    Nenhum campo aqui aceita chave, token ou segredo. As credenciais de IA e de banco
    ficam no servidor; o front só conhece URLs públicas de endpoint. */
 window.MPRO = window.MPRO || {};
+MPRO.apiUrl = function (caminho) {
+  var base = (MPRO.platform.nuvem.baseUrl || '/api').replace(/\/$/, '');
+  return base + '/' + String(caminho).replace(/^\/?api\//, '').replace(/^\//, '');
+};
 
 MPRO.platform = {
   /* 'mobile' | 'web' — usado em textos, telas exclusivas e no id do espaço de trabalho. */

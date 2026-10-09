@@ -1,7 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { sql, send } from './_db.js';
 
-const SECRET = process.env.AUTH_SECRET || process.env.DATABASE_URL || 'mpro-seguranca-token-chave-padrao-2026';
+function secret() {
+  if (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32) throw new Error('AUTH_SECRET precisa ter pelo menos 32 caracteres.');
+  return process.env.AUTH_SECRET;
+}
 
 export function signToken(payload) {
   const data = {
@@ -11,16 +14,17 @@ export function signToken(payload) {
     exp: Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 dias
   };
   const bodyBase64 = Buffer.from(JSON.stringify(data)).toString('base64url');
-  const hmac = createHmac('sha256', SECRET).update(bodyBase64).digest('base64url');
+  const hmac = createHmac('sha256', secret()).update(bodyBase64).digest('base64url');
   return `${bodyBase64}.${hmac}`;
 }
 
 export function verifyToken(token) {
-  if (!token || typeof token !== 'string' || !token.includes('.')) return null;
+  if (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32) return null;
+  if (!token || typeof token !== 'string' || token.split('.').length !== 2) return null;
   const [bodyBase64, signature] = token.split('.');
   if (!bodyBase64 || !signature) return null;
 
-  const expectedHmac = createHmac('sha256', SECRET).update(bodyBase64).digest('base64url');
+  const expectedHmac = createHmac('sha256', secret()).update(bodyBase64).digest('base64url');
   const sigBuf = Buffer.from(signature);
   const expBuf = Buffer.from(expectedHmac);
 
@@ -30,7 +34,7 @@ export function verifyToken(token) {
 
   try {
     const payload = JSON.parse(Buffer.from(bodyBase64, 'base64url').toString('utf8'));
-    if (payload.exp && Date.now() > payload.exp) return null; // Expirado
+    if (!payload.id || !Number.isFinite(payload.exp) || Date.now() >= payload.exp) return null;
     return payload;
   } catch {
     return null;
@@ -66,7 +70,8 @@ export async function requireActiveUser(req, res) {
     user.papel = rows[0].papel;
     return user;
   } catch {
-    return user;
+    send(res, 503, { error: 'Não foi possível validar o acesso agora. Tente novamente.' });
+    return null;
   }
 }
 

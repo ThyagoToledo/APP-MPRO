@@ -6,7 +6,7 @@
    Os blocos do mapa e as fontes vêm de outra origem e só existem offline depois de terem
    sido vistos ao menos uma vez com internet — é o único conteúdo que degrada sem sinal.
    Nenhuma resposta de API é cacheada: dado de trabalho vive no IndexedDB, não aqui. */
-var VERSAO = 'mpro-campo-v3';
+var VERSAO = 'mpro-campo-v5';
 var SHELL = VERSAO + '-shell';
 var RUNTIME = VERSAO + '-runtime';
 
@@ -15,6 +15,7 @@ var PRE_CACHE = [
   '/mobile/index.html',
   '/mobile/manifest.webmanifest',
   '/mobile/js/platform.js',
+  '/mobile/js/runtime-config.js',
   '/mobile/icons/icon-192.png',
   '/mobile/icons/icon-512.png',
   '/mobile/icons/icon-maskable-512.png',
@@ -23,6 +24,7 @@ var PRE_CACHE = [
   '/core/css/polish.css',
   '/core/vendor/leaflet/leaflet.css',
   '/core/vendor/leaflet/leaflet.js',
+  '/core/vendor/fonts/fonts.css',
   '/core/assets/mpro-app-icon.svg',
   '/core/assets/mpro-mark.svg',
   '/core/js/platform.js',
@@ -33,7 +35,10 @@ var PRE_CACHE = [
   '/core/js/ia.js',
   '/core/js/store.js',
   '/core/js/ui.js',
+  '/core/js/audio.js',
+  '/core/js/upload.js',
   '/core/js/router.js',
+  '/core/js/screens/privacy.js',
   '/core/js/app.js',
   '/core/js/screens/dashboard.js',
   '/core/js/screens/clientes.js',

@@ -50,6 +50,7 @@ MPRO.session = (function () {
   }
 
   function carregar() {
+    if (modo() === 'gated') localStorage.removeItem(CHAVE_USUARIOS);
     sessao = le();
     return sessao;
   }
@@ -119,7 +120,7 @@ MPRO.session = (function () {
 
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/auth?action=solicitar-acesso', {
+      return fetch(MPRO.apiUrl('/api/auth?action=solicitar-acesso'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome: nome, email: email, senha: senha, empresa: empresa, cargo: cargo })
@@ -163,7 +164,7 @@ MPRO.session = (function () {
     var endpoint = MPRO.platform.auth.endpoint;
 
     if (endpoint) {
-      return fetch('/api/auth?action=login', {
+      return fetch(MPRO.apiUrl('/api/auth?action=login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailNormalizado, senha: senha })
@@ -241,7 +242,7 @@ MPRO.session = (function () {
   function listarUsuarios() {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=usuarios', {
+      return fetch(MPRO.apiUrl('/api/admin?action=usuarios'), {
         headers: cabecalhos()
       }).then(function (res) { return res.json(); });
     }
@@ -257,7 +258,7 @@ MPRO.session = (function () {
   function aprovarSolicitacao(id, papelDefinido) {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=aprovar', {
+      return fetch(MPRO.apiUrl('/api/admin?action=aprovar'), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()),
         body: JSON.stringify({ id: id, papel: papelDefinido || 'tecnico' })
@@ -278,7 +279,7 @@ MPRO.session = (function () {
   function recusarSolicitacao(id) {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=recusar', {
+      return fetch(MPRO.apiUrl('/api/admin?action=recusar'), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()),
         body: JSON.stringify({ id: id })
@@ -294,7 +295,7 @@ MPRO.session = (function () {
   function alterarCargo(id, novoPapel) {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=cargo', {
+      return fetch(MPRO.apiUrl('/api/admin?action=cargo'), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()),
         body: JSON.stringify({ id: id, papel: novoPapel })
@@ -318,7 +319,7 @@ MPRO.session = (function () {
   function banirUsuario(id) {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=banir', {
+      return fetch(MPRO.apiUrl('/api/admin?action=banir'), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()),
         body: JSON.stringify({ id: id })
@@ -336,7 +337,7 @@ MPRO.session = (function () {
   function reativarUsuario(id) {
     var endpoint = MPRO.platform.auth.endpoint;
     if (endpoint) {
-      return fetch('/api/admin?action=reativar', {
+      return fetch(MPRO.apiUrl('/api/admin?action=reativar'), {
         method: 'POST',
         headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos()),
         body: JSON.stringify({ id: id })
@@ -351,39 +352,12 @@ MPRO.session = (function () {
     return Promise.resolve(usuarios[idx]);
   }
 
-  function definirAdmin(email, senha, nome) {
-    var emailNorm = (email || '').trim().toLowerCase();
-    var usuarios = leUsuarios();
-    var idx = usuarios.findIndex(function (u) { return u.email === emailNorm; });
-    if (idx !== -1) {
-      usuarios[idx].papel = 'admin';
-      usuarios[idx].status = 'aprovado';
-      if (senha) usuarios[idx].senha = senha;
-      if (nome) usuarios[idx].nome = nome;
-    } else {
-      usuarios.push({
-        id: 'usr_admin_' + Date.now().toString(36),
-        nome: nome || 'Administrador',
-        email: emailNorm,
-        senha: senha || '123456',
-        empresa: 'M-PRO',
-        cargo: 'Administrador',
-        papel: 'admin',
-        status: 'aprovado',
-        criadoEm: new Date().toISOString()
-      });
-    }
-    gravaUsuarios(usuarios);
-    return true;
-  }
-
   function cabecalhos() {
     if (sessao && sessao.token) return { Authorization: 'Bearer ' + sessao.token };
     return {};
   }
 
-  // Seed inicial local do admin Thyago
-  definirAdmin('thyago10a2007@gmail.com', 'Thyago13', 'Thyago');
+
 
   return {
     carregar: carregar,
@@ -404,7 +378,6 @@ MPRO.session = (function () {
     banirUsuario: banirUsuario,
     reativarUsuario: reativarUsuario,
     alterarCargo: alterarCargo,
-    definirAdmin: definirAdmin,
     cabecalhos: cabecalhos,
     usuario: function () { return sessao && sessao.usuario; },
     aoMudar: function (fn) { listeners.push(fn); }

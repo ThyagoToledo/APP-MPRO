@@ -11,11 +11,9 @@ function hashSenha(senha) {
   return `${salt}:${dk}`;
 }
 
-function verificaSenha(senha, armazenado) {
+export function verificaSenha(senha, armazenado) {
   if (!armazenado) return false;
-  if (!armazenado.includes(':')) {
-    return senha === armazenado;
-  }
+  if (typeof senha !== 'string' || typeof armazenado !== 'string' || !/^[a-f0-9]{32}:[a-f0-9]{64}$/i.test(armazenado)) return false;
   const [salt, dk] = armazenado.split(':');
   const alvo = Buffer.from(dk, 'hex');
   const calc = scryptSync(senha, salt, 32);

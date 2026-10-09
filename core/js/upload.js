@@ -86,7 +86,7 @@ MPRO.upload = (function () {
           };
         }
 
-        var endpoint = '/api/upload';
+        var endpoint = MPRO.apiUrl('upload');
         return fetch(endpoint, {
           method: 'POST',
           headers: Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos()),

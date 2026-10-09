@@ -32,6 +32,7 @@ export default async function handler(req, res) {
       // Aprovar solicitação
       if (acao === 'aprovar') {
         const papel = body.papel || 'tecnico';
+        if (!['tecnico', 'gestor', 'admin'].includes(papel)) return send(res, 400, { error: 'Papel inválido.' });
         const r = await sql`
           UPDATE mpro.usuarios
           SET status = 'aprovado',
@@ -77,6 +78,7 @@ export default async function handler(req, res) {
       // Alterar cargo / papel
       if (acao === 'cargo' || acao === 'set-cargo') {
         const papel = body.papel;
+        if (!['tecnico', 'gestor', 'admin'].includes(papel)) return send(res, 400, { error: 'Papel inválido.' });
         if (!papel) return send(res, 400, { error: 'Novo papel é obrigatório.' });
 
         const r = await sql`

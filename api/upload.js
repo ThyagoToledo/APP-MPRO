@@ -1,6 +1,6 @@
 // Backend Serverless para Upload de Imagens e Evidências Fotográficas (Vercel Blob Storage)
 import { send, readJson } from './_db.js';
-import { requireAuth } from './_auth.js';
+import { requireActiveUser } from './_auth.js';
 import { checkRateLimit } from './_rate_limit.js';
 
 const BLOB_READ_WRITE_TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
@@ -42,7 +42,7 @@ function validaMagicBytes(buffer, mimeType) {
     return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
            buffer[8] === 0x57 && buffer[9] === 0x41 && buffer[10] === 0x56 && buffer[11] === 0x45;
   }
-  return true;
+  return false;
 }
 
 export default async function handler(req, res) {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     if (!checkRateLimit(req, res, { chave: 'upload_media', limite: 30, janelaMs: 60000 })) return;
 
     // 2. Validação de autenticação
-    const user = requireAuth(req, res);
+    const user = await requireActiveUser(req, res);
     if (!user) return;
 
     const body = await readJson(req);
@@ -72,7 +72,8 @@ export default async function handler(req, res) {
 
     if (imagemBase64.startsWith('data:')) {
       const parts = imagemBase64.split(';base64,');
-      mimeType = parts[0].replace('data:', '');
+      mimeType = parts[0].replace('data:', '').split(';')[0].toLowerCase();
+      if (!parts[1]) return send(res, 400, { error: 'Arquivo base64 inválido.' });
       bufferData = Buffer.from(parts[1], 'base64');
     } else {
       bufferData = Buffer.from(imagemBase64, 'base64');
@@ -80,8 +81,8 @@ export default async function handler(req, res) {
 
     // Validação de tipo de arquivo
     const tiposValidos = [
-      'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/gif',
-      'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/mpeg', 'audio/wav'
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'
     ];
     if (!tiposValidos.includes(mimeType.toLowerCase())) {
       return send(res, 400, { error: 'Tipo de imagem inválido. Formatos aceitos: JPEG, PNG, WebP.' });
@@ -100,7 +101,7 @@ export default async function handler(req, res) {
     const extensao = mimeType.split('/')[1] || 'jpg';
     const timestamp = Date.now();
     const hash = Math.random().toString(36).slice(2, 8);
-    const pathname = `mpro/${pasta}/${timestamp}-${hash}-${nomeOriginal.replace(/\.[^/.]+$/, '')}.${extensao}`;
+    const pathname = `mpro/users/${String(user.id)}/${pasta}/${timestamp}-${hash}-${nomeOriginal.replace(/\.[^/.]+$/, '')}.${extensao}`;
 
     // 4. Upload para o Vercel Blob Storage
     if (BLOB_READ_WRITE_TOKEN) {
@@ -149,7 +150,7 @@ export default async function handler(req, res) {
         });
       } catch (errBlob) {
         console.error('Erro no upload Vercel Blob:', errBlob);
-        return send(res, 502, { error: 'Erro ao transferir imagem para o armazenamento da nuvem.', detalhe: errBlob.message });
+        return send(res, 502, { error: 'Erro ao transferir imagem para o armazenamento da nuvem.' });
       }
     }
 

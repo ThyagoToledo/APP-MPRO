@@ -30,6 +30,7 @@ MPRO.audio = (function () {
    */
   function iniciarGravacao(cbProgresso, cbErro) {
     if (gravandoAtualmente) return;
+    if (window.MPRO_NATIVE && !window.confirm('O microfone será usado para gravar sua nota de campo. O áudio será salvo com a visita e poderá ser sincronizado com sua conta. Iniciar gravação?')) return;
     if (!suportaGravacao()) {
       if (cbErro) cbErro(new Error('Gravação de áudio não suportada neste navegador ou aparelho.'));
       return;
@@ -178,6 +179,14 @@ MPRO.audio = (function () {
    * Ditado direto para um campo de texto (botão de microfone inline)
    */
   function ditarParaCampo(elementoInputOuTextarea, cbAtualizado) {
+    if (window.MPRO_DICTATE) {
+      if (gravandoAtualmente) { MPRO.ui.snack('Finalize a gravação antes de iniciar o ditado.'); return null; }
+      window.MPRO_DICTATE().then(function (texto) {
+        elementoInputOuTextarea.value = (elementoInputOuTextarea.value + ' ' + texto).trim();
+        if (cbAtualizado) cbAtualizado(elementoInputOuTextarea.value);
+      }).catch(function (e) { MPRO.ui.snack(e.message || 'Ditado cancelado.'); });
+      return null;
+    }
     if (!suportaTranscricao()) {
       MPRO.ui.snack('Ditado por voz não suportado neste navegador. Use o Chrome ou Edge.');
       return null;

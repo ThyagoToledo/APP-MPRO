@@ -1,13 +1,30 @@
 {
   "name": "app-mpro",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "M-PRO — acompanhamento agronômico de campo",
   "type": "module",
   "scripts": {
-    "db:init": "node tools/init-db.js"
+    "db:init": "node --env-file-if-exists=.env.local scripts/init-db.mjs",
+    "mobile:build": "node scripts/build-mobile.mjs",
+    "mobile:sync": "npm run mobile:build && npx cap sync android",
+    "mobile:open": "npx cap open android",
+    "mobile:release": "npm run mobile:sync && node scripts/release-mobile.mjs",
+    "test": "node --experimental-test-module-mocks --test tests/*.test.mjs",
+    "mobile:key": "node scripts/create-upload-key.mjs",
+    "mobile:preview": "node scripts/serve-preview.mjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/geolocation": "^8.2.3",
     "@neondatabase/serverless": "^0.10.4",
-    "@vercel/blob": "^0.27.1"
+    "@vercel/blob": "^2.8.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.3",
+    "esbuild": "^0.28.2",
+    "fake-indexeddb": "^6.2.5"
   }
 }

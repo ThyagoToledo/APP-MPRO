@@ -14,12 +14,11 @@ MPRO.screens.assistente = (function () {
   var pensando = false;
   var sessaoAtualId = null;
   var painelHistoricoAberto = false;
-  var STORAGE_KEY = 'mpro.assistente.historico';
+  var escopoAtual = null;
 
   function carregarHistorico() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
+      return (MPRO.db.obter('meta', 'historico-assistente') || {}).sessoes || [];
     } catch (e) {
       return [];
     }
@@ -27,7 +26,7 @@ MPRO.screens.assistente = (function () {
 
   function salvarHistorico(lista) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify((lista || []).slice(0, 30)));
+      MPRO.db.salvar('meta', { id: 'historico-assistente', sessoes: (lista || []).slice(0, 30) }, { semFila: true });
     } catch (e) {
       console.warn('Falha ao salvar historico de consultas:', e);
     }
@@ -152,6 +151,7 @@ MPRO.screens.assistente = (function () {
 
   function perguntar(texto, ctx) {
     if (pensando) return;
+    var dono = MPRO.db.info().escopo;
     mensagens.push({ autor: 'usuario', texto: texto });
     pensando = true;
     ctx.rerender();
@@ -167,6 +167,7 @@ MPRO.screens.assistente = (function () {
 
     MPRO.ia.perguntar(payload)
       .then(function (resposta) {
+        if (MPRO.db.info().escopo !== dono) return;
         mensagens.push({
           autor: 'ia',
           texto: resposta.texto,
@@ -176,9 +177,11 @@ MPRO.screens.assistente = (function () {
         });
       })
       .catch(function (erro) {
+        if (MPRO.db.info().escopo !== dono) return;
         mensagens.push({ autor: 'ia', texto: erro.message, semEvidencia: true, referencias: [] });
       })
       .then(function () {
+        if (MPRO.db.info().escopo !== dono) return;
         pensando = false;
         salvarSessaoAtual();
         ctx.rerender();
@@ -389,6 +392,13 @@ MPRO.screens.assistente = (function () {
           ? h('div', { class: 'message__content' }, formataMarkdown(mensagem.texto))
           : h('p', { style: 'white-space:pre-line', text: mensagem.texto }),
         (mensagem.referencias || []).map(referencia),
+        mensagem.autor === 'ia' ? h('button', { class: 'btn btn--text', type: 'button', onclick: function () {
+          var motivo = h('textarea', { class: 'input', 'aria-label': 'Motivo do relato', placeholder: 'Descreva o conteúdo inadequado ou incorreto' });
+          ui.openSheet({ titulo: 'Relatar resposta da IA', body: [motivo], footer: [h('button', { class: 'btn btn--filled', type: 'button', onclick: function () {
+            if (!motivo.value.trim()) { ui.snack('Descreva o problema.'); return; }
+            fetch(MPRO.apiUrl('report'), { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, MPRO.session.cabecalhos()), body: JSON.stringify({ motivo: motivo.value, resposta: mensagem.texto }) }).then(function (res) { if (!res.ok) throw new Error('Não foi possível enviar o relato.'); }).then(function () { ui.closeSheet(); ui.snack('Relato registrado para análise.'); }).catch(function (e) { ui.snack(e.message); });
+          } }, 'Enviar relato')] });
+        } }, [ui.icon('flag'), 'Relatar resposta']) : null,
         mensagem.degradado ? h('span', { class: 'source-warning' }, [ui.icon('cloud_off'), 'O servidor não respondeu; esta resposta veio da busca local']) : null,
         mensagem.semEvidencia ? h('span', { class: 'source-warning' }, [ui.icon('warning'), 'Sem registro correspondente no banco']) : null
       ])
@@ -398,6 +408,11 @@ MPRO.screens.assistente = (function () {
   return {
     grupo: 'B', chave: 'assistente', titulo: 'Consulta assistida',
     render: function (ctx) {
+      if (escopoAtual !== MPRO.db.info().escopo) {
+        escopoAtual = MPRO.db.info().escopo;
+        mensagens = []; pensando = false; sessaoAtualId = null; painelHistoricoAberto = false;
+        clienteId = null; clientesSelecionados = []; modoEscopo = 'unico';
+      }
       var clientes = MPRO.store.clients();
       if (!clientes.length) {
         return ui.emptyState({

@@ -12,26 +12,27 @@ MPRO.screens = MPRO.screens || {};
   var gravandoAudio = false;
   var tempoGravacao = '00:00';
   var fotosLocais = [];
-  var audiosGravados = [
-    {
-      id: 'aud-1',
-      tipo: 'audios',
-      icone: 'mic',
-      titulo: 'Nota de campo · Pivô 2',
-      meta: '01:18 · Sebastião Nogueira',
-      legenda: 'Pressão em 1,5 bar, abaixo dos 2,0 bar esperados. Folhas novas com coloração uniforme. Recomenda-se revisar os emissores do setor sul antes da próxima visita.',
-      duracao: '01:18',
-      url: ''
-    }
-  ];
-  var transcricaoTexto = 'Irrigação do pivô 2 com pressão em 1,5 bar, abaixo dos 2,0 bar esperados. Folhas novas com coloração uniforme. Recomenda-se revisar os emissores do setor sul antes da próxima visita.';
-
-  var EVIDENCIAS = [
-    { id: 'ev-1', tipo: 'fotos', icone: 'photo_camera', titulo: 'Manômetro do pivô 2', meta: 'Fazenda Boa Vista · 25/07 · 06:18', legenda: 'Pressão observada de 1,5 bar no setor sul.' },
-    { id: 'ev-2', tipo: 'fotos', icone: 'photo_camera', titulo: 'Folhas do terço superior', meta: 'Fazenda Boa Vista · 25/07 · 06:32', legenda: 'Coloração uniforme, sem sinais de fitotoxicidade.' },
-    { id: 'ev-3', tipo: 'videos', icone: 'videocam', titulo: 'Uniformidade dos emissores', meta: '00:42 · Pivô 2', legenda: 'Variação visível na extremidade sul.' },
-    { id: 'ev-4', tipo: 'audios', icone: 'mic', titulo: 'Nota de campo · Pivô 2', meta: '01:18 · Sebastião Nogueira', legenda: 'Relato sobre oscilação de pressão após manutenção.' }
-  ];
+  var audiosGravados = [];
+  var transcricaoTexto = '';
+  var EVIDENCIAS = [];
+  function carregarMidias() {
+    gravandoAudio = MPRO.audio && MPRO.audio.estaGravando();
+    var registros = MPRO.db.todos('photos');
+    fotosLocais = registros.filter(function (p) { return p.tipo !== 'audios'; }).sort(function (a, b) { return (a.ordem || 0) - (b.ordem || 0); });
+    audiosGravados = registros.filter(function (p) { return p.tipo === 'audios'; });
+    MPRO.store.visits().concat(MPRO.store.drafts()).forEach(function (visita) {
+      (visita.audios || []).forEach(function (audio) {
+        if (!audiosGravados.some(function (a) { return a.id === audio.id; })) audiosGravados.push(Object.assign({}, audio, { tipo: 'audios', icone: 'mic', titulo: 'Nota de campo', duracao: audio.duracaoFormatada, url: audio.dataUrl || audio.url, legenda: audio.transcricao }));
+      });
+      (visita.fotos || []).forEach(function (foto, i) {
+        if (!fotosLocais.some(function (p) { return p.url === foto.url; })) fotosLocais.push(Object.assign({}, foto, { id: foto.id || visita.id + '-foto-' + i, somenteLeitura: true }));
+      });
+    });
+    EVIDENCIAS = fotosLocais.map(function (foto) { return Object.assign({}, foto, { tipo: 'fotos', icone: 'photo_camera', titulo: foto.titulo || foto.nome, meta: foto.criadoEm ? ui.formatDate(foto.criadoEm) : '' }); });
+    transcricaoTexto = (MPRO.db.obter('meta', 'transcricao-campo') || {}).texto || '';
+  }
+  function salvarFoto(foto) { if (!foto.somenteLeitura) MPRO.db.salvar('photos', foto); }
+  function salvarTranscricao(texto) { MPRO.db.salvar('meta', { id: 'transcricao-campo', texto: texto }, { semFila: true }); }
 
   function seletorVisita() {
     var visitas = MPRO.store.visits();
@@ -61,7 +62,7 @@ MPRO.screens = MPRO.screens || {};
           if (item.tipo === 'audios') {
             location.hash = '#/transcricao';
           } else {
-            ui.snack('Evidência aberta para revisão.');
+            ui.openSheet({ titulo: item.titulo, body: [h('img', { src: item.url, alt: item.legenda || item.titulo, style: 'max-width:100%' })] });
           }
         }
       }, [ui.icon(item.tipo === 'audios' ? 'play_arrow' : 'open_in_full')])
@@ -79,7 +80,8 @@ MPRO.screens = MPRO.screens || {};
       }
     },
     render: function (ctx) {
-      var abas = [['fotos', 'Fotos', 'photo_camera'], ['videos', 'Vídeos', 'videocam'], ['audios', 'Áudios', 'mic']];
+      carregarMidias();
+      var abas = [['fotos', 'Fotos', 'photo_camera'], ['audios', 'Áudios', 'mic']];
       var itens = (abaEvidencia === 'audios' ? audiosGravados : EVIDENCIAS.filter(function (item) { return item.tipo === abaEvidencia; }));
 
       return h('div', { class: 'resource-page' }, [
@@ -119,12 +121,15 @@ MPRO.screens = MPRO.screens || {};
         return MPRO.upload.enviar(arq, { pasta: 'visitas', nome: arq.name });
       })).then(function (resultados) {
         resultados.forEach(function (res, i) {
-          fotosLocais.push({
+          MPRO.db.salvar('photos', {
             id: MPRO.store.newId('foto'),
             nome: res.nome || arquivos[i].name,
             titulo: '',
             legenda: '',
-            url: res.url
+            url: res.url,
+            criadoEm: new Date().toISOString(),
+            visitaId: (MPRO.store.drafts()[0] || MPRO.store.visits()[0] || {}).id || null,
+            ordem: fotosLocais.length + i
           });
         });
         ui.snack(resultados.length + ' foto(s) adicionada(s)!');
@@ -144,6 +149,7 @@ MPRO.screens = MPRO.screens || {};
     if (destino < 0 || destino >= fotosLocais.length) return;
     var foto = fotosLocais.splice(indice, 1)[0];
     fotosLocais.splice(destino, 0, foto);
+    fotosLocais.forEach(function (f, i) { f.ordem = i; salvarFoto(f); });
     ctx.rerender();
   }
 
@@ -151,6 +157,7 @@ MPRO.screens = MPRO.screens || {};
     grupo: 'B', titulo: 'Registro fotográfico',
     acao: { icone: 'add_a_photo', rotulo: 'Adicionar fotos', onClick: function (ctx) { adicionarFoto(ctx); } },
     render: function (ctx) {
+      carregarMidias();
       return h('div', { class: 'resource-page' }, [
         seletorVisita(),
         h('div', { class: 'notice' }, [
@@ -178,17 +185,17 @@ MPRO.screens = MPRO.screens || {};
               h('input', {
                 class: 'input input--sm', value: foto.titulo,
                 placeholder: 'Título da evidência', 'aria-label': 'Título da foto ' + (indice + 1),
-                oninput: function (event) { foto.titulo = event.target.value; }
+                oninput: function (event) { foto.titulo = event.target.value; salvarFoto(foto); }
               }),
               h('textarea', {
                 class: 'textarea', placeholder: 'Legenda técnica',
                 'aria-label': 'Legenda da foto ' + (indice + 1),
-                oninput: function (event) { foto.legenda = event.target.value; }
+                oninput: function (event) { foto.legenda = event.target.value; salvarFoto(foto); }
               }, foto.legenda),
               h('div', { class: 'photo-card__actions' }, [
                 h('button', { class: 'iconbtn iconbtn--ghost', type: 'button', disabled: indice === 0, 'aria-label': 'Mover foto para trás', onclick: function () { moverFoto(indice, -1, ctx); } }, [ui.icon('arrow_back')]),
                 h('button', { class: 'iconbtn iconbtn--ghost', type: 'button', disabled: indice === fotosLocais.length - 1, 'aria-label': 'Mover foto para frente', onclick: function () { moverFoto(indice, 1, ctx); } }, [ui.icon('arrow_forward')]),
-                h('button', { class: 'iconbtn iconbtn--ghost', type: 'button', 'aria-label': 'Remover foto', onclick: function () { fotosLocais.splice(indice, 1); ctx.rerender(); } }, [ui.icon('delete')])
+                h('button', { class: 'iconbtn iconbtn--ghost', type: 'button', 'aria-label': 'Remover foto', onclick: function () { if (foto.somenteLeitura) { ui.snack('Edite a evidência na visita de origem.'); return; } MPRO.db.remover('photos', foto.id); ctx.rerender(); } }, [ui.icon('delete')])
               ])
             ])
           ]);
@@ -209,6 +216,7 @@ MPRO.screens = MPRO.screens || {};
       }
     },
     render: function (ctx) {
+      carregarMidias();
       var rascunhos = MPRO.store.drafts();
       var rascunhoAtivo = rascunhos.length ? rascunhos[0] : null;
 
@@ -223,21 +231,21 @@ MPRO.screens = MPRO.screens || {};
       function alternarGravacao() {
         if (!gravandoAudio) {
           MPRO.audio.iniciarGravacao(function (progresso) {
+            gravandoAudio = true;
             tempoGravacao = progresso.tempoFormatado;
             if (progresso.transcricao) {
-              transcricaoTexto = progresso.transcricao;
+              transcricaoTexto = progresso.transcricao; salvarTranscricao(transcricaoTexto);
             }
             ctx.rerender();
           }, function (err) {
-            ui.snack('Não foi possível acessar o microfone.');
+            gravandoAudio = false; ui.snack('Não foi possível acessar o microfone.'); ctx.rerender();
           });
-          gravandoAudio = true;
           ctx.rerender();
         } else {
           MPRO.audio.pararGravacao().then(function (resultado) {
             gravandoAudio = false;
             if (resultado) {
-              audiosGravados.unshift({
+              MPRO.db.salvar('photos', {
                 id: resultado.id,
                 tipo: 'audios',
                 icone: 'mic',
@@ -245,12 +253,14 @@ MPRO.screens = MPRO.screens || {};
                 meta: ui.formatDate(new Date().toISOString()) + ' · Campo',
                 legenda: resultado.transcricao,
                 duracao: resultado.duracaoFormatada,
-                url: resultado.url
+                url: resultado.dataUrl,
+                visitaId: (MPRO.store.drafts()[0] || MPRO.store.visits()[0] || {}).id || null,
+                criadoEm: new Date().toISOString()
               });
               if (resultado.transcricao) {
-                transcricaoTexto = resultado.transcricao;
+                transcricaoTexto = resultado.transcricao; salvarTranscricao(transcricaoTexto);
               }
-              ui.snack('Áudio gravado e transcrito com sucesso!');
+              ui.snack('Áudio salvo no aparelho. Use o ditado para transcrever observações.');
             }
             ctx.rerender();
           });
@@ -273,8 +283,7 @@ MPRO.screens = MPRO.screens || {};
             });
             reproduzindo = true;
           } else {
-            reproduzindo = true;
-            setTimeout(function () { reproduzindo = false; ctx.rerender(); }, 4000);
+            ui.snack('Nenhum áudio disponível para reprodução.');
           }
         } else {
           if (elementoAudio) elementoAudio.pause();
@@ -299,7 +308,7 @@ MPRO.screens = MPRO.screens || {};
           h('span', {
             class: 'dim',
             style: 'font-size:13px;line-height:1.4',
-            text: gravandoAudio ? 'Ouvindo e transcrevendo em tempo real…' : 'Grave um relato de voz em campo para transcrever automaticamente.'
+            text: gravandoAudio ? 'Gravando sua nota de campo…' : 'Grave o áudio ou use o ditado para preencher o texto.'
           })
         ]),
         h('button', {
@@ -307,9 +316,9 @@ MPRO.screens = MPRO.screens || {};
           type: 'button',
           onclick: function () {
             var input = document.getElementById('textarea-transcricao');
-            if (input) MPRO.audio.ditarParaCampo(input, function (txt) { transcricaoTexto = txt; });
+            if (input) MPRO.audio.ditarParaCampo(input, function (txt) { transcricaoTexto = txt; salvarTranscricao(txt); });
           }
-        }, [ui.icon('mic_none'), 'Ditado contínuo'])
+        }, [ui.icon('mic_none'), 'Ditar observação'])
       ]);
 
       return h('div', { class: 'resource-page transcript-layout' }, [
@@ -352,7 +361,7 @@ MPRO.screens = MPRO.screens || {};
               'aria-label': 'Texto transcrito',
               rows: '6',
               placeholder: 'Fale no microfone ou edite a transcrição aqui…',
-              oninput: function (event) { transcricaoTexto = event.target.value; }
+              oninput: function (event) { transcricaoTexto = event.target.value; salvarTranscricao(transcricaoTexto); }
             }, transcricaoTexto)
           ]),
           h('section', { class: 'panel' }, [
@@ -407,6 +416,7 @@ MPRO.screens = MPRO.screens || {};
     grupo: 'B', titulo: 'Revisão e finalização',
     acao: { icone: 'print', rotulo: 'Imprimir ou salvar PDF', onClick: function () { window.print(); } },
     render: function (ctx) {
+      carregarMidias();
       var visita = visitaParaRevisao(ctx);
       if (!visita) return ui.emptyState({ icone: 'fact_check', titulo: 'Nenhuma visita para revisar', texto: 'Finalize uma visita ou salve um rascunho para montar a prévia do laudo.' });
       var cliente = MPRO.store.client(visita.clienteId);
@@ -423,6 +433,11 @@ MPRO.screens = MPRO.screens || {};
           h('div', { class: 'report-preview__status' }, [h('span', { text: 'SITUAÇÃO DA VISITA' }), ui.statusTag(visita.status)]),
           h('section', {}, [h('h3', { text: 'Síntese técnica' }), h('p', { text: 'A visita registra as condições observadas em campo, as medições disponíveis e os pontos que exigem continuidade. Cada status aparece com ícone e rótulo para manter a leitura também em impressão monocromática.' })]),
           h('section', {}, [h('h3', { text: 'Medições' }), (visita.medicoes && visita.medicoes.length) ? visita.medicoes.map(function (m) { return h('div', { class: 'report-row' }, [h('span', { text: m.nome }), h('strong', { class: 'mono', text: m.valor + ' ' + m.unidade })]); }) : h('p', { class: 'dim', text: 'Sem medições registradas nesta visita.' })]),
+          h('section', {}, [h('h3', { text: 'Responsável e localização' }), h('p', { text: visita.responsavel || 'Responsável não informado' }), h('p', { text: visita.coordenadas ? JSON.stringify(visita.coordenadas) : 'Coordenadas não informadas' })]),
+          h('section', {}, [h('h3', { text: 'Avaliações e observações' }), Object.keys(visita.avaliacoes || {}).map(function (chave) { return h('div', { class: 'report-row' }, [h('strong', { text: chave }), ui.statusTag(visita.avaliacoes[chave]), h('p', { text: (visita.observacoes || {})[chave] || 'Sem observações adicionais' })]); })]),
+          h('section', {}, [h('h3', { text: 'Recomendações' }), h('p', { text: visita.recomendacao || 'Sem recomendações registradas' })]),
+          h('section', {}, [h('h3', { text: 'Registro fotográfico' }), (visita.fotos || []).concat(MPRO.db.todos('photos').filter(function (p) { return p.visitaId === visita.id && p.tipo !== 'audios'; })).map(function (foto) { return h('figure', { style: 'break-inside:avoid' }, [h('img', { src: foto.url, alt: foto.titulo || foto.nome || 'Evidência', style: 'max-width:100%;max-height:420px;object-fit:contain' }), h('figcaption', { text: [foto.titulo, foto.legenda].filter(Boolean).join(' · ') })]); })]),
+          h('section', {}, [h('h3', { text: 'Notas de campo' }), (visita.audios || []).map(function (audio) { return h('p', { text: audio.transcricao || 'Nota de áudio registrada' }); })]),
           h('footer', {}, [h('span', { text: 'M-PRO · acompanhamento agronômico' }), h('span', { class: 'mono', text: 'VERSÃO 1' })])
         ])
       ]);
