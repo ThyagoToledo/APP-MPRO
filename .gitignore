@@ -42,3 +42,7 @@ android/keystore.properties
 *.jks
 *.keystore
 private/
+
+# Local environment secrets; commit only explicit example templates
+!.env.example
+!.env.*.example
