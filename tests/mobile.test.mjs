@@ -59,7 +59,7 @@ test('sincronização não reenvia registros limpos; preserva edição feita dur
   assert.equal(ctx.MPRO.db.obter('clients', 'a')._pendente, true);
 });
 test('tokens adulterados, expirados e sem segredo não liberam acesso; falha no banco fecha o acesso', async () => {
-  process.env.AUTH_SECRET = '[REDACTED_TEST_FIXTURE]';
+  process.env.AUTH_SECRET = 'test-auth-secret-placeholder';
   const token = signToken({ id: 1, papel: 'tecnico' });
   assert.equal(verifyToken(token).id, 1);
   assert.equal(verifyToken(token + '.extra'), null);
