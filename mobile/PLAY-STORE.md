@@ -14,7 +14,7 @@ Preparação em 09/10/2026. A pasta mobile é aproveitável; o app usa Capacitor
 
 ## Configuração que depende do responsável
 
-1. Copie `mobile/config.example.json` para `mobile/config.local.json`. Informe a origem HTTPS real do site, e-mail público de suporte/privacidade e nome do responsável. Não inclua segredos. Defina versão; aumente `versionCode` a cada nova submissão.
+1. Copie `mobile/config.example.json` para `mobile/config.local.json`. A origem de produção e os contatos públicos já estão preenchidos com os dados verificados no Vercel e no repositório AgroAPP. Confirme que eles continuam corretos antes do lançamento. Não inclua segredos. Defina versão; aumente `versionCode` a cada nova submissão.
 2. Confirme o identificador `br.com.mpro.campo` antes do primeiro envio. Se já existe um app na Play Console, use exatamente o identificador registrado, atualizando também namespace, applicationId e pacote Java. Não publique um segundo app para substituir uma atualização.
 3. Confirme `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`, `AUTH_SECRET` com no mínimo 32 caracteres aleatórios e `NVIDIA_API_KEY` no servidor Vercel. Credenciais nunca entram no APK. O modelo NVIDIA atual precisa ser confirmado na conta do provedor; a ausência da IA ativa a busca local com indicação na interface.
 4. Rode `npm run db:init` com `.env.local` seguro apontando para o banco correto. O comando cria apenas tabelas ausentes e colunas de aprovação; não cria administrador ou dados de demonstração. Confira o schema existente antes de aplicar. O primeiro administrador precisa existir e ser aprovado no banco; não há senha padrão no app.
